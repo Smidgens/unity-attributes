@@ -15,7 +15,7 @@ snippets
 -->
 
 
-## ℹ️ Features
+# ℹ️ Features
 
 * Collection of useful field attributes and decorators for the Unity inspector.
 * Simple set-up.
@@ -26,7 +26,7 @@ snippets
 
 <br/>
 
-## 📦 Install
+# 📦 Install
 
 1. Open Package Manager
 2. Paste GitHub URL:\
@@ -35,7 +35,7 @@ snippets
 
 <br/>
 
-## 🚀 Usage
+# 🚀 Usage
 
 **Note:** Requires an explicit assembly reference to `Smidgenomics.Unity.Attributes`.
 
