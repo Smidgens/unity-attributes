@@ -39,14 +39,13 @@ snippets
 
 **Note:** Requires an explicit assembly reference to `Smidgenomics.Unity.Attributes`.
 
+---
+
 ### Header / Comment
-
-
-<img src="/.github/preview/decorators.png" />
 
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
   
 ```cs
@@ -57,17 +56,16 @@ public bool toggle2;
 ```
 </details>
 
-<br/>
+<img src="/.github/preview/decorators.png" />
+
+---
 
 
 ### Inlined
 
-
-<img src="/.github/preview/inlined.png" />
-
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
 
 ```cs
@@ -77,37 +75,19 @@ public bool toggle2;
 
 [FieldSize(nameof(T1.key), 40f)]
 [Inlined] public T1 inlinedCustom;
-
 ```
-
 </details>
 
-<br/>
+<img src="/.github/preview/inlined.png" />
+
+
+---
 
 ### Assembly Type
 
-<table>
-
-<tr>
-<td>
-<img src="/.github/preview/assemblytype.png" />
-</td>
-<td>
-<img src="/.github/preview/typefind.png" />
-</td>
-
-
-</tr>
-
-</table>
-
-```
-UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-```
-
 <details>
   <summary>
-    <b>⌨️ Code</b>
+     ⌨️ Code
   </summary>
   
 ```cs
@@ -134,38 +114,54 @@ Component[] components = GetComponents(t);
 </details>
 
 
-<br/>
+<table>
+
+<tr>
+<td>
+<img src="/.github/preview/assemblytype.png" />
+</td>
+<td>
+<img src="/.github/preview/typefind.png" />
+</td>
+
+
+</tr>
+
+</table>
+
+```
+UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+```
+
+
+---
 
 
 ### Tabs
 
-<img src="/.github/preview/tabs.png" />
-
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
   
 ```cs
 [Serializable] public struct ToggleData { public int x; public bool v1, v2, v3; }
 [Tabs] public T2 tabs;
 ```
-  
 
 </details>
 
+<img src="/.github/preview/tabs.png" />
 
-<br/>
+
+---
 
 
 ### Dropdowns
 
-<img src="/.github/preview/options.png" />
-
-
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
   
 
@@ -190,20 +186,19 @@ public int _int;
 public Texture2D _texture;
 ```
 
-
 </details>
 
+<img src="/.github/preview/options.png" />
 
-<br/>
+---
 
 
 ### Layer / Tag
 
-<img src="/.github/preview/layer.png" />
 
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
   
 ```cs
@@ -214,17 +209,16 @@ public Texture2D _texture;
 
 </details>
 
-<br/>
+<img src="/.github/preview/layer.png" />
+
+---
 
 
 ### Scene
 
-
-<img src="/.github/preview/buildscene.png" />
-
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
 
 
@@ -240,19 +234,19 @@ public int sceneIndex;
 
 </details>
 
+<img src="/.github/preview/buildscene.png" />
 
-<br/>
+
+---
 
 
 
 ### Switch
 
-<img src="/.github/preview/switch.png" />
-
 
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
 
 ```cs
@@ -260,20 +254,17 @@ public int sceneIndex;
 [Switch("Disabled", "Enabled")] public bool switch2;
 ```
 
-
-
 </details>
 
+<img src="/.github/preview/switch.png" />
 
-<br/>
+---
 
 ### Hex Color
 
-<img src="/.github/preview/hexcolor.png" />
-
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
 
 ```cs
@@ -282,15 +273,15 @@ public int sceneIndex;
 
 </details>
 
-<br/>
+<img src="/.github/preview/hexcolor.png" />
+
+---
 
 ### 🎚️ Slider
 
-<img src="/.github/preview/sliders.png" />
-
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
 
 ```cs
@@ -308,20 +299,18 @@ public float sliderStep;
 public float slider01;
 ```
 
-
 </details>
 
+<img src="/.github/preview/sliders.png" />
 
-<br/>
+---
 
 
 ### Blend Shape
 
-<img src="/.github/preview/blendshape.png" />
-
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
   
 ```cs
@@ -338,19 +327,18 @@ public int _blendShapeIndex;
 
 </details>
 
+<img src="/.github/preview/blendshape.png" />
 
-<br/>
+---
 
 
 ### Animator Parameter
 
 **Note**: Requires script define `ANIMATION_ATTRIBUTES` in project.
 
-<img src="/.github/preview/animatorparameter.png" />
-
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
 
 ```cs
@@ -365,19 +353,17 @@ public string parameterName;
 public int parameterIndex;
 ```
 
-
 </details>
 
-<br/>
+<img src="/.github/preview/animatorparameter.png" />
 
+---
 
 ### Renderer Material
 
-<img src="/.github/preview/renderermaterial.png" />
-
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
   
 ```cs
@@ -389,6 +375,6 @@ public int _materialIndex;
 
 </details>
 
-
+<img src="/.github/preview/renderermaterial.png" />
 
 
