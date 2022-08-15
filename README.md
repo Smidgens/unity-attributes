@@ -134,8 +134,7 @@ Component[] components = GetComponents(t);
 </details>
 
 
-
-
+<br/>
 
 
 ### Tabs
@@ -156,7 +155,10 @@ Component[] components = GetComponents(t);
 </details>
 
 
-### Value Dropdowns
+<br/>
+
+
+### Dropdowns
 
 <img src="/.github/preview/options.png" />
 
@@ -192,6 +194,9 @@ public Texture2D _texture;
 </details>
 
 
+<br/>
+
+
 ### Layer / Tag
 
 <img src="/.github/preview/layer.png" />
@@ -208,6 +213,8 @@ public Texture2D _texture;
 ```
 
 </details>
+
+<br/>
 
 
 ### Scene
@@ -234,11 +241,13 @@ public int sceneIndex;
 </details>
 
 
-
+<br/>
 
 
 
 ### Switch
+
+<img src="/.github/preview/switch.png" />
 
 
 <details>
@@ -256,7 +265,7 @@ public int sceneIndex;
 </details>
 
 
-<img src="/.github/preview/switch.png" />
+<br/>
 
 ### Hex Color
 
@@ -273,6 +282,7 @@ public int sceneIndex;
 
 </details>
 
+<br/>
 
 ### Sliders
 
@@ -302,6 +312,9 @@ public float slider01 = 0f;
 </details>
 
 
+<br/>
+
+
 ### Blend Shape
 
 <img src="/.github/preview/blendshape.png" />
@@ -314,11 +327,11 @@ public float slider01 = 0f;
 ```cs
 public SkinnedMeshRenderer _skinnedRenderer;
 
-// store name
+// string -> name
 [BlendShape(nameof(_skinnedRenderer))]
 public string _blendShapeName;
 
-// store index
+// int -> index
 [BlendShape(nameof(_skinnedRenderer))]
 public int _blendShapeIndex;
 ```
@@ -326,7 +339,7 @@ public int _blendShapeIndex;
 </details>
 
 
-
+<br/>
 
 
 ### Animator Parameter
@@ -343,17 +356,19 @@ public int _blendShapeIndex;
 ```cs
 public Animator _animator;
 
-// store name
+// string -> name
 [AnimatorParameter(nameof(_animator))]
 public string parameterName;
 
-// store index
+// int -> index
 [AnimatorParameter(nameof(_animator))]
 public int parameterIndex;
 ```
 
 
 </details>
+
+<br/>
 
 
 ### Renderer Material
