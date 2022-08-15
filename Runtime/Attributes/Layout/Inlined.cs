@@ -9,11 +9,25 @@ namespace Smidgenomics.Unity.Attributes
 	using System.Collections.Generic;
 
 	/// <summary>
+	/// Set size of specific inlined field
+	/// </summary>
+	public class FieldSizeAttribute : BaseOptionAttribute
+	{
+		public FieldSizeAttribute(string name, float size)
+		{
+			Name = name;
+			Size = size;
+		}
+		internal string Name { get; }
+		internal float Size { get; } = -1f;
+	}
+
+	/// <summary>
 	/// Draw struct/class fields on one line
 	/// </summary>
-	public class InlinedFieldsAttribute : BaseAttribute
+	public class InlinedAttribute : BaseAttribute
 	{
-		public InlinedFieldsAttribute() { }
+		public InlinedAttribute() { }
 
 		/// <summary>
 		/// Names of serialized fields to display inlined
@@ -21,10 +35,6 @@ namespace Smidgenomics.Unity.Attributes
 		internal Type Type { get; private set; }
 		internal string[] Fields { get; private set; } = { };
 		internal float[] Sizes { get; private set; } = { };
-
-		internal bool HasFields => Fields.Length > 0;
-
-
 
 		internal void Init(Type t, FieldSizeAttribute[] options)
 		{
@@ -95,9 +105,7 @@ namespace Smidgenomics.Unity.Attributes
 				rtotal += w;
 				ratio.Add(i);
 			}
-
 			float flexRemainder = 1f - rtotal;
-
 			if (flexRemainder > 0f && flex.Count > 0)
 			{
 				var fw = flexRemainder / flex.Count;
@@ -108,22 +116,6 @@ namespace Smidgenomics.Unity.Attributes
 			{
 				sizes[ri] = sizes[ri] / rtotal;
 			}
-		}
-	}
-
-	/// <summary>
-	/// Options for specific inlined field
-	/// </summary>
-	public class FieldSizeAttribute : BaseMultiAttribute
-	{
-		public const float DEFAULT_SIZE = -1f;
-		public string Name { get; }
-		public float Size { get; } = -1f;
-
-		public FieldSizeAttribute(string name, float size)
-		{
-			Name = name;
-			Size = size;
 		}
 	}
 }

@@ -12,18 +12,24 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var a = (TabsAttribute)attribute;
 
-			var fieldNames = a.Fields;
-			if (fieldNames.Length == 0)
+			if(_Attribute.Type == null)
+			{
+				_Attribute.Init(fieldInfo.GetInnerType());
+			}
+
+			var fields = a.Fields;
+
+			if (fields.Length == 0)
 			{
 				GUI.Box(ctx.position, "");
 				return;
 			}
 
-			Rect[] cols = ctx.position.SubdivideX(fieldNames.Length, 2.0);
+			var cols = ctx.position.CalcColumns(fields.Length, 2.0);
 
 			for (var i = 0; i < cols.Length; i++)
 			{
-				var tProp = ctx.property.FindPropertyRelative(fieldNames[i]);
+				var tProp = ctx.property.FindPropertyRelative(fields[i]);
 				if (tProp == null || tProp.propertyType != SerializedPropertyType.Boolean)
 				{
 					EditorGUI.DrawRect(cols[i], Color.red * 0.2f);

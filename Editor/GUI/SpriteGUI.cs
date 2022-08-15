@@ -3,9 +3,30 @@
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
+	using UnityEditor;
+
+	internal enum AtlasIcon
+	{
+		ArrowLeft,
+		ArrowRight,
+		Switch,
+	}
 
 	internal static class SpriteGUI
 	{
+		public static void DrawIcon(in Rect pos, in AtlasIcon ico)
+		{
+			// todo: add actual icons to image atlas
+			if (ico == AtlasIcon.ArrowLeft)
+			{
+				EditorGUI.LabelField(pos, "<·", PopupStyles.ItemLabel);
+			}
+			else if (ico == AtlasIcon.ArrowRight)
+			{
+				EditorGUI.LabelField(pos, "·>", PopupStyles.ItemLabel);
+			}
+		}
+
 		public static void AtlasRow(in Rect pos, Texture atlas, in int rows, in int index)
 		{
 			var rowHeight = pos.width / rows;

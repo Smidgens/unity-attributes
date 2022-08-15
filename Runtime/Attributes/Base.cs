@@ -22,7 +22,7 @@ namespace Smidgenomics.Unity.Attributes
 
 	[Conditional("UNITY_EDITOR")]
 	[AttributeUsage(AttributeTargets.Field, AllowMultiple = true, Inherited = true)]
-	public abstract class BaseMultiAttribute : PropertyAttribute { }
+	public abstract class BaseOptionAttribute : PropertyAttribute { }
 }
 
 

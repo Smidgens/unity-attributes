@@ -1,5 +1,15 @@
 // smidgens @ github
 
+/*
+ * TODO
+ * - optimize
+ *		- type lookup
+ *		- gui layout
+ * - show namespace breadcrumbs
+ * - show currently set value
+ * - show search filter
+ */
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
@@ -10,20 +20,27 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 	internal class TypePopup : PopupWindowContent
 	{
+		public const float
+		MIN_WIDTH = 200f,
+		MAX_HEIGHT = 300f;
+
+		public static readonly Color
+		HOVER_COLOR = Color.cyan * 0.6f,
+		HEADER_HOVER_COLOR = Color.white * 0.25f,
+		HEADER_COLOR = Color.black * 0.3f;
+
 		public static void Open(in Rect pos, Type value, Action<Type> setFn)
 		{
 			var p = new TypePopup(value, setFn);
-			p._pos = pos;
+			p._preferredWidth = pos.width;
 			var clipPos = pos;
 			clipPos.position = default;
 			PopupWindow.Show(pos, p);
-
-			GetTypes();
 		}
 
 		public override Vector2 GetWindowSize()
 		{
-			return new Vector2(Mathf.Max(220f, _pos.width), 300f);
+			return new Vector2(Mathf.Max(MIN_WIDTH, _preferredWidth), MAX_HEIGHT);
 		}
 
 		public override void OnGUI(Rect rect)
@@ -32,15 +49,24 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			editorWindow.Repaint();
 		}
 
-		private Rect _pos = default;
+		private float _preferredWidth = 1f;
 		private Action<Type> _setFn = null;
 		private PNode _currentPage = null;
 		private static PNode _rootNode = GetTypes();
+		private Vector2 _scroll = default;
 
 		private TypePopup(Type value, Action<Type> setFn)
 		{
+			// todo: display currently set value
 			_setFn = setFn;
 			_currentPage = _rootNode;
+		}
+
+		private void Select(Type t)
+		{
+			try { _setFn?.Invoke(t); }
+			finally { }
+			editorWindow.Close();
 		}
 
 		private class PNode
@@ -77,7 +103,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 				return node;
 			}
-
 		}
 
 		private static class TypeFilter
@@ -90,7 +115,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 				return true;
 			}
-
 			public static bool TypeIsNested(Type t) => t.IsNested;
 			public static bool TypeHasWeirdPrefix(Type t) =>
 			t.Name[0] == '<'
@@ -103,7 +127,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				TypeHasWeirdPrefix
 			};
 		}
-
 
 		private static class TypeCategory
 		{
@@ -120,7 +143,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				if (t.IsInterface) { return _INTERFACES;  }
 				return null;
 			}
-
 			private const string
 			_CLASSES = "Classes",
 			_EXCEPTIONS = "Exceptions",
@@ -159,7 +181,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 					if(path.Length == 1)
 					{
-						path = new string[] { "·", t.Name };
+						path = new string[] { ".", t.Name };
 					}
 
 					var cn = root;
@@ -167,7 +189,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					{
 						cn = cn.FindChildOrNew(name);
 					}
-
 					cn.type = t;
 				}
 			}
@@ -175,95 +196,48 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return root;
 		}
 
-
-		private void Select(Type t)
-		{
-			try { _setFn?.Invoke(t); }
-			finally { }
-			editorWindow.Close();
-		}
-
-		private static readonly Lazy<GUIStyle> _HEADER_STYLE = new Lazy<GUIStyle>(() =>
-		{
-			var s = new GUIStyle(EditorStyles.centeredGreyMiniLabel);
-			s.normal.textColor = Color.white;
-			s.fontStyle = FontStyle.Bold;
-			return s;
-		});
-
-		private static readonly Lazy<GUIStyle> _ITEM_STYLE = new Lazy<GUIStyle>(() =>
-		{
-			var s = new GUIStyle(EditorStyles.miniLabel);
-			s.normal.textColor = Color.white;
-			s.fontStyle = FontStyle.Bold;
-			return s;
-		});
-
 		private static bool DrawHeader(in Rect pos, in string label, bool root = false)
 		{
-			var lpos = pos;
-			lpos.position += new Vector2(5f, 0f);
-			lpos.width -= 10f;
+			EditorGUI.DrawRect(pos, HEADER_COLOR);
+
 			if (!root)
 			{
-				var ipos = lpos;
+				var ipos = pos;
 				ipos.width = pos.height;
-				EditorGUI.LabelField(ipos, "<·", EditorStyles.boldLabel);
+				ipos.position += Vector2.right * 5f;
+				SpriteGUI.DrawIcon(ipos, AtlasIcon.ArrowLeft);
 			}
-			EditorGUI.DrawRect(pos, Color.black * 0.3f);
-			EditorGUI.LabelField(lpos, label, _HEADER_STYLE.Value);
+
+			if (pos.Contains(Event.current.mousePosition))
+			{
+				EditorGUI.DrawRect(pos, HEADER_HOVER_COLOR);
+			}
+
+			EditorGUI.LabelField(pos.ResizeW(-5f), label, PopupStyles.HeaderLabel);
 			return !root && GUI.Button(pos, "", GUIStyle.none);
 		}
 
 		private static bool DrawItem(in Rect pos, in string label, bool leaf = false)
 		{
-			var lpos = pos;
-
+			var cols = pos.CalcColumns(2.0, 1f, pos.height);
 			if (!leaf)
 			{
-				lpos.width -= lpos.height;
-				var ipos = lpos;
-
-				ipos.position += new Vector2(lpos.width, 0f);
-				ipos.width = ipos.height;
-				var c = ipos.center;
-				ipos.size *= 0.7f;
-				ipos.center = c;
-				EditorGUI.LabelField(ipos, "·>", EditorStyles.boldLabel);
-		
+				SpriteGUI.DrawIcon(cols[1], AtlasIcon.ArrowRight);
 			}
-
-			var cc = lpos.center;
-			lpos.width -= 10f;
-			lpos.center = cc;
-
-			if (Event.current != null)
+			if (pos.Contains(Event.current.mousePosition))
 			{
-				if (pos.Contains(Event.current.mousePosition))
-				{
-					EditorGUI.DrawRect(pos, Color.cyan * 0.6f);
-				}
+				EditorGUI.DrawRect(pos, HOVER_COLOR);
 			}
-
-
-			EditorGUI.LabelField(lpos, label, _ITEM_STYLE.Value);
-
+			EditorGUI.LabelField(cols[0].ResizeW(-5f), label, PopupStyles.ItemLabel);
 			return GUI.Button(pos, "", GUIStyle.none);
 		}
 
-
-		private Vector2 _scroll = default;
-
 		private void DrawPage(in Rect pos, PNode p)
 		{
-			var rows = pos.SubdivideY(30f, 1f);
-
+			var rows = pos.CalcRows(30f, 1f);
 			var count = Mathf.Max(p.links.Count, 1);
-
 			var ih = EditorGUIUtility.singleLineHeight + 5f;
-
 			var itemRect = rows[1];
-
 			itemRect.height = 30f + count * ih;
 			itemRect.width -= 15f;
 

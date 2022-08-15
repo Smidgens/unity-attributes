@@ -2,29 +2,24 @@
 
 namespace Smidgenomics.Unity.Attributes.Editor
 {
-	using UnityEngine;
-	using UnityEditor;
 	using System.Linq;
 	using System.Reflection;
+	using UnityEditor;
+	using UnityEngine;
 
-	[CustomPropertyDrawer(typeof(InlinedFieldsAttribute))]
-	internal class Inlined_ : AttributeDrawer<InlinedFieldsAttribute>
+	[CustomPropertyDrawer(typeof(InlinedAttribute))]
+	internal class Inlined_ : AttributeDrawer<InlinedAttribute>
 	{
 		protected override void DrawField(in FieldContext ctx)
 		{
-			// unit
 			if (_Attribute.Type == null)
 			{
 				var opts = fieldInfo.GetCustomAttributes<FieldSizeAttribute>().ToArray();
 				_Attribute.Init(fieldInfo.GetInnerType(), opts);
 			}
-
-			if (!_Attribute.HasFields) { return; }
-
 			var fields = _Attribute.Fields;
 			var sizes = _Attribute.Sizes;
-
-			var cols = ctx.position.SplitHorizontally(2.0, sizes);
+			var cols = ctx.position.CalcColumns(2.0, sizes);
 
 			for (var i = 0; i < fields.Length; i++)
 			{

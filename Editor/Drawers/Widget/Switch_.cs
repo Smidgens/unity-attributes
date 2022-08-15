@@ -14,7 +14,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected override void DrawField(in FieldContext ctx)
 		{
 			var prop = ctx.property;
-			var cols = ctx.position.SubdivideX(2.0, ctx.position.height * 2f, 1f);
+			var cols = ctx.position.CalcColumns(2.0, ctx.position.height * 2f, 1f);
 			var label = ctx.attribute.Labels[prop.boolValue.ToInt()];
 			if (DrawerGUI.PointerButton(ctx.position))
 			{

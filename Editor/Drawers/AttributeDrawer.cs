@@ -28,7 +28,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				// label
 				DrawPrefixLabel(ref pos, l);
-
 				string err = null;
 
 				if (!Validate(prop, ref err))
@@ -46,11 +45,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				if (HasIcon())
 				{
-					var cols = pos.SubdivideX(2.0, pos.height, 1f);
+					var cols = pos.CalcColumns(2.0, pos.height, 1f);
 					ctx.position = cols[1];
 					DrawIcon(cols[0], ctx);
 				}
-
 				DrawField(ctx);
 			}
 		}

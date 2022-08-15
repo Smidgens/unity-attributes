@@ -2,26 +2,47 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
+	using System;
+	using System.Reflection;
+	using System.Linq;
+	using UnityEngine;
+
 	/// <summary>
 	/// Draw bool fields as tabs
 	/// </summary>
 	public class TabsAttribute : BaseAttribute
 	{
-		public int Rows { get; } = 1;
-		public string[] Fields { get; } = { };
+		public TabsAttribute() { }
 
-		public bool StretchHeight { get; set; } = false;
+		internal string[] Fields { get; private set; } = { };
+		internal Type Type { get; private set; } = null;
 
-		public TabsAttribute(params string[] toggleFields)
+		internal void Init(Type t)
 		{
-			if (toggleFields == null) { return; }
-			Fields = toggleFields;
+			Fields = FindSerializedFields(t);
+			Type = t;
 		}
 
-		public TabsAttribute(int rows, params string[] toggleFields)
+		private const BindingFlags _BFLAGS =
+		BindingFlags.Instance
+		| BindingFlags.Public
+		| BindingFlags.NonPublic;
+
+		private static string[] FindSerializedFields(Type t)
 		{
-			if (rows > 0) { Rows = rows; }
-			Fields = toggleFields ?? new string[0];
+			return t.GetFields(_BFLAGS)
+			.Where(x =>
+			{
+				if (x.IsNotSerialized) { return false; }
+				if (x.FieldType != typeof(bool)) { return false; }
+				if (x.GetCustomAttribute<HideInInspector>() != null)
+				{
+					return false;
+				}
+				return true;
+			})
+			.Select(x => x.Name)
+			.ToArray();
 		}
 	}
 }
