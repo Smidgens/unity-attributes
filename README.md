@@ -57,11 +57,18 @@ public bool toggle2;
 ```
 </details>
 
+<br/>
+
 
 ### Inlined
 
 
 <img src="/.github/preview/inlined.png" />
+
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
 
 ```cs
 [Serializable] public struct T1 { public string key; public Texture2D icon; }
@@ -72,6 +79,10 @@ public bool toggle2;
 [Inlined] public T1 inlinedCustom;
 
 ```
+
+</details>
+
+<br/>
 
 ### Assembly Type
 
@@ -90,8 +101,16 @@ public bool toggle2;
 
 </table>
 
-```cs
+```
+UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+```
 
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
+  
+```cs
 [AssemblyType]
 public string anyType;
 
@@ -107,29 +126,46 @@ public string staticType;
 
 
 ```
-```
-UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-```
 ```cs
 var t = System.Type.GetType(behaviourType);
 Component[] components = GetComponents(t);
 ```
+
+</details>
+
+
+
+
 
 
 ### Tabs
 
 <img src="/.github/preview/tabs.png" />
 
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
+  
 ```cs
 [Serializable] public struct ToggleData { public int x; public bool v1, v2, v3; }
 [Tabs] public T2 tabs;
 ```
+  
+
+</details>
 
 
 ### Value Dropdowns
 
 <img src="/.github/preview/options.png" />
 
+
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
+  
 
 ```cs
 
@@ -152,16 +188,26 @@ public int _int;
 public Texture2D _texture;
 ```
 
-### Layer / Tag
 
+</details>
+
+
+### Layer / Tag
 
 <img src="/.github/preview/layer.png" />
 
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
+  
 ```cs
 [Tag] public string _tag;
 [Layer] public int _layer;
 [SortLayer] public int _sortingLayer;
 ```
+
+</details>
 
 
 ### Scene
@@ -169,8 +215,13 @@ public Texture2D _texture;
 
 <img src="/.github/preview/buildscene.png" />
 
-```cs
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
 
+
+```cs
 // asset path
 [BuildScene]
 public string scenePath;
@@ -178,33 +229,59 @@ public string scenePath;
 // index in build settings
 [BuildScene]
 public int sceneIndex;
-
 ```
+
+</details>
+
+
 
 
 
 
 ### Switch
 
-<img src="/.github/preview/switch.png" />
+
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
 
 ```cs
 [Switch("Off", "On")] public bool switch1;
 [Switch("Disabled", "Enabled")] public bool switch2;
 ```
 
+
+
+</details>
+
+
+<img src="/.github/preview/switch.png" />
+
 ### Hex Color
 
 <img src="/.github/preview/hexcolor.png" />
+
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
 
 ```cs
 [HexColor] public string hexColor = "#f00";
 ```
 
+</details>
+
 
 ### Sliders
 
 <img src="/.github/preview/sliders.png" />
+
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
 
 ```cs
 
@@ -222,10 +299,18 @@ public float slider01 = 0f;
 ```
 
 
+</details>
+
+
 ### Blend Shape
 
 <img src="/.github/preview/blendshape.png" />
 
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
+  
 ```cs
 public SkinnedMeshRenderer _skinnedRenderer;
 
@@ -238,12 +323,22 @@ public string _blendShapeName;
 public int _blendShapeIndex;
 ```
 
+</details>
+
+
+
+
 
 ### Animator Parameter
 
 **Note**: Requires the `ANIMATION_ATTRIBUTES` script define (done this way to remove the need to include the `UnityEngine.Animation` module just for this plugin in case you weren't using it).
 
 <img src="/.github/preview/animatorparameter.png" />
+
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
 
 ```cs
 public Animator _animator;
@@ -258,15 +353,27 @@ public int parameterIndex;
 ```
 
 
+</details>
+
+
 ### Renderer Material
 
 <img src="/.github/preview/renderermaterial.png" />
 
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
+  
 ```cs
 public Renderer _renderer;
 
 [RendererMaterial(nameof(_renderer))]
 public int _materialIndex;
 ```
+
+</details>
+
+
 
 
