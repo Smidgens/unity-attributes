@@ -344,7 +344,7 @@ public int _blendShapeIndex;
 
 ### Animator Parameter
 
-**Note**: Requires the `ANIMATION_ATTRIBUTES` script define (done this way to remove the need to include the `UnityEngine.Animation` module just for this plugin in case you weren't using it).
+**Note**: Requires script define `ANIMATION_ATTRIBUTES` in project.
 
 <img src="/.github/preview/animatorparameter.png" />
 
