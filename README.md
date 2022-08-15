@@ -98,7 +98,6 @@ UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, P
 ```
 
 
-
 ### Value Dropdowns
 
 
@@ -185,6 +184,7 @@ public int _sceneIndex;
 [Slider(1f, 10f, 1, Label = "Slider (fixed)")]
 public float sliderPrecision = 0f;
 
+// step value
 [Slider(1f, 10f, 0.5f, Label = "Slider (step)")]
 public float sliderStep = 0f;
 
