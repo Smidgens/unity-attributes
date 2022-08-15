@@ -1,5 +1,20 @@
 ![](/.github/.banner.png?raw=true "")
 
+<!--
+snippets
+
+
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
+  
+
+</details>
+
+-->
+
+
 ## ℹ️ Features
 
 * Collection of useful field attributes and decorators for the Unity inspector.
@@ -29,12 +44,18 @@
 
 <img src="/.github/preview/decorators.png" />
 
+<details>
+  <summary>
+    <b>⌨️ Code</b>
+  </summary>
+  
 ```cs
 [BoxHeader("Some Settings")]
 [BoxComment("Settings for something somethings")]
 public bool toggle1;
 public bool toggle2;
 ```
+</details>
 
 
 ### Inlined
@@ -86,16 +107,14 @@ public string staticType;
 
 
 ```
-```cs
-void Awake()
-{
-  Component[] components = GetComponents(Type.GetType(behaviourType));
-}
-```
-
 ```
 UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 ```
+```cs
+var t = System.Type.GetType(behaviourType);
+Component[] components = GetComponents(t);
+```
+
 
 ### Tabs
 
