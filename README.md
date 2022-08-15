@@ -76,9 +76,21 @@ public bool _bool;
 [IntOptions(0, 10)] 
 public int _int;
 
-[AssetOptions("Assets/Demo/")]
+[AssetOptions("Assets/Game/Icons/")]
 public Texture2D _texture;
 ```
+
+### Layer / Tag
+
+
+<img src="/.github/preview/layer.png" />
+
+```cs
+[Tag] public string _tag = "";
+[Layer] public int _layer = -1;
+[SortLayer] public int _sortingLayer = -1;
+```
+
 
 ### Switch
 
