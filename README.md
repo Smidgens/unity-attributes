@@ -99,8 +99,8 @@ UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, P
 
 ### Value Dropdowns
 
-
 <img src="/.github/preview/options.png" />
+
 
 ```cs
 
@@ -142,13 +142,13 @@ public Texture2D _texture;
 
 ```cs
 
-// project path
+// asset path
 [BuildScene]
 public string scenePath;
 
 // index in build settings
 [BuildScene]
-public int _sceneIndex;
+public int sceneIndex;
 
 ```
 
