@@ -1,0 +1,19 @@
+{
+  "name": "com.smidgenomics.unity-attributes",
+  "version": "0.1.0",
+  "displayName": "Attributes",
+  "description": "Helper attributes for Unity",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Smidgens/unity-attributes.git"
+  },
+  "author": {
+    "name": "Unnar Krist",
+    "url": "https://github.com/Smidgens"
+  },
+  "hideInEditor": false,
+  "type": "tool",
+  "keywords":[
+  ]
+}
