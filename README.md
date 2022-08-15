@@ -41,7 +41,7 @@ snippets
 
 ---
 
-### Header / Comment
+### 🟠 Header / Comment
 
 <details>
   <summary>
@@ -61,7 +61,7 @@ public bool toggle2;
 ---
 
 
-### Inlined
+### 🟡 Inlined
 
 <details>
   <summary>
@@ -83,7 +83,26 @@ public bool toggle2;
 
 ---
 
-### Assembly Type
+### 🔵 Tabs
+
+<details>
+  <summary>
+    ⌨️ Code
+  </summary>
+  
+```cs
+[Serializable] public struct ToggleData { public int x; public bool v1, v2, v3; }
+[Tabs] public T2 tabs;
+```
+
+</details>
+
+<img src="/.github/preview/tabs.png" />
+
+
+---
+
+### 🔵 Assembly Type
 
 <details>
   <summary>
@@ -137,27 +156,7 @@ UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, P
 ---
 
 
-### Tabs
-
-<details>
-  <summary>
-    ⌨️ Code
-  </summary>
-  
-```cs
-[Serializable] public struct ToggleData { public int x; public bool v1, v2, v3; }
-[Tabs] public T2 tabs;
-```
-
-</details>
-
-<img src="/.github/preview/tabs.png" />
-
-
----
-
-
-### Dropdowns
+### 🔵 Dropdowns
 
 <details>
   <summary>
@@ -193,7 +192,7 @@ public Texture2D _texture;
 ---
 
 
-### Layer / Tag
+### 🔵 Layer / Tag
 
 
 <details>
@@ -214,7 +213,7 @@ public Texture2D _texture;
 ---
 
 
-### Scene
+### 🔵 Scene
 
 <details>
   <summary>
@@ -241,7 +240,7 @@ public int sceneIndex;
 
 
 
-### Switch
+### 🔵 Switch
 
 
 <details>
@@ -260,7 +259,7 @@ public int sceneIndex;
 
 ---
 
-### Hex Color
+### 🔵 Hex Color
 
 <details>
   <summary>
@@ -277,7 +276,7 @@ public int sceneIndex;
 
 ---
 
-### 🎚️ Slider
+### 🔵 Slider
 
 <details>
   <summary>
@@ -306,7 +305,7 @@ public float slider01;
 ---
 
 
-### Blend Shape
+### 🔵 Blend Shape
 
 <details>
   <summary>
@@ -332,7 +331,7 @@ public int _blendShapeIndex;
 ---
 
 
-### Animator Parameter
+### 🔵 Animator Parameter
 
 **Note**: Requires script define `ANIMATION_ATTRIBUTES` in project.
 
@@ -359,7 +358,7 @@ public int parameterIndex;
 
 ---
 
-### Renderer Material
+### 🔵 Renderer Material
 
 <details>
   <summary>
