@@ -296,16 +296,16 @@ public int sceneIndex;
 ```cs
 
 // decimal precision
-[Slider(1f, 10f, 1)]
-public float sliderPrecision = 0f;
+[Slider(0f, 10f, 1)]
+public float sliderPrecision;
 
 // step value
-[Slider(1f, 10f, 0.5f)]
-public float sliderStep = 0f;
+[Slider(0, 10f, 0.5f)]
+public float sliderStep;
 
 // equivalent to [Range(0f,1f)]
 [Slider01] 
-public float slider01 = 0f;
+public float slider01;
 ```
 
 
