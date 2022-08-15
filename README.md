@@ -321,8 +321,6 @@ public int _blendShapeIndex;
 
 ### 🔵 Animator Parameter
 
-⚠️ Requires script define `ANIMATION_ATTRIBUTES` in project.
-
 <details>
   <summary>
     ⌨️ Code
@@ -342,7 +340,11 @@ public int parameterIndex;
 
 </details>
 
+⚠️ Requires script define: `ANIMATION_ATTRIBUTES`
+
+
 <img src="/.github/preview/animatorparameter.png" />
+
 
 ---
 
