@@ -92,7 +92,7 @@ public bool toggle2;
   
 ```cs
 [Serializable] public struct ToggleData { public int x; public bool v1, v2, v3; }
-[Tabs] public T2 tabs;
+[Tabs] public ToggleData tabs;
 ```
 
 </details>
