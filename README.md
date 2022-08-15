@@ -284,7 +284,7 @@ public int sceneIndex;
 
 <br/>
 
-### Sliders
+### 🎚️ Slider
 
 <img src="/.github/preview/sliders.png" />
 
