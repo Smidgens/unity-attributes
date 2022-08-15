@@ -6,7 +6,7 @@ snippets
 
 <details>
   <summary>
-    <b>⌨️ Code</b>
+    ⌨️ Code
   </summary>
   
 
@@ -133,12 +133,21 @@ Component[] components = GetComponents(t);
 </details>
 
 
-<img src="/.github/preview/assemblytype.png" />
-<img src="/.github/preview/typefind.png" />
-
+<details>
+  <summary>
+    💾 Output
+  </summary>
+  
 ```
 UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 ```
+</details>
+
+
+<img src="/.github/preview/assemblytype.png" />
+<img src="/.github/preview/typefind.png" />
+
+
 
 
 ---
