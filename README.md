@@ -52,6 +52,42 @@ public bool toggle2;
 
 ```
 
+### Assembly Type
+
+<table>
+
+<tr>
+<td>
+<img src="/.github/preview/assemblytype.png" />
+</td>
+<td>
+<img src="/.github/preview/typefind.png" />
+</td>
+
+
+</tr>
+
+</table>
+
+```cs
+
+[AssemblyType]
+public string anyType;
+
+// restrict search to behaviour scripts
+[AssemblyType]
+[IsType(typeof(MonoBehaviour))]
+public string behaviourType;
+
+// restrict search to static classes
+[AssemblyType]
+[OnlyStatic]
+public string staticType;
+```
+```
+UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+```
+
 ### Tabs
 
 <img src="/.github/preview/tabs.png" />
@@ -194,36 +230,15 @@ public int parameterIndex;
 ```
 
 
-### Assembly Type
+### Renderer Material
 
-<table>
-
-<tr>
-<td>
-<img src="/.github/preview/assemblytype.png" />
-</td>
-<td>
-<img src="/.github/preview/typefind.png" />
-</td>
-
-
-</tr>
-
-</table>
+<img src="/.github/preview/renderermaterial.png" />
 
 ```cs
+public Renderer _renderer;
 
-[AssemblyType]
-public string anyType;
-
-// restrict search to behaviour scripts
-[AssemblyType]
-[IsType(typeof(MonoBehaviour))]
-public string behaviourType;
-
-// restrict search to static classes
-[AssemblyType]
-[OnlyStatic]
-public string staticType;
+[RendererMaterial(nameof(_renderer))]
+public int _materialIndex = -1;
 ```
+
 
