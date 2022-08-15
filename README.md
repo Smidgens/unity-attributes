@@ -3,7 +3,7 @@
 ## ℹ️ Features
 
 * Collection of useful field attributes and decorators for the Unity inspector.
-* Automatically removed from builds: `[Conditional("UNITY_EDITOR")]`
+* Automatically stripped in production: `[Conditional("UNITY_EDITOR")]`
 
 <br/>
 
@@ -20,38 +20,47 @@
 
 ## 🚀 Usage
 
+1. Add an assembly reference to the plugin module.
+2. Include module namespace
 
-### Decorators
+
+### Header / Comment
 
 
 <img src="/.github/preview/decorators.png" />
 
 ```cs
-
 [BoxHeader("Some Settings")]
 [BoxComment("Settings for something somethings")]
 public bool toggle1;
 public bool toggle2;
-
 ```
 
 
-### Layout
+### Inlined
 
 
-<img src="/.github/preview/layout.png" />
+<img src="/.github/preview/inlined.png" />
 
 ```cs
 [Serializable] public struct T1 { public string key; public Texture2D icon; }
-[Serializable] public struct T2 { public int x; public bool v1, v2, v3; }
 
 [Inlined] public Vector3 inlinedVector;
 
 [FieldSize(nameof(T1.key), 40f)]
 [Inlined] public T1 inlinedCustom;
 
+```
+
+### Tabs
+
+<img src="/.github/preview/tabs.png" />
+
+```cs
+[Serializable] public struct ToggleData { public int x; public bool v1, v2, v3; }
 [Tabs] public T2 tabs;
 ```
+
 
 
 ### Value Dropdowns
@@ -92,13 +101,41 @@ public Texture2D _texture;
 ```
 
 
+### Scene
+
+
+<img src="/.github/preview/buildscene.png" />
+
+```cs
+
+// project path
+[BuildScene(Label = "Scene (path)")]
+public string scenePath;
+
+// index in build settings
+[BuildScene(Label = "Scene (index)")]
+public int _sceneIndex;
+
+```
+
+
+
+
 ### Switch
 
-<img src="/.github/preview/widgets.png" />
+<img src="/.github/preview/switch.png" />
 
 ```cs
 [Switch("Off", "On")] public bool switch1;
 [Switch("Disabled", "Enabled")] public bool switch2;
+```
+
+### Hex Color
+
+<img src="/.github/preview/hexcolor.png" />
+
+```cs
+[HexColor] public string hexColor = "#f00";
 ```
 
 
@@ -107,27 +144,86 @@ public Texture2D _texture;
 <img src="/.github/preview/sliders.png" />
 
 ```cs
+
+// decimal precision
 [Slider(1f, 10f, 1, Label = "Slider (fixed)")]
 public float sliderPrecision = 0f;
 
 [Slider(1f, 10f, 0.5f, Label = "Slider (step)")]
 public float sliderStep = 0f;
 
+// equivalent to [Range(0f,1f)]
 [Slider01(Label = "Slider (0 - 1)")] 
 public float slider01 = 0f;
 ```
 
 
-### Sliders
+### Blend Shape
+
+<img src="/.github/preview/blendshape.png" />
+
+```cs
+public SkinnedMeshRenderer _skinnedRenderer;
+
+// store name
+[BlendShape(nameof(_skinnedRenderer))]
+public string _blendShapeName = "";
+
+// store index
+[BlendShape(nameof(_skinnedRenderer))]
+public int _blendShapeIndex = -1;
+```
+
+
+### Animator Parameter
+
+**Note**: Requires the `ANIMATION_ATTRIBUTES` script define (done this way to remove the need to include the `UnityEngine.Animation` module just for this plugin in case you weren't using it).
 
 <img src="/.github/preview/animatorparameter.png" />
 
 ```cs
 public Animator _animator;
+
+// store name
 [AnimatorParameter(nameof(_animator))]
 public string parameterName;
+
+// store index
 [AnimatorParameter(nameof(_animator))]
 public int parameterIndex;
 ```
 
+
+### Assembly Type
+
+<table>
+
+<tr>
+<td>
+<img src="/.github/preview/assemblytype.png" />
+</td>
+<td>
+<img src="/.github/preview/typefind.png" />
+</td>
+
+
+</tr>
+
+</table>
+
+```cs
+
+[AssemblyType]
+public string anyType;
+
+// restrict search to behaviour scripts
+[AssemblyType]
+[IsType(typeof(MonoBehaviour))]
+public string behaviourType;
+
+// restrict search to static classes
+[AssemblyType]
+[OnlyStatic]
+public string staticType;
+```
 
