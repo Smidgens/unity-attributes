@@ -133,20 +133,8 @@ Component[] components = GetComponents(t);
 </details>
 
 
-<table>
-
-<tr>
-<td>
 <img src="/.github/preview/assemblytype.png" />
-</td>
-<td>
 <img src="/.github/preview/typefind.png" />
-</td>
-
-
-</tr>
-
-</table>
 
 ```
 UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
