@@ -21,7 +21,7 @@
 
 ## 🚀 Usage
 
-**Note:**: Requires an assembly reference to `Smidgenomics.Unity.Attributes` assembly.
+**Note:** Requires an explicit assembly reference to `Smidgenomics.Unity.Attributes`.
 
 ### Header / Comment
 
@@ -129,9 +129,9 @@ public Texture2D _texture;
 <img src="/.github/preview/layer.png" />
 
 ```cs
-[Tag] public string _tag = "";
-[Layer] public int _layer = -1;
-[SortLayer] public int _sortingLayer = -1;
+[Tag] public string _tag;
+[Layer] public int _layer;
+[SortLayer] public int _sortingLayer;
 ```
 
 
@@ -143,11 +143,11 @@ public Texture2D _texture;
 ```cs
 
 // project path
-[BuildScene(Label = "Scene (path)")]
+[BuildScene]
 public string scenePath;
 
 // index in build settings
-[BuildScene(Label = "Scene (index)")]
+[BuildScene]
 public int _sceneIndex;
 
 ```
@@ -202,11 +202,11 @@ public SkinnedMeshRenderer _skinnedRenderer;
 
 // store name
 [BlendShape(nameof(_skinnedRenderer))]
-public string _blendShapeName = "";
+public string _blendShapeName;
 
 // store index
 [BlendShape(nameof(_skinnedRenderer))]
-public int _blendShapeIndex = -1;
+public int _blendShapeIndex;
 ```
 
 
