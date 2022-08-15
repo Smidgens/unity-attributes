@@ -3,8 +3,9 @@
 ## ℹ️ Features
 
 * Collection of useful field attributes and decorators for the Unity inspector.
-* Automatically stripped in production: `[Conditional("UNITY_EDITOR")]`
+* Simple set-up.
 * Combine attributes in a multitude of ways.
+* Automatically stripped in production: `[Conditional("UNITY_EDITOR")]`
 
 <br/>
 
