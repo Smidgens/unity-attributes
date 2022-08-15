@@ -4,6 +4,7 @@
 
 * Collection of useful field attributes and decorators for the Unity inspector.
 * Automatically stripped in production: `[Conditional("UNITY_EDITOR")]`
+* Combine attributes in a multitude of ways.
 
 <br/>
 
@@ -20,9 +21,7 @@
 
 ## 🚀 Usage
 
-1. Add an assembly reference to the plugin module.
-2. Include module namespace
-
+**Note:**: Requires an assembly reference to `Smidgenomics.Unity.Attributes` assembly.
 
 ### Header / Comment
 
@@ -181,15 +180,15 @@ public int _sceneIndex;
 ```cs
 
 // decimal precision
-[Slider(1f, 10f, 1, Label = "Slider (fixed)")]
+[Slider(1f, 10f, 1)]
 public float sliderPrecision = 0f;
 
 // step value
-[Slider(1f, 10f, 0.5f, Label = "Slider (step)")]
+[Slider(1f, 10f, 0.5f)]
 public float sliderStep = 0f;
 
 // equivalent to [Range(0f,1f)]
-[Slider01(Label = "Slider (0 - 1)")] 
+[Slider01] 
 public float slider01 = 0f;
 ```
 
