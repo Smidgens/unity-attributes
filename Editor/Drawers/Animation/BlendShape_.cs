@@ -11,7 +11,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void DrawField(in FieldContext ctx)
 		{
-			DrawerGUI.BlendShapeIndex(ctx.position, ctx.property, ctx.attribute.RendererField);
+			DrawerGUI.BlendShape(ctx.position, ctx.property, ctx.attribute.RendererField);
 		}
 	}
 }

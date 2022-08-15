@@ -35,12 +35,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 #if ANIMATION_ATTRIBUTES
 		public static void AnimatorParameter(in Rect pos, SP prop, in string animatorFieldPath)
 		{
-			if(!prop.IsString())
-			{
-				MutedInfo(pos, Config.Info.FIELD_INVALID);
-				return;
-			}
-
 			var animatorProp = prop.serializedObject.FindProperty(animatorFieldPath);
 			if (animatorProp == null)
 			{
@@ -59,20 +53,61 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				MutedInfo(pos, "animator not set");
 				return;
 			}
+			var animator = animatorProp.objectReferenceValue as Animator;
 
-			var btnLabel = !string.IsNullOrEmpty(prop.stringValue)
-			? prop.stringValue
-			: Config.Label.POPUP_DEFAULT;
+
+			(int, string, string) parameter = (-1,"","");
+
+			if (prop.IsString())
+			{
+				parameter.Item2 = prop.stringValue;
+			}
+
+			if (prop.IsInt())
+			{
+				parameter.Item1 = prop.intValue;
+			}
+
+			if (parameter.Item1 > -1 || !string.IsNullOrEmpty(parameter.Item2))
+			{
+				for(var i = 0; i < animator.parameterCount; i++)
+				{
+					var ap = animator.GetParameter(i);
+					if(ap.name == parameter.Item2 || i == parameter.Item1)
+					{
+						parameter = (i, ap.name, ap.type.ToString());
+						break;
+					}
+				}
+			}
+
+			var isUnset = parameter.Item1 < 0 || parameter.Item2.Length == 0;
+
+			var btnLabel = Config.Label.POPUP_DEFAULT;
+
+			if (!isUnset)
+			{
+				btnLabel = $"{parameter.Item1}: {parameter.Item2} ({parameter.Item3})";
+			}
 
 			if(GUI.Button(pos, btnLabel, EditorStyles.popup))
 			{
+
 				var m = MenuFactory.AnimatorParameters
 				(
-					animatorProp.objectReferenceValue as Animator,
-					prop.stringValue,
+					animator,
+					parameter.Item2,
 					v =>
 					{
-						prop.stringValue = v;
+						if (prop.IsInt()) { prop.intValue = v; }
+						else if (prop.IsString())
+						{
+							prop.stringValue = v > -1
+							? animator.GetParameter(v).name
+							: "";
+							
+						}
+
 						prop.serializedObject.ApplyModifiedProperties();
 					}
 				);
@@ -82,13 +117,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 #endif
 
-		public static void BlendShapeIndex(in Rect pos, SP prop, in string rendererField)
+		public static void BlendShape(in Rect pos, SP prop, in string rendererField)
 		{
-			if (!prop.IsInt())
-			{
-				MutedInfo(pos, Config.Info.FIELD_NON_INT);
-				return;
-			}
+			//if (!prop.IsInt())
+			//{
+			//	MutedInfo(pos, Config.Info.FIELD_NON_INT);
+			//	return;
+			//}
 
 			var rendererProp = prop.serializedObject.FindProperty(rendererField);
 			if (rendererProp == null)
@@ -125,17 +160,46 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return;
 			}
 
-			var label = prop.intValue >= 0 && prop.intValue < shapeCount
-			? $"[{prop.intValue}] {mr.sharedMesh.GetBlendShapeName(prop.intValue)}"
-			: Config.Label.POPUP_DEFAULT;
+			(int, string) shape = (-1,"");
 
-			if(GUI.Button(pos, label, EditorStyles.popup))
+			if (prop.IsInt() && prop.intValue > -1 && prop.intValue < shapeCount)
+			{
+				shape.Item1 = prop.intValue;
+				shape.Item2 = mr.sharedMesh.GetBlendShapeName(prop.intValue);
+			}
+
+			if (prop.IsString() && !string.IsNullOrEmpty(prop.stringValue))
+			{
+				shape.Item1 = mr.sharedMesh.GetBlendShapeIndex(prop.stringValue);
+				shape.Item2 = prop.stringValue;
+			}
+
+			var label = Config.Label.POPUP_DEFAULT;
+
+			if(shape.Item2.Length > 0)
+			{
+				label = $"{shape.Item1}: {shape.Item2}";
+			}
+
+
+			//var label = shape.Item1 >= 0 && shape.Item1 < shapeCount
+			//? $"[{prop.intValue}] {mr.sharedMesh.GetBlendShapeName(prop.intValue)}"
+			//: Config.Label.POPUP_DEFAULT;
+
+			//var label = prop.intValue >= 0 && prop.intValue < shapeCount
+			//? $"[{prop.intValue}] {mr.sharedMesh.GetBlendShapeName(prop.intValue)}"
+			//: Config.Label.POPUP_DEFAULT;
+
+			if (GUI.Button(pos, label, EditorStyles.popup))
 			{
 				var m = new GenericMenu();
 
-				m.AddItem(new GUIContent(Config.Label.POPUP_DEFAULT), prop.intValue == -1, () =>
+				var isUnset = shape.Item1 < -1;
+
+				m.AddItem(new GUIContent(Config.Label.POPUP_DEFAULT), isUnset, () =>
 				{
-					prop.intValue = -1;
+					if (prop.IsInt()) { prop.intValue = -1; }
+					else if (prop.IsString()) { prop.stringValue = ""; }
 					prop.serializedObject.ApplyModifiedProperties();
 				});
 
@@ -143,12 +207,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				for(var i = 0; i < shapeCount; i++)
 				{
-					var val = i;
-					var name = mr.sharedMesh.GetBlendShapeName(i);
-					var l = $"[{i}] {name}";
-					m.AddItem(new GUIContent(l), prop.intValue == i, () =>
+					var sindex = i;
+					var sname = mr.sharedMesh.GetBlendShapeName(i);
+					var l = $"[{sindex}] {sname}";
+
+					m.AddItem(new GUIContent(l), shape.Item1 == i, () =>
 					{
-						prop.intValue = val;
+						if (prop.IsInt()) { prop.intValue = sindex; }
+						else if (prop.IsString()) { prop.stringValue = sname; }
 						prop.serializedObject.ApplyModifiedProperties();
 					});
 				}

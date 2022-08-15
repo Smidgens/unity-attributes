@@ -5,5 +5,5 @@ namespace Smidgenomics.Unity.Attributes
 	/// <summary>
 	/// Sorting layer dropdown
 	/// </summary>
-	public class SLayerAttribute : BaseAttribute { }
+	public class SortLayerAttribute : BaseAttribute { }
 }

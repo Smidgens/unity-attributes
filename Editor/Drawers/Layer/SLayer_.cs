@@ -4,8 +4,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEditor;
 
-	[CustomPropertyDrawer(typeof(SLayerAttribute))]
-	internal class SLayer_ : AttributeDrawer<SLayerAttribute>
+	[CustomPropertyDrawer(typeof(SortLayerAttribute))]
+	internal class SLayer_ : AttributeDrawer<SortLayerAttribute>
 	{
 		protected override PType GetSupportedTypes() => PType.Int;
 

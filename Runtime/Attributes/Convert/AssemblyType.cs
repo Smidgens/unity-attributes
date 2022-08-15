@@ -12,6 +12,7 @@ namespace Smidgenomics.Unity.Attributes
 		public Type BaseType { get; set; } = null;
 		public bool Namespace { get; set; } = false;
 		public bool ShowAbstract { get; set; } = false;
+		public AssemblyTypeAttribute() { }
 		public AssemblyTypeAttribute(Type baseType) => BaseType = baseType;
 	}
 }

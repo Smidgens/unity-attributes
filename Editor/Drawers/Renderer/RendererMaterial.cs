@@ -7,8 +7,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System;
 	using SP = UnityEditor.SerializedProperty;
 
-	[CustomPropertyDrawer(typeof(PropRef.RendererMaterialAttribute))]
-	internal class MaterialIndex_ : PropertyDrawer
+	[CustomPropertyDrawer(typeof(RendererMaterialAttribute))]
+	internal class RendererMaterial_ : PropertyDrawer
 	{
 		public const string EMPTY_LABEL = Config.Label.POPUP_DEFAULT;
 		public const string NO_RENDERER_MSG = "no renderer";
@@ -22,7 +22,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var ctx = new DrawerContext
 			{
-				attribute = (PropRef.RendererMaterialAttribute)attribute,
+				attribute = (RendererMaterialAttribute)attribute,
 				property = prop,
 			};
 
@@ -34,7 +34,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private struct DrawerContext
 		{
 			public Renderer renderer;
-			public PropRef.RendererMaterialAttribute attribute;
+			public RendererMaterialAttribute attribute;
 			public SP property;
 		}
 
@@ -79,7 +79,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return false;
 		}
 
-		private static string GetLabel(in int i, in string txt) => $"[{i}] {txt ?? NULL_LABEL}";
+		private static string GetLabel(in int i, in string txt) => $"{i}: {txt ?? NULL_LABEL}";
 
 		private static GenericMenu GetMenu(in DrawerContext ctx)
 		{

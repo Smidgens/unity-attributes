@@ -63,22 +63,36 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 
 #if ANIMATION_ATTRIBUTES
-		public static Menu AnimatorParameters(Animator animator, in string value, Action<string> setFn)
+		public static Menu AnimatorParameters(
+			Animator animator,
+			in string value,
+		Action<int> setFn
+		)
 		{
 			var m = new Menu();
-			m.AddItem(new GUIContent(Config.Label.POPUP_DEFAULT), value == "", () => setFn.Invoke(""));
+			m.AddItem(new GUIContent(Config.Label.POPUP_DEFAULT), value == "", () => setFn.Invoke(-1));
 			m.AddSeparator("");
 			if(animator.parameterCount == 0)
 			{
 				m.AddDisabledItem(new GUIContent(Config.Info.NO_POPUP_OPTIONS));
 			}
 
-			foreach(var p in animator.parameters)
+			for(var i = 0; i < animator.parameterCount; i++)
 			{
+				var pi = i;
+				var p = animator.GetParameter(i);
 				var val = p.name;
 				var label = $"{p.type}/{p.name}";
-				m.AddItem(new GUIContent(label), value == val, () => setFn.Invoke(val));
+				m.AddItem(new GUIContent(label), p.name == value, () => setFn.Invoke(pi));
 			}
+
+
+			//foreach (var p in animator.parameters)
+			//{
+			//	var val = p.name;
+			//	var label = $"{p.type}/{p.name}";
+			//	m.AddItem(new GUIContent(label), value == val, () => setFn.Invoke(val));
+			//}
 			return m;
 		}
 

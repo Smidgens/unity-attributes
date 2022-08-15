@@ -28,10 +28,18 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		public SliderAttribute(float min, float max, int precision)
 		{
-			if(min > max) { Swap(ref min, ref max); }
+			if (min > max) { Swap(ref min, ref max); }
 			Min = min;
 			Max = max;
 			Precision = precision;
+		}
+
+		public SliderAttribute(float min, float max, float step)
+		{
+			if (min > max) { Swap(ref min, ref max); }
+			Min = min;
+			Max = max;
+			Step = step;
 		}
 
 		private static void Swap<T>(ref T a, ref T b)
