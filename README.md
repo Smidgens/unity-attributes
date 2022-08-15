@@ -73,16 +73,25 @@ public bool toggle2;
 [AssemblyType]
 public string anyType;
 
-// restrict search to behaviour scripts
+// restrict options to behaviour scripts
+[IsType(typeof(Component))]
 [AssemblyType]
-[IsType(typeof(MonoBehaviour))]
 public string behaviourType;
 
-// restrict search to static classes
+// restrict options to static classes
+[IsStatic]
 [AssemblyType]
-[OnlyStatic]
 public string staticType;
+
+
 ```
+```cs
+void Awake()
+{
+  Component[] components = GetComponents(Type.GetType(behaviourType));
+}
+```
+
 ```
 UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 ```
