@@ -237,7 +237,7 @@ public int parameterIndex;
 public Renderer _renderer;
 
 [RendererMaterial(nameof(_renderer))]
-public int _materialIndex = -1;
+public int _materialIndex;
 ```
 
 
