@@ -321,7 +321,7 @@ public int _blendShapeIndex;
 
 ### 🔵 Animator Parameter
 
-**Note**: Requires script define `ANIMATION_ATTRIBUTES` in project.
+⚠️ Requires script define `ANIMATION_ATTRIBUTES` in project.
 
 <details>
   <summary>
