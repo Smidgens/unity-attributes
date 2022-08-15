@@ -20,7 +20,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				prop.boolValue = !prop.boolValue;
 			}
+
 			SpriteGUI.AtlasRow(cols[0], _ICON.Value, 2, prop.boolValue.ToInt());
+
 			EditorGUI.LabelField(cols[1], label, EditorStyles.boldLabel);
 		}
 
