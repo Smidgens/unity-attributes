@@ -280,8 +280,10 @@ public int sceneIndex;
   </summary>
 
 ```cs
-[Switch("Off", "On")] public bool switch1;
-[Switch("Disabled", "Enabled")] public bool switch2;
+[Switch] public bool switch1 = false;
+[Switch("Off", "On")] public bool switch2 = false;
+[Switch("Disabled", "Enabled")] public bool switch3 = false;
+[Switch] public TestFlags switchFlags;
 ```
 
 </details>
