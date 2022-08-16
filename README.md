@@ -60,8 +60,14 @@ snippets
 * HexColor
 * Slider
 * BlendShape
-* AnimatorMaterial
+* AnimatorParameter
 * RendererMaterial
+
+**Modifiers**
+
+* Indent
+* PrefixLabel
+* FieldSize
 
 
 ---
