@@ -41,6 +41,31 @@ snippets
 
 ---
 
+**Decorators**
+
+* BoxHeader
+* BoxComment
+* BoxLink
+
+**Attributes**
+
+* Inline
+* Tabs
+* AssemblyType
+* Layer
+* SortLayer
+* Tag
+* BuildScene
+* Switch
+* HexColor
+* Slider
+* BlendShape
+* AnimatorMaterial
+* RendererMaterial
+
+
+---
+
 ### 🟠 Header / Comment
 
 <details>
@@ -61,7 +86,7 @@ public bool toggle2;
 ---
 
 
-### 🟡 Inlined
+### 🟡 Inline
 
 <details>
   <summary>
@@ -71,10 +96,10 @@ public bool toggle2;
 ```cs
 [Serializable] public struct T1 { public string key; public Texture2D icon; }
 
-[Inlined] public Vector3 inlinedVector;
+[Inline] public Vector3 inlinedVector;
 
 [FieldSize(nameof(T1.key), 40f)]
-[Inlined] public T1 inlinedCustom;
+[Inline] public T1 inlinedCustom;
 ```
 </details>
 
@@ -126,6 +151,7 @@ public string staticType;
 
 ```
 ```cs
+// example use
 var t = System.Type.GetType(behaviourType);
 Component[] components = GetComponents(t);
 ```
