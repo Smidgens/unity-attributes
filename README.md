@@ -57,7 +57,7 @@ snippets
 * FromAssembly
 * FromNamespace
 
-**🔵 Attributes**
+**🔵 Drawers**
 
 * Inline
 * Tabs
