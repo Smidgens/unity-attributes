@@ -52,16 +52,13 @@ snippets
 * Indent
 * PrefixLabel
 * FieldSize
-* IsType
-* IsStatic
-* FromAssembly
-* FromNamespace
+* FieldButton
 
 **🔵 Drawers**
 
 * Inline
 * Tabs
-* AssemblyType
+* TypeSearch
 * Layer
 * SortLayer
 * Tag
@@ -73,14 +70,11 @@ snippets
 * BlendShape
 * AnimatorParameter
 * RendererMaterial
-* Folder
-* File
-* Filter
 
 
 ---
 
-### 🟠 Header / Comment
+### 🟠 Decorators (Header / Comment / Link)
 
 <details>
   <summary>
