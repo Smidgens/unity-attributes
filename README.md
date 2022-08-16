@@ -65,14 +65,13 @@ snippets
 * Switch
 * HexColor
 * Slider
+* Slider01
 * BlendShape
 * AnimatorParameter
 * RendererMaterial
 * FolderPath
 * FilePath
 * Filter
-* Slider
-* Slider01
 
 
 ---
