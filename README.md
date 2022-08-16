@@ -52,6 +52,10 @@ snippets
 * Indent
 * PrefixLabel
 * FieldSize
+* IsType
+* IsStatic
+* FromAssembly
+* FromNamespace
 
 **Attributes**
 
@@ -69,8 +73,8 @@ snippets
 * BlendShape
 * AnimatorParameter
 * RendererMaterial
-* FolderPath
-* FilePath
+* Folder
+* File
 * Filter
 
 
