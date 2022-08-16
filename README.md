@@ -47,6 +47,12 @@ snippets
 * BoxComment
 * BoxLink
 
+**Modifiers**
+
+* Indent
+* PrefixLabel
+* FieldSize
+
 **Attributes**
 
 * Inline
@@ -62,12 +68,11 @@ snippets
 * BlendShape
 * AnimatorParameter
 * RendererMaterial
-
-**Modifiers**
-
-* Indent
-* PrefixLabel
-* FieldSize
+* FolderPath
+* FilePath
+* Filter
+* Slider
+* Slider01
 
 
 ---
