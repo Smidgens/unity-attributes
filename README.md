@@ -41,13 +41,13 @@ snippets
 
 ---
 
-**Decorators**
+**🟠 Decorators**
 
 * BoxHeader
 * BoxComment
 * BoxLink
 
-**Modifiers**
+**🟣 Modifiers**
 
 * Indent
 * PrefixLabel
@@ -57,7 +57,7 @@ snippets
 * FromAssembly
 * FromNamespace
 
-**Attributes**
+**🔵 Attributes**
 
 * Inline
 * Tabs
@@ -97,10 +97,8 @@ public bool toggle2;
 
 <img src="/.github/preview/decorators.png" />
 
----
 
-
-### 🟡 Inline
+### 🔵 Inline
 
 <details>
   <summary>
@@ -120,7 +118,6 @@ public bool toggle2;
 <img src="/.github/preview/inlined.png" />
 
 
----
 
 ### 🔵 Tabs
 
@@ -139,7 +136,7 @@ public bool toggle2;
 <img src="/.github/preview/tabs.png" />
 
 
----
+
 
 ### 🔵 Assembly Type
 
@@ -190,8 +187,6 @@ UnityEngine.Vector3, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, P
 
 
 
----
-
 
 ### 🔵 Dropdowns
 
@@ -226,7 +221,7 @@ public Texture2D _texture;
 
 <img src="/.github/preview/options.png" />
 
----
+
 
 
 ### 🔵 Layer / Tag
@@ -247,7 +242,7 @@ public Texture2D _texture;
 
 <img src="/.github/preview/layer.png" />
 
----
+
 
 
 ### 🔵 Scene
@@ -273,7 +268,6 @@ public int sceneIndex;
 <img src="/.github/preview/buildscene.png" />
 
 
----
 
 
 
@@ -294,7 +288,9 @@ public int sceneIndex;
 
 <img src="/.github/preview/switch.png" />
 
----
+
+
+
 
 ### 🔵 Hex Color
 
@@ -311,7 +307,9 @@ public int sceneIndex;
 
 <img src="/.github/preview/hexcolor.png" />
 
----
+
+
+
 
 ### 🔵 Slider
 
@@ -339,7 +337,9 @@ public float slider01;
 
 <img src="/.github/preview/sliders.png" />
 
----
+
+
+
 
 
 ### 🔵 Blend Shape
@@ -365,7 +365,9 @@ public int _blendShapeIndex;
 
 <img src="/.github/preview/blendshape.png" />
 
----
+
+
+
 
 
 ### 🔵 Animator Parameter
@@ -395,7 +397,7 @@ public int parameterIndex;
 <img src="/.github/preview/animatorparameter.png" />
 
 
----
+
 
 ### 🔵 Renderer Material
 
