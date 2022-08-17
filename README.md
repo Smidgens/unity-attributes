@@ -37,8 +37,6 @@ snippets
 
 # 🚀 Usage
 
-**Note:** Requires an explicit assembly reference to `Smidgenomics.Unity.Attributes`.
-
 <table>
   
   <tr>
