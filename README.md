@@ -40,7 +40,7 @@ snippets
 **Note:** Requires an explicit assembly reference to `Smidgenomics.Unity.Attributes`.
 
 <table>
-  <tr>
+    <tr>
     <td>
       Inline
     </td>
@@ -61,8 +61,7 @@ snippets
       SearchType
     </td>
     <td>
-      <img align="top" src="/.github/preview/assemblytype.png" />
-      <img align="top" src="/.github/preview/typefind.png" width="150" />
+      <img  src="/.github/preview/assemblytype.png" />
     </td>
   </tr>
   <tr>
@@ -73,7 +72,16 @@ snippets
       <img src="/.github/preview/switch.png" />
     </td>
   </tr>
-
+  <tr>
+    <td>
+      Dropdown__
+    </td>
+    <td>
+      <img src="/.github/preview/options.png" />
+    </td>
+  </tr>
+  
+  
 
 </table>
 
