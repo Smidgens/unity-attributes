@@ -12,7 +12,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 	internal static class Popup
 	{
-		public static void AssemblyType(in Rect pos, SP prop)
+		public static void AssemblyType(in Rect pos, SP prop, Func<TypeSearch.Constraints> optsFn)
 		{
 			var label = "...";
 
@@ -45,7 +45,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			GUI.color *= 0.5f;
 			if (GUI.Button(brect, t == null ? label : ""))
 			{
-				TypePopup.Open(brect, t, v =>
+				var opts = optsFn.Invoke();
+				TypeSearch.Open(brect, t, opts, v =>
 				{
 					prop.stringValue = v?.AssemblyQualifiedName ?? "";
 					prop.serializedObject.ApplyModifiedProperties();
@@ -61,14 +62,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				EditorGUI.LabelField(lpos, label, EditorStyles.miniLabel);
 			}
 
-			using (new EditorGUI.DisabledGroupScope(!missing))
+			using (new EditorGUI.DisabledGroupScope(t == null))
 			{
-				if (GUI.Button(clearRect, "x", EditorStyles.miniButton))
+				if (GUI.Button(clearRect, "", EditorStyles.miniButton))
 				{
 					prop.stringValue = "";
 					prop.serializedObject.ApplyModifiedProperties();
 				}
+				
 			}
+			EditorGUI.LabelField(clearRect, "x", EditorStyles.centeredGreyMiniLabel);
 		}
 
 		public static void SLayer(in Rect pos, SP prop)

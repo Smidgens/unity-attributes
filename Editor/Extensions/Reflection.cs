@@ -5,26 +5,33 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System;
 	using System.Reflection;
 
-	/// <summary>
-	/// Extensions for types in System.Reflection
-	/// </summary>
+	// reflection / type helpers
 	internal static class Reflection_
 	{
-		/// <summary>
-		/// Get type of field or type of element if field is array
-		/// </summary>
 		public static Type GetInnerType(this FieldInfo fi)
 		{
-			if (fi.FieldType.IsArray) { return fi.FieldType.GetElementType(); }
-			return fi.FieldType;
+			return fi.IsArray()
+			? fi.FieldType.GetElementType()
+			: fi.FieldType;
+		}
+		public static bool IsArray(this FieldInfo fo) => fo.FieldType.IsArray;
+		public static bool IsStatic(this Type t) => t.IsAbstract && t.IsSealed;
+
+		public static bool DerivesFrom(this Type t, Type bt)
+		{
+			return bt.IsAssignableFrom(t);
 		}
 
-		/// <summary>
-		/// Is field array type
-		/// </summary>
-		public static bool IsArray(this FieldInfo fo)
+		public static bool DerivesFrom(this Type t, Type[] baseTypes)
 		{
-			return fo.FieldType.IsArray;
+			for(var i = 0; i < baseTypes.Length; i++)
+			{
+				if (!t.DerivesFrom(baseTypes[i]))
+				{
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 }

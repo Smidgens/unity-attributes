@@ -8,6 +8,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	internal static class Config
 	{
 
+		public const string DEV_DEFINE = "SMIDGENOMICS_DEV";
+
+
 		// common labels
 		public static class Label
 		{

@@ -4,43 +4,50 @@ namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
 	using UnityEditor;
-	using System;
 
 	[CustomPropertyDrawer(typeof(BoxHeaderAttribute))]
-	internal class BoxHeader_ : DecoratorDrawer
+	internal class BoxHeader_ : __DecoratorDrawer<BoxHeaderAttribute>
 	{
 		public static class CFG
 		{
-			public const float HEIGHT = 20f;
-			public const float SPACE_TOP = 10f;
-			public const float SPACE_BOTTOM = 5f;
-			public const float TOTAL_HEIGHT = HEIGHT + SPACE_TOP + SPACE_BOTTOM;
+			public const int FONT_SIZE = 13;
+			public const FontStyle FONT_STYLE = FontStyle.Bold;
 		}
 
-		public override float GetHeight()
+		protected override void OnInit()
 		{
-			return CFG.TOTAL_HEIGHT;
+			_style = CreateStyle();
+			_label = new GUIContent(_Attribute.Text);
 		}
 
-		public override void OnGUI(Rect pos)
+		protected override float GetHeight(in float w)
 		{
-			pos.height = CFG.HEIGHT;
-			pos.position += new Vector2(0, CFG.SPACE_TOP);
-			var a = (BoxHeaderAttribute)attribute;
-			GUI.Box(pos, "", GUI.skin.box);
-			var lpos = pos;
-			lpos.position += new Vector2(0f, 0f);
-			EditorGUI.LabelField(lpos, a.Text, _HEADER_STYLE.Value);
+			return _style.CalcHeight(_label, w) + 0f;
 		}
 
-		private static Lazy<GUIStyle> _HEADER_STYLE = new Lazy<GUIStyle>(() =>
+		protected override void OnBackground(in Rect pos)
+		{
+			EditorGUI.DrawRect(pos, Color.white);
+			EditorGUI.DrawRect(pos, Color.black * 0.8f);
+		}
+
+		protected override void OnContent(in Rect pos)
+		{
+			DrawText(pos, _label, _style, Color.white);
+		}
+
+		private GUIContent _label = null;
+		private GUIStyle _style = null;
+
+		private static GUIStyle CreateStyle()
 		{
 			var s = new GUIStyle(EditorStyles.whiteLargeLabel);
+			s.fontSize = CFG.FONT_SIZE;
+			s.fontStyle = CFG.FONT_STYLE;
 			s.alignment = TextAnchor.MiddleCenter;
-			s.normal.textColor = Color.white;
-			s.fontStyle = FontStyle.Bold;
+			s.wordWrap = true;
 			return s;
-		});
+		}
 
 	}
 }

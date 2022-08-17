@@ -10,6 +10,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		ArrowLeft,
 		ArrowRight,
 		Switch,
+		Times,
 	}
 
 	internal static class SpriteGUI

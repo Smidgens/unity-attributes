@@ -15,6 +15,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public const float PAD_FULL = 2f;
 		public const float PAD_MINI = 5f;
 
+		// icon atlas
+		private readonly static Lazy<Texture> _SWITCH_ICON = new Lazy<Texture>(() =>
+		{
+			return Resources.Load<Texture>(Config.Resource.ICON_SWITCH);
+		});
+
 		public static bool PointerButton(in Rect pos)
 		{
 			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
@@ -29,6 +35,17 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public static bool PopupButton(in Rect pos, in string label)
 		{
 			return GUI.Button(pos, label, EditorStyles.popup);
+		}
+
+		public static bool Switch(in Rect pos, bool val, in string l0, in string l1)
+		{
+			var (rl,rr) = pos.GetColumns(pos.height * 2f, 1f, 2);
+			var label = val ? l1 : l0;
+			if (PointerButton(pos)) { val = !val; }
+			SpriteGUI.AtlasRow(rl, _SWITCH_ICON.Value, 2, val.ToInt());
+			var s = val ? EditorStyles.boldLabel : EditorStyles.label;
+			EditorGUI.LabelField(rr, label, s);
+			return val;
 		}
 
 
@@ -119,12 +136,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		public static void BlendShape(in Rect pos, SP prop, in string rendererField)
 		{
-			//if (!prop.IsInt())
-			//{
-			//	MutedInfo(pos, Config.Info.FIELD_NON_INT);
-			//	return;
-			//}
-
 			var rendererProp = prop.serializedObject.FindProperty(rendererField);
 			if (rendererProp == null)
 			{
@@ -181,15 +192,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				label = $"{shape.Item1}: {shape.Item2}";
 			}
 
-
-			//var label = shape.Item1 >= 0 && shape.Item1 < shapeCount
-			//? $"[{prop.intValue}] {mr.sharedMesh.GetBlendShapeName(prop.intValue)}"
-			//: Config.Label.POPUP_DEFAULT;
-
-			//var label = prop.intValue >= 0 && prop.intValue < shapeCount
-			//? $"[{prop.intValue}] {mr.sharedMesh.GetBlendShapeName(prop.intValue)}"
-			//: Config.Label.POPUP_DEFAULT;
-
 			if (GUI.Button(pos, label, EditorStyles.popup))
 			{
 				var m = new GenericMenu();
@@ -222,7 +224,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				m.DropDown(pos);
 
 			}
-
 		}
 
 		public static void Slider(
@@ -233,19 +234,37 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			in float step = -1f,
 			in int precision = -1)
 		{
-			if (!prop.IsFloat())
+			if (!prop.IsFloat() && !prop.IsInt())
 			{
-				MutedInfo(pos, Config.Info.FIELD_NON_FLOAT);
+				MutedInfo(pos, Config.Info.FIELD_NON_NUM);
 				return;
 			}
 
 			using (var check = new EditorGUI.ChangeCheckScope())
 			{
-				float valueNew = EditorGUI.Slider(pos, prop.floatValue, min, max);
+
+				var val = prop.IsFloat() ? prop.floatValue : prop.intValue;
+
+				float valueNew = EditorGUI.Slider(pos, val, min, max);
 				if (check.changed)
 				{
 					if (precision >= 1) { valueNew = valueNew.Round(precision); }
-					prop.floatValue = valueNew;
+					if(step > 0f)
+					{
+						valueNew = ((int)(valueNew / step)) * step;
+					}
+					valueNew = Mathf.Clamp(valueNew, min, max);
+
+					if (prop.IsFloat())
+					{
+						prop.floatValue = valueNew;
+					}
+					else
+					{
+						prop.intValue = (int)valueNew;
+					}
+
+
 				}
 			}
 		}

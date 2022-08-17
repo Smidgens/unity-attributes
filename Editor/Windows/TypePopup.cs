@@ -3,7 +3,7 @@
 /*
  * TODO
  * - optimize
- *		- type lookup
+ *		- lazy type loading
  *		- gui layout
  * - show namespace breadcrumbs
  * - show currently set value
@@ -18,8 +18,32 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System.Collections.Generic;
 	using System.Linq;
 
-	internal class TypePopup : PopupWindowContent
+	internal class TypeSearch : PopupWindowContent
 	{
+		[Flags]
+		public enum VType
+		{
+			None = 0,
+			Class = 1,
+			Struct = 2,
+			Enum = 4,
+			Primitive = 8,
+			All = ~0,
+		}
+
+		public struct Constraints
+		{
+			public Type[] types; // use specific types, ignore rest
+			public Type[] derivedTypes;
+			public VType vtypes;
+			public bool staticOnly;
+			public bool onlyInterfaces;
+			public bool showAbstract;
+			public bool includeHidden;
+			public string[] assemblies;
+			public string[] namespaces;
+		}
+
 		public const float
 		MIN_WIDTH = 200f,
 		MAX_HEIGHT = 300f;
@@ -29,12 +53,20 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		HEADER_HOVER_COLOR = Color.white * 0.25f,
 		HEADER_COLOR = Color.black * 0.3f;
 
-		public static void Open(in Rect pos, Type value, Action<Type> setFn)
+		public static void Open
+		(
+			in Rect pos,
+			Type value,
+			Constraints options,
+			Action<Type> setFn
+		)
 		{
-			var p = new TypePopup(value, setFn);
+			var p = new TypeSearch(value, setFn);
 			p._preferredWidth = pos.width;
 			var clipPos = pos;
 			clipPos.position = default;
+			p._options = options;
+			p._currentPage = FilterTypes(options);
 			PopupWindow.Show(pos, p);
 		}
 
@@ -52,14 +84,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private float _preferredWidth = 1f;
 		private Action<Type> _setFn = null;
 		private PNode _currentPage = null;
-		private static PNode _rootNode = GetTypes();
 		private Vector2 _scroll = default;
+		private Constraints _options = default;
 
-		private TypePopup(Type value, Action<Type> setFn)
+		private TypeSearch(Type value, Action<Type> setFn)
 		{
 			// todo: display currently set value
 			_setFn = setFn;
-			_currentPage = _rootNode;
 		}
 
 		private void Select(Type t)
@@ -119,7 +150,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			public static bool TypeHasWeirdPrefix(Type t) =>
 			t.Name[0] == '<'
 			|| t.Name.StartsWith("__");
-			public static bool TypeIsStatic(Type t) => t.IsAbstract && t.IsSealed;
 
 			private static Func<Type, bool>[] _SKIP_PREDICATES =
 			{
@@ -152,46 +182,108 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			_ENUMS = "Enums";
 		}
 
-		private static PNode GetTypes()
-		{
-			var assemblies =
-			AppDomain.CurrentDomain.GetAssemblies()
-			.OrderBy(x => x.GetName().Name)
-			.ToArray();
+		private static Type[] _cachedTypes = null;
 
+		private static Type[] GetAllTypes()
+		{
+			if(_cachedTypes == null)
+			{
+				var tl = new List<Type>();
+				var assemblies =
+				AppDomain.CurrentDomain.GetAssemblies()
+				.OrderBy(x => x.GetName().Name)
+				.ToArray();
+				foreach (var a in assemblies)
+				{
+					var types = a.GetTypes();
+					foreach (var t in types)
+					{
+						if (!TypeFilter.ShouldInclude(t)) { continue; }
+						tl.Add(t);
+					}
+					_cachedTypes = tl.ToArray();
+				}
+			}
+			return _cachedTypes;
+		}
+
+		private static bool HasItem(in string[] arr, in string name)
+		{
+			return Array.IndexOf(arr, name) > -1;
+		}
+
+		private static PNode FilterTypes(in Constraints opts)
+		{
 			var root = new PNode();
 			root.name = "Types";
 
-			foreach(var a in assemblies)
+			Type[] types = opts.types != null
+			? opts.types
+			: GetAllTypes();
+
+			var applyConstraints = opts.types == null;
+
+			foreach (var t in types)
 			{
-				var types = a.GetTypes();
-
-				foreach(var t in types)
+				if (applyConstraints)
 				{
-					if (!TypeFilter.ShouldInclude(t)) { continue; }
-
-					string catName = TypeCategory.Get(t); ;
-
-					var fp =
-					t.Namespace
-					+ (catName != null ? $".· {catName} ·." : ".")
-					+ t.Name;
-
-					var path = fp.Split('.');
-
-					if(path.Length == 1)
+					if (opts.staticOnly && !t.IsStatic())
 					{
-						path = new string[] { ".", t.Name };
+						continue;
 					}
 
-					var cn = root;
-					foreach(var name in path)
+					if(opts.onlyInterfaces && !t.IsInterface)
 					{
-						cn = cn.FindChildOrNew(name);
+						continue;
 					}
-					cn.type = t;
+
+					if (!opts.includeHidden && !t.IsVisible)
+					{
+						continue;
+					}
+
+					if(!opts.showAbstract && t.IsAbstract)
+					{
+						continue;
+					}
+
+					if (opts.namespaces != null && !HasItem(opts.namespaces, t.Namespace))
+					{
+						continue;
+					}
+
+					if (opts.assemblies != null && !HasItem(opts.assemblies, t.Assembly.GetName().Name))
+					{
+						continue;
+					}
+					if (opts.derivedTypes != null && !t.DerivesFrom(opts.derivedTypes))
+					{
+						continue;
+					}
 				}
+
+				string catName = TypeCategory.Get(t); ;
+
+				var fp =
+				t.Namespace
+				+ (catName != null ? $".· {catName} ·." : ".")
+				+ t.Name;
+
+				var path = fp.Split('.');
+
+				if (path.Length == 1)
+				{
+					path = new string[] { ".", t.Name };
+				}
+
+				var cn = root;
+				foreach (var name in path)
+				{
+					cn = cn.FindChildOrNew(name);
+				}
+				cn.type = t;
 			}
+
 			root.Sort();
 			return root;
 		}
@@ -219,16 +311,17 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static bool DrawItem(in Rect pos, in string label, bool leaf = false)
 		{
-			var cols = pos.CalcColumns(2.0, 1f, pos.height);
+			var (rl, rr) = pos.GetColumns(1f, pos.height, 2);
+
 			if (!leaf)
 			{
-				SpriteGUI.DrawIcon(cols[1], AtlasIcon.ArrowRight);
+				SpriteGUI.DrawIcon(rr, AtlasIcon.ArrowRight);
 			}
 			if (pos.Contains(Event.current.mousePosition))
 			{
 				EditorGUI.DrawRect(pos, HOVER_COLOR);
 			}
-			EditorGUI.LabelField(cols[0].ResizeW(-5f), label, PopupStyles.ItemLabel);
+			EditorGUI.LabelField(rl.ResizeW(-5f), label, PopupStyles.ItemLabel);
 			return GUI.Button(pos, "", GUIStyle.none);
 		}
 
