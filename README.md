@@ -46,6 +46,7 @@ snippets
 * BoxHeader
 * BoxComment
 * BoxLink
+* StaticButton
 
 **🟣 Modifiers**
 
