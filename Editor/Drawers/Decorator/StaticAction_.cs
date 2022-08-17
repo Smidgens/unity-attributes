@@ -17,7 +17,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override (byte, byte) GetMargin()
 		{
-			return (0, 0);
+			return (0,0);
 		}
 
 		protected override (byte, byte, byte, byte) GetPadding()
@@ -30,7 +30,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected override void OnContent(in Rect pos)
 		{
 			var te = GUI.enabled;
-			GUI.enabled = _method != null;
+
+			var disabled =
+			_method == null
+			|| (!Application.isPlaying && _Attribute.onlyPlayMode);
+
+			GUI.enabled = !disabled;
 			if(GUI.Button(pos, _label))
 			{
 				_method.Invoke(null, _Attribute.Args);

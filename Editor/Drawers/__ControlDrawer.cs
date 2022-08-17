@@ -174,7 +174,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				if(method == null) { return; }
 				if(target == null) { return; }
-				method.Invoke(method.IsStatic ? null : target, attribute.Args);
+				method.Invoke(target, attribute.Args);
 			}
 		}
 
@@ -208,12 +208,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private List<ActionInfo> FindActions()
 		{
+			if (fieldInfo.IsArray()) { return null; }
+
 			if (!_Attribute.buttons) { return null; }
 			var i = IndexOfMod<FieldActionAttribute>();
 			if(i < 0) { return null; }
 			var r = new List<ActionInfo>();
-			var methodOwner = fieldInfo.DeclaringType;
-	
+
+			//var methodOwner = fieldInfo.DeclaringType;
+
 			for (;i < _mods.Count; i++)
 			{
 				var m = _mods[i];
@@ -223,7 +226,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					attribute = am,
 					label = am.Label,
-					method = am.GetMethod(methodOwner),
+					method = am.GetMethod(fieldInfo),
 				};
 				r.Add(info);
 			}
@@ -246,19 +249,26 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			buttonRow.height = BUTTON_HEIGHT;
 			var startPos = buttonRow.position;
 
-			var target = prop.serializedObject.targetObject;
+			//var target = prop.serializedObject.targetObject;
 
 			for (var i = 0; i < _actions.Count; i++)
 			{
 				buttonRow.position =
 				startPos + new Vector2(0f, i * BUTTON_HEIGHT);
-
 				var a = _actions[i];
 
+				var disabled =
+				a.method == null
+				|| (!Application.isPlaying && a.attribute.onlyPlayMode);
+
 				var te = GUI.enabled;
-				GUI.enabled = a.method != null;
+				GUI.enabled = !disabled;
 				if (GUI.Button(buttonRow, a.label))
 				{
+					var target = a.attribute.callRoot
+					? prop.serializedObject.targetObject
+					: fieldInfo.GetValue(prop.serializedObject.targetObject);
+
 					a.Invoke(target);
 				}
 				GUI.enabled = te;

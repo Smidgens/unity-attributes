@@ -9,6 +9,9 @@ namespace Smidgenomics.Unity.Attributes
 	[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 	public class FieldActionAttribute : __BaseModifier
 	{
+		public bool onlyPlayMode = false;
+		public bool callRoot = false;
+
 		public FieldActionAttribute(string label, string methodName, params object[] args)
 		{
 			Label = label;
@@ -24,9 +27,14 @@ namespace Smidgenomics.Unity.Attributes
 		internal readonly string Label = null;
 		internal readonly object[] Args = null;
 
-		internal MethodInfo GetMethod(Type declaringType)
+		internal MethodInfo GetMethod(FieldInfo field)
 		{
-			return declaringType.GetMethod(_methodName, _FLAGS, null, _argTypes, null);
+			var type = field.FieldType;
+			if (callRoot)
+			{
+				type = field.DeclaringType;
+			}
+			return type.GetMethod(_methodName, _FLAGS, null, _argTypes, null);
 		}
 
 		private readonly string _methodName = string.Empty;
@@ -35,7 +43,6 @@ namespace Smidgenomics.Unity.Attributes
 		private const BindingFlags _FLAGS =
 		BindingFlags.Public
 		| BindingFlags.NonPublic
-		| BindingFlags.Static
 		| BindingFlags.Instance;
 	}
 }

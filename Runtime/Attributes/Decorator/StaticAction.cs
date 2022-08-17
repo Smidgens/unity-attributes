@@ -7,6 +7,8 @@ namespace Smidgenomics.Unity.Attributes
 
 	public class StaticActionAttribute : __BaseDecorator
 	{
+		public bool onlyPlayMode = false;
+
 		public StaticActionAttribute
 		(
 			string methodName,
@@ -22,6 +24,8 @@ namespace Smidgenomics.Unity.Attributes
 			params object[] args
 		)
 		{
+			order = 2;
+
 			Label = label;
 			_methodName = methodName;
 			_declaringType = declaringType;

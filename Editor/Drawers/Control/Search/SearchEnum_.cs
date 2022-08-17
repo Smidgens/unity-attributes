@@ -7,11 +7,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(SearchEnumAttribute))]
 	internal class SearchEnum_ : __ControlDrawer<SearchEnumAttribute>
 	{
-		//protected override FieldType GetValidTypes() => FieldType.Enum;
+		protected override FieldType GetValidTypes() => FieldType.Enum;
 
-		//protected override void OnField(in FieldContext ctx)
-		//{
-		//	base.OnField(ctx);
-		//}
+		protected override void OnField(in DrawContext ctx)
+		{
+			base.OnField(ctx);
+		}
 	}
 }

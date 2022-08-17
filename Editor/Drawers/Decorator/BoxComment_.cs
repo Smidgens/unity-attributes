@@ -11,7 +11,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public static class CFG
 		{
 			public const int FONT_SIZE = 12;
-			public const FontStyle FONT_STYLE = FontStyle.Italic;
+			public const FontStyle FONT_STYLE = FontStyle.Normal;
 		}
 
 		protected override float GetHeight(in float w)
