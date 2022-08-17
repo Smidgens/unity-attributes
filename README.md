@@ -56,6 +56,14 @@ snippets
       <img src="/.github/preview/decorators.png" />
     </td>
   <tr>
+  <tr>
+    <td>
+      StaticButton
+    </td>
+    <td>
+      <img src="/.github/preview/staticbutton.png" />
+    </td>
+  <tr>
     <td colspan="2">
       <h4 align="center">
         Controls
