@@ -39,6 +39,45 @@ snippets
 
 **Note:** Requires an explicit assembly reference to `Smidgenomics.Unity.Attributes`.
 
+<table>
+  <tr>
+    <td>
+      Inline
+    </td>
+    <td>
+      <img src="/.github/preview/inlined.png" />
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Tabs
+    </td>
+    <td>
+      <img src="/.github/preview/tabs.png" />
+    </td>
+  </tr>
+  <tr>
+    <td>
+      SearchType
+    </td>
+    <td>
+      <img align="top" src="/.github/preview/assemblytype.png" />
+      <img align="top" src="/.github/preview/typefind.png" width="150" />
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Switch
+    </td>
+    <td>
+      <img src="/.github/preview/switch.png" />
+    </td>
+  </tr>
+
+
+</table>
+
+
 ---
 
 **🟠 Decorators**
