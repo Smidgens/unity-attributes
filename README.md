@@ -92,6 +92,8 @@ snippets
 
 ### Inline
 
+`object`
+
 <img src="/.github/preview/inlined.png" />
 
 
@@ -100,6 +102,8 @@ snippets
 <!--======================================================-->
 
 ### Expand
+
+`object`
 
 <img src="/.github/preview/expand.png" />
 
@@ -111,6 +115,8 @@ snippets
 
 ### Tabs
 
+`object` ▫️ `enum flags`
+
 <img src="/.github/preview/tabs.png" />
 
 
@@ -119,6 +125,8 @@ snippets
 <!--======================================================-->
 
 ### Switch
+
+`bool` ▫️ `enum flags`
 
 <img src="/.github/preview/switch.png" />
 
@@ -129,6 +137,8 @@ snippets
 
 ### Slider
 
+`int` ▫️ `float` ▫️ `double`
+
 <img src="/.github/preview/sliders.png" />
 
 
@@ -137,6 +147,8 @@ snippets
 <!--======================================================-->
 
 ### Slider01
+
+`float` ▫️ `double`
 
 <img src="/.github/preview/sliders.png" />
 
@@ -147,6 +159,8 @@ snippets
 
 
 ### HexColor
+
+`string`
 
 <img src="/.github/preview/hexcolor.png" />
 
@@ -167,6 +181,8 @@ snippets
 
 ### SearchType
 
+`string`
+
 <img src="/.github/preview/assemblytype.png" />
 
 
@@ -177,7 +193,9 @@ snippets
 
 ### Layer
 
-<img src="/.github/preview/layers.png" />
+`int`
+
+<img src="/.github/preview/layer.png" />
 
 
 <!--======================================================-->
@@ -187,7 +205,9 @@ snippets
 
 ### SortLayer
 
-<img src="/.github/preview/layers.png" />
+`int`
+
+<img src="/.github/preview/layer.png" />
 
 
 <!--======================================================-->
@@ -196,7 +216,9 @@ snippets
 
 ### Tag
 
-<img src="/.github/preview/layers.png" />
+`string`
+
+<img src="/.github/preview/layer.png" />
 
 
 <!--======================================================-->
@@ -204,6 +226,8 @@ snippets
 <!--======================================================-->
 
 ### BuildScene
+
+`int` ▫️ `string`
 
 <img src="/.github/preview/buildscene.png" />
 
@@ -216,6 +240,8 @@ snippets
 
 ### AnimatorParameter
 
+`int` ▫️ `string`
+
 <img src="/.github/preview/animatorparameter.png" />
 
 
@@ -226,6 +252,8 @@ snippets
 
 ### RendererMaterial
 
+`int`
+
 <img src="/.github/preview/renderermaterial.png" />
 
 
@@ -234,6 +262,8 @@ snippets
 <!--======================================================-->
 
 ### BlendShape
+
+`int` ▫️ `string`
 
 <img src="/.github/preview/blendshape.png" />
 
