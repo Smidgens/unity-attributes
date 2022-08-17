@@ -3,7 +3,7 @@
 namespace Smidgenomics.Unity.Attributes
 {
 	/// <summary>
-	/// Dropdown of layers
+	/// Default control
 	/// </summary>
-	public class LayerAttribute : __BaseControl { }
+	public class DefaultDrawerAttribute : __BaseControl { }
 }

@@ -9,7 +9,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override FieldType GetValidTypes() => FieldType.Int;
 
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnField(in DrawContext ctx)
 		{
 			DrawerGUI.Layer(ctx.position, ctx.property);
 		}

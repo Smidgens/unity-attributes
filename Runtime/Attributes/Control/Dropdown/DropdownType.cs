@@ -4,15 +4,15 @@ namespace Smidgenomics.Unity.Attributes
 {
 	using System;
 
+	/// <summary>
+	/// Dropdown of Type values (saved as string)
+	/// </summary>
 	public sealed class DropdownTypeAttribute : __BaseControl
 	{
 		public DropdownTypeAttribute(params Type[] types)
 		{
-			Values = types;
-			// todo: labels
+			Types = types;
 		}
-
-		internal string[] Labels { get; } = { };
-		internal Type[] Values { get; } = { };
+		internal readonly Type[] Types = null;
 	}
 }

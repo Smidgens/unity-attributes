@@ -11,7 +11,7 @@ namespace Smidgenomics.Unity.Attributes
 		{
 			order = -0;
 			URL = url;
-			Text = text;
+			base.Text = text;
 		}
 		internal string URL { get; } = "";
 	}

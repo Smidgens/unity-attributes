@@ -5,11 +5,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 
 	[CustomPropertyDrawer(typeof(DropdownFloatAttribute))]
-	internal class FloatOptions_ : __ControlDrawer<DropdownFloatAttribute>
+	internal class DDFloat_ : __ControlDrawer<DropdownFloatAttribute>
 	{
 		protected override FieldType GetValidTypes() => FieldType.Float;
 
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnField(in DrawContext ctx)
 		{
 			// popup
 			var a = (DropdownFloatAttribute)attribute;

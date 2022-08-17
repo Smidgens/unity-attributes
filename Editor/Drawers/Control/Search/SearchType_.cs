@@ -9,7 +9,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override FieldType GetValidTypes() => FieldType.String;
 
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnField(in DrawContext ctx)
 		{
 			Popup.AssemblyType(ctx.position, ctx.property, GetConstraints);
 		}

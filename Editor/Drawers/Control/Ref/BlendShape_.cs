@@ -9,9 +9,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override FieldType GetValidTypes() => FieldType.String | FieldType.Int;
 
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnField(in DrawContext ctx)
 		{
-			DrawerGUI.BlendShape(ctx.position, ctx.property, ctx.attribute.RendererField);
+			DrawerGUI.BlendShape(ctx.position, ctx.property, _Attribute.RendererField);
 		}
 	}
 }

@@ -7,9 +7,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(Slider01Attribute))]
 	internal class Slider01_ : __ControlDrawer<Slider01Attribute>
 	{
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnField(in DrawContext ctx)
 		{
-			var a = ctx.attribute;
+			var a = _Attribute;
 			DrawerGUI.Slider(ctx.position, ctx.property, 0f, 1f, a.Step, a.Precision);
 		}
 	}

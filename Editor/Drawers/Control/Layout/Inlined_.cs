@@ -8,36 +8,42 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEngine;
 
 	[CustomPropertyDrawer(typeof(InlineAttribute))]
-	internal class Inlined_ : __ControlDrawer<InlineAttribute>
+	internal class Inline_ : __ControlDrawer<InlineAttribute>
 	{
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnInit()
 		{
-			if (_Attribute.Type == null)
-			{
-				var opts = fieldInfo.GetCustomAttributes<FieldSizeAttribute>().ToArray();
-				_Attribute.Init(fieldInfo.GetInnerType(), opts);
-			}
-			var fields = _Attribute.Fields;
-			var sizes = _Attribute.Sizes;
-			var cols = ctx.position.CalcColumns(2.0, sizes);
+			var opts = fieldInfo.GetCustomAttributes<FieldSizeAttribute>().ToArray();
+			_Attribute.Init(fieldInfo.GetItemType(), opts);
+			_fields = _Attribute.Fields;
+			_sizes = _Attribute.Sizes;
+		}
 
+		protected override void OnField(in DrawContext ctx)
+		{
 			var ti = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = 0;
 
-			for (var i = 0; i < fields.Length; i++)
+			// todo: optimize this
+			var cols = ctx.position.CalcColumns(2.0, _sizes);
+
+			for (var i = 0; i < _fields.Length; i++)
 			{
-				var innerProp = ctx.property.FindPropertyRelative(fields[i]);
+				var col = cols[i];
+				var innerProp = ctx.property.FindPropertyRelative(_fields[i]);
 				if (innerProp == null)
 				{
-					EditorGUI.DrawRect(cols[i], Color.red * 0.3f);
-					GUI.Box(cols[i], "?");
+					EditorGUI.DrawRect(col, Color.red * 0.3f);
+					GUI.Box(col, "?");
 					continue;
 				}
-				EditorGUI.PropertyField(cols[i], innerProp, GUIContent.none);
+				EditorGUI.PropertyField(col, innerProp, GUIContent.none);
 			}
 
 			EditorGUI.indentLevel = ti;
 		}
+
+		private string[] _fields = null;
+		private float[] _sizes = null;
 	}
 
 }

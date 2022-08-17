@@ -2,9 +2,6 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
-	using System;
-
-	[AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
 	public sealed class BoxHeaderAttribute : __BaseDecorator
 	{
 		public BoxHeaderAttribute(string text, string textColor = null, string bgColor = null)

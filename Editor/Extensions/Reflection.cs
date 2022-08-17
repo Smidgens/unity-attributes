@@ -8,7 +8,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	// reflection / type helpers
 	internal static class Reflection_
 	{
-		public static Type GetInnerType(this FieldInfo fi)
+		public static Type GetItemType(this FieldInfo fi)
 		{
 			return fi.IsArray()
 			? fi.FieldType.GetElementType()
@@ -16,6 +16,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 		public static bool IsArray(this FieldInfo fo) => fo.FieldType.IsArray;
 		public static bool IsStatic(this Type t) => t.IsAbstract && t.IsSealed;
+
+		public static bool IsStruct(this Type t) => t.IsValueType && !t.IsPrimitive;
+
+		public static bool IsClassOrStruct(this Type t)
+		{
+			return (t.IsStruct() || t.IsClass);
+		}
 
 		public static bool DerivesFrom(this Type t, Type bt)
 		{

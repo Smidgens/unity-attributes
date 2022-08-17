@@ -9,7 +9,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(AnimatorParameterAttribute))]
 	internal class AnimatorParameter_ : __ControlDrawer<AnimatorParameterAttribute>
 	{
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnField(in DrawContext ctx)
 		{
 			DrawerGUI.AnimatorParameter(ctx.position, ctx.property, _Attribute.AnimatorField);
 		}

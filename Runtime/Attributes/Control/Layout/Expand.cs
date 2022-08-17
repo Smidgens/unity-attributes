@@ -3,7 +3,10 @@
 namespace Smidgenomics.Unity.Attributes
 {
 	/// <summary>
-	/// Dropdown of layers
+	/// Draw structs expanded out
 	/// </summary>
-	public class LayerAttribute : __BaseControl { }
+	public sealed class ExpandAttribute : __BaseControl
+	{
+		
+	}
 }

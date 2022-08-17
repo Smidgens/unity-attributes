@@ -8,9 +8,9 @@ namespace Smidgenomics.Unity.Attributes
 	{
 		public static readonly Color DEFAULT_COLOR = Color.clear;
 
-		public string[] Labels { get; } = _EMPTY_ARR_STRING;
-		public Color[] Values { get; } = _EMPTY_ARR_COLOR;
-		public string[] HTMLValues { get; } = _EMPTY_ARR_STRING;
+		internal readonly string[] Labels = null;
+		internal readonly Color[] Values = null;
+		internal readonly string[] HTMLValues = null;
 
 		public string GetLabel(in int i)
 		{

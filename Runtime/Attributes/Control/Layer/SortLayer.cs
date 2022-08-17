@@ -3,7 +3,7 @@
 namespace Smidgenomics.Unity.Attributes
 {
 	/// <summary>
-	/// Sorting layer dropdown
+	/// Dropdown of sorting layers
 	/// </summary>
 	public class SortLayerAttribute : __BaseControl { }
 }

@@ -2,7 +2,7 @@
 
 /*
  * TODOS
- *	- optimize size calculations (a bit memory greedy)
+ *	- move calculation and cache into drawer
  */
 
 namespace Smidgenomics.Unity.Attributes

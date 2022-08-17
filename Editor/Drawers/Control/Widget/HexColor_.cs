@@ -9,7 +9,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override FieldType GetValidTypes() => FieldType.String;
 
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnField(in DrawContext ctx)
 		{
 			ColorGUI.HexColor(ctx.position, ctx.property);
 		}

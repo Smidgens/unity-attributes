@@ -15,16 +15,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return base.GetHeight(property, label);
 		}
 
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnField(in DrawContext ctx)
 		{
 			if (_isFlags) { DrawFlags(ctx); }
 			else { DrawDefault(ctx); }
 		}
-		private void DrawDefault(in FieldContext ctx)
+		private void DrawDefault(in DrawContext ctx)
 		{
 			if (_Attribute.Type == null)
 			{
-				_Attribute.Init(fieldInfo.GetInnerType());
+				_Attribute.Init(fieldInfo.GetItemType());
 			}
 
 			var fields = _Attribute.Fields;
@@ -59,7 +59,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnInit()
 		{
-			var t = fieldInfo.GetInnerType();
+			var t = fieldInfo.GetItemType();
 			_isFlags =
 			t.IsEnum
 			&& t.GetCustomAttribute<FlagsAttribute>() != null;
@@ -77,9 +77,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private int _fcount = 0;
 		private int[] _flagValues = null;
 
-		private void DrawFlags(in FieldContext ctx)
+		private void DrawFlags(in DrawContext ctx)
 		{
-			if (!fieldInfo.GetInnerType().IsEnum) { return; }
+			if (!fieldInfo.GetItemType().IsEnum) { return; }
 			if (_fcount == 0) { return; }
 
 			var maxWidth =

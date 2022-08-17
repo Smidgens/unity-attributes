@@ -14,8 +14,8 @@ namespace Smidgenomics.Unity.Attributes
 		)
 		{
 			order = -1;
-			Text = text ?? string.Empty;
-			TextColor = Parse(textColor, TextColor);
+			base.Text = text ?? string.Empty;
+			base.TextColor = Parse(textColor, base.TextColor);
 			BackgroundColor = Parse(bgColor, BackgroundColor);
 		}
 	}

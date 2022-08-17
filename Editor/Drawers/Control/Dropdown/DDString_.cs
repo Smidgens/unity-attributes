@@ -5,11 +5,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 
 	[CustomPropertyDrawer(typeof(DropdownStringAttribute))]
-	internal class StringOptions_ : __ControlDrawer<DropdownStringAttribute>
+	internal class DDString_ : __ControlDrawer<DropdownStringAttribute>
 	{
 		protected override FieldType GetValidTypes() => FieldType.String;
 
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnField(in DrawContext ctx)
 		{
 			var a = (DropdownStringAttribute)attribute;
 

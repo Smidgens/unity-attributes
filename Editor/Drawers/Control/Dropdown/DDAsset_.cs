@@ -9,21 +9,21 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityObject = UnityEngine.Object;
 
 	[CustomPropertyDrawer(typeof(DropdownAssetAttribute))]
-	internal class DropdownAsset_ : __ControlDrawer<DropdownAssetAttribute>
+	internal class DDAsset_ : __ControlDrawer<DropdownAssetAttribute>
 	{
 		protected override FieldType GetValidTypes() => FieldType.Object;
 
 		protected override bool HasIcon()
 		{
-			return Mathf.Clamp(_Attribute.ThumbQuality, 0, 2) > 0;
+			return Mathf.Clamp(_Attribute.thumbQuality, 0, 2) > 0;
 		}
 
-		protected override void OnIcon(in Rect pos, in FieldContext ctx)
+		protected override void OnIcon(in Rect pos, in DrawContext ctx)
 		{
-			DrawerGUI.AssetThumbnail(pos, ctx.property.objectReferenceValue, _Attribute.ThumbQuality == 2);
+			DrawerGUI.AssetThumbnail(pos, ctx.property.objectReferenceValue, _Attribute.thumbQuality == 2);
 		}
 
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnField(in DrawContext ctx)
 		{
 			var label = ctx.property.objectReferenceValue?.name ?? Config.Label.POPUP_DEFAULT;
 
@@ -39,7 +39,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var m = new GenericMenu();
 			m.allowDuplicateNames = true;
 
-			var typeLabel = fieldInfo.GetInnerType().Name;
+			var typeLabel = fieldInfo.GetItemType().Name;
 
 			m.AddDisabledItem(new GUIContent(typeLabel));
 

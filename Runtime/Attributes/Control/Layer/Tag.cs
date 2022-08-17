@@ -3,7 +3,7 @@
 namespace Smidgenomics.Unity.Attributes
 {
 	/// <summary>
-	/// Select single tag
+	/// Dropdown of project tags
 	/// </summary>
 	public class TagAttribute : __BaseControl { }
 }

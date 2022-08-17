@@ -25,7 +25,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnInit()
 		{
-			var t = fieldInfo.GetInnerType();
+			var t = fieldInfo.GetItemType();
 			_isFlags =
 			t.IsEnum
 			&& t.GetCustomAttribute<FlagsAttribute>() != null;
@@ -39,23 +39,23 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			_fcount = n;
 		}
 
-		protected override void OnField(in FieldContext ctx)
+		protected override void OnField(in DrawContext ctx)
 		{
 			if (_isFlags) { DrawFlags(ctx); }
 			else { DrawSingle(ctx); }
 		}
 
-		private void DrawSingle(in FieldContext ctx)
+		private void DrawSingle(in DrawContext ctx)
 		{
 			var prop = ctx.property;
-			var labels = ctx.attribute.Labels;
+			var labels = _Attribute.Labels;
 			prop.boolValue =
 			DrawerGUI.Switch(ctx.position, prop.boolValue, labels[0], labels[1]);
 		}
 
-		private void DrawFlags(in FieldContext ctx)
+		private void DrawFlags(in DrawContext ctx)
 		{
-			if (!fieldInfo.GetInnerType().IsEnum) { return; }
+			if (!fieldInfo.GetItemType().IsEnum) { return; }
 			if(_fcount == 0) { return; }
 			var evalue = ctx.property.intValue;
 			var values = _flagValues;
