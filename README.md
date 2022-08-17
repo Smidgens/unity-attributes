@@ -109,6 +109,8 @@ snippets
     </td>
     <td>
       <img src="/.github/preview/switch.png" />
+      <br/>
+      <img src="/.github/preview/switch.png" />
     </td>
   </tr>
   <tr>
@@ -148,7 +150,7 @@ snippets
       RendererMaterial
     </td>
     <td>
-      <img src="/.github/preview/animatorparameter.png" />
+      <img src="/.github/preview/renderermaterial.png" />
     </td>
   </tr>
   <tr>
@@ -156,7 +158,7 @@ snippets
       Layer / SortLayer / Tag
     </td>
     <td>
-      <img src="/.github/preview/animatorparameter.png" />
+      <img src="/.github/preview/layer.png" />
     </td>
   </tr>
 
