@@ -154,7 +154,9 @@ snippets
 <!--######################################################-->
 <!--======================================================-->
 
-### Dropdown[Type]
+### Dropdown[Type] 
+
+**Variants**: string, bool, float, int, color, asset
 
 <img src="/.github/preview/options.png" />
 
