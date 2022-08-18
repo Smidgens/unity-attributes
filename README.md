@@ -453,7 +453,7 @@ public Texture2D _texture;
 
 ```cs
 [Layer]
-public int someLayer;
+public int _layer;
 ```
 
 </details>
@@ -474,7 +474,7 @@ public int someLayer;
 
 ```cs
 [SortLayer]
-public int someSortingLayer;
+public int _sortingLayer;
 ```
 
 </details>
@@ -493,8 +493,8 @@ public int someSortingLayer;
 
 
 ```cs
-[SortLayer]
-public int someSortingLayer;
+[Tag]
+public string _tag;
 ```
 
 </details>
