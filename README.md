@@ -337,7 +337,7 @@ public float stepSlider;
 
 ```cs
 [Slider01]
-public float precisionSlider;
+public float slider01;
 ```
 
 </details>
