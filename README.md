@@ -205,8 +205,8 @@ public T2 expanded2;
 
 <br/>
 
-* `object` -> displays a button a for each immediate bool field
-* `enum flags` -> displays a button for each flag
+* `object`
+* `enum flags`
 
 <br/>
 
@@ -251,8 +251,8 @@ public Options options;
 
 <br/>
 
-* `bool` -> displays a single switch
-* `enum flags` -> displays a switch for each flag
+* `bool`
+* `enum flags`
 
 <br/>
 
@@ -282,7 +282,6 @@ public Options options;
 ```
 
 </details>
-
 
 
 <!--======================================================-->
@@ -351,7 +350,7 @@ public float precisionSlider;
 
 <br/>
 
-`string` -> saves stringified hex color
+`string`
 
 <br/>
 
@@ -385,7 +384,6 @@ public string stringColor;
 
 
 ```cs
-
 [SearchType]
 public string anyType;
 
@@ -400,8 +398,6 @@ public string systemType;
 // only show component types
 [SearchType(baseTypes = new Type[]{ typeof(Component) })]
 public string componentType;
-
-
 ```
 
 </details>
@@ -416,7 +412,7 @@ public string componentType;
 
 <br/>
 
-:
+Variants:
 
 * Int
 * Float
@@ -448,7 +444,6 @@ public int _int;
 
 [DropdownAsset("Assets/Demo/")]
 public Texture2D _texture;
-
 ```
 
 </details>
