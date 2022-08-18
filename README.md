@@ -370,7 +370,7 @@ public float slider01;
 ```cs
 
 [HexColor]
-public string hexColor;
+public string hexColor = "#f00";
 
 ```
 
