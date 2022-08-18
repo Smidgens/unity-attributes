@@ -53,11 +53,15 @@ snippets
 
 <details>
     <summary><b>📝 BoxHeader</b></summary>
-    <img src="/.github/preview/decorators.png" />
-    <p></p>
+
+<br/>
+
+<img src="/.github/preview/boxheader.png" />
 
 ```cs
-
+[BoxHeader("Example Header")]
+[TextArea]
+public string documentedField;
 ```
 
 </details>
@@ -70,9 +74,15 @@ snippets
 
 <details>
     <summary><b>📝 BoxComment</b></summary>
-    <img src="/.github/preview/decorators.png" />
+
+<br/>
+
+<img src="/.github/preview/boxcomment.png" />
 
 ```cs
+[BoxComment("Some information about bla")]
+[TextArea]
+public string documentedField;
 ```
 
 </details>
@@ -86,11 +96,15 @@ snippets
 
 <details>
     <summary><b>📝 BoxLink</b></summary>
-    <img src="/.github/preview/decorators.png" />
-    <p></p>
+
+<br/>
+
+<img src="/.github/preview/boxlink.png" />
 
 ```cs
-
+[BoxLink("Documentation", "https://en.wikipedia.org/wiki/Slartibartfast")]
+[TextArea]
+public string documentedField;
 ```
 
 </details>
@@ -103,10 +117,28 @@ snippets
 
 <details>
     <summary><b>🔳 StaticAction</b></summary>
-    <img src="/.github/preview/IMAGE.png" />
-    <p></p>
+
+<br/>
+
+<img src="/.github/preview/staticaction.png" />
 
 ```cs
+class StaticGreets
+{
+    public static void SayHi()
+    {
+        Debug.Log("Hello, wurst!");
+    }
+
+    public static void LogValue(int v)
+    {
+        Debug.Log("Your value is: " + v);
+    }
+}
+
+[StaticAction("Say Hi", "SayHi", typeof(StaticGreets))]
+[StaticAction("Log 10", "LogValue", typeof(StaticGreets), 10)]
+public string staticActionField;
 
 ```
 
@@ -132,11 +164,7 @@ snippets
 
 <br/>
 
-* `object`
-
-<br/>
-
-<img src="/.github/preview/inlined.png" />
+<img src="/.github/preview/inline.png" />
 
 ```cs
 
@@ -144,7 +172,7 @@ snippets
 public struct T1 { public string name; public Texture2D icon; }
 
 [Inline] public Vector3 inlined1 = default;
-[FieldSize(nameof(T1.name), 40f)]
+[FieldSize("name", 40f)]
 [Inline] public T1 inlined2 = default;
 ```
 
@@ -162,9 +190,6 @@ public struct T1 { public string name; public Texture2D icon; }
 
 <br/>
 
-* `object`
-
-<br/>
 
 <img src="/.github/preview/expand.png" />
 
@@ -202,11 +227,6 @@ public T2 expanded2;
 
 <details>
     <summary><b>🔘 Tabs</b></summary>
-
-<br/>
-
-* `object`
-* `enum flags`
 
 <br/>
 
@@ -251,11 +271,6 @@ public Options options;
 
 <br/>
 
-* `bool`
-* `enum flags`
-
-<br/>
-
 <img src="/.github/preview/switch.png" />
 
 ```cs
@@ -294,13 +309,7 @@ public Options options;
 
 <br/>
 
-* `int`
-* `float`
-* `double`
-
-<br/>
-
-<img src="/.github/preview/sliders.png" />
+<img src="/.github/preview/slider.png" />
 
 
 ```cs
@@ -324,11 +333,7 @@ public float stepSlider;
 
 <br/>
 
-`float`
-
-<br/>
-
-<img src="/.github/preview/sliders.png" />
+<img src="/.github/preview/slider01.png" />
 
 
 ```cs
@@ -347,10 +352,6 @@ public float precisionSlider;
 
 <details>
     <summary><b>🎨 HexColor</b></summary>
-
-<br/>
-
-`string`
 
 <br/>
 
@@ -376,11 +377,7 @@ public string stringColor;
 
 <br/>
 
-`string`
-
-<br/>
-
-<img src="/.github/preview/options.png" />
+<img src="/.github/preview/searchtype.png" />
 
 
 ```cs
@@ -412,18 +409,7 @@ public string componentType;
 
 <br/>
 
-Variants:
-
-* Int
-* Float
-* Bool
-* String
-* Color
-* Asset
-
-<br/>
-
-<img src="/.github/preview/options.png" />
+<img src="/.github/preview/dropdown.png" />
 
 
 ```cs
@@ -461,10 +447,6 @@ public Texture2D _texture;
 
 <br/>
 
-* `int`
-
-<br/>
-
 <img src="/.github/preview/layer.png" />
 
 
@@ -486,11 +468,7 @@ public int someLayer;
 
 <br/>
 
-* `int`
-
-<br/>
-
-<img src="/.github/preview/layer.png" />
+<img src="/.github/preview/sortlayer.png" />
 
 
 ```cs
@@ -510,11 +488,7 @@ public int someSortingLayer;
 
 <br/>
 
-* `string`
-
-<br/>
-
-<img src="/.github/preview/layer.png" />
+<img src="/.github/preview/tag.png" />
 
 
 ```cs
@@ -532,11 +506,6 @@ public int someSortingLayer;
 
 <details>
     <summary><b>🔻 BuildScene</b></summary>
-
-<br/>
-
-* `string`
-* `int`
 
 <br/>
 
@@ -561,11 +530,6 @@ public int sceneIndex;
 
 <details>
     <summary><b>🔻 AnimatorParameter</b></summary>
-
-<br/>
-
-* `string`
-* `int`
 
 <br/>
 
@@ -596,10 +560,6 @@ public int parameterIndex;
 
 <br/>
 
-* `int`
-
-<br/>
-
 <img src="/.github/preview/renderermaterial.png" />
 
 
@@ -621,11 +581,6 @@ public int materialIndex
 
 <details>
     <summary><b>🔻 BlendShape</b></summary>
-
-<br/>
-
-* `int`
-* `string`
 
 <br/>
 
@@ -666,32 +621,42 @@ public int shapeName
 
 
 ```cs
-
-[Indent(1)]
-[DefaultDrawer]
-public int iAmIndented;
-
 [System.Serializable]
-class MyFancyType
+internal class OwnerOfFunctions
 {
-    public int value;
+    public int myValue = 10;
 
-    public void SetValue(int v)
+    public void SetMyValue(int v)
     {
-        value = v;
+        myValue = v;
     }
 
-    public void SayHi()
+    public void CallMe()
     {
-        Debug.Log("Hi!");
+        Debug.Log("Yay!");
+    }
+
+    public void CallMeAsWell()
+    {
+        Debug.Log("OMG YAY");
     }
 }
 
-[FieldAction("SayHi")]
-[FieldAction("SetValue", 10)]
-[DefaultDrawer]
-public MyFancyType fieldStuff;
 
+class MyScript : MonoBehaviour
+{
+    [FieldAction("Action 1", "CallMe")]
+    [FieldAction("Action 2", "CallMeAsWell")]
+    [FieldAction("Set value: 100", "SetMyValue", 100, onlyPlayMode = true)]
+    [FieldAction("Call Target", "ScriptMethod", callRoot = true)]
+    [Expand]
+    public OwnerOfFunctions fieldWithActions;
+
+    private void ScriptMethod()
+    {
+        Debug.Log("Script method called!");
+    }
+}
 
 ```
 
