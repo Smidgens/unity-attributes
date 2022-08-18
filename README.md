@@ -113,8 +113,6 @@ snippets
 </details>
 
 
-
-
 <!--======================================================-->
 <!--###################### DRAWERS #######################-->
 <!--======================================================-->
@@ -130,7 +128,7 @@ snippets
 
 <details>
     <summary><b>📏 Inline</b></summary>
-    <img src="/.github/preview/inlined.png" />
+    
 
 <br/>
 
@@ -138,8 +136,16 @@ snippets
 
 <br/>
 
+<img src="/.github/preview/inlined.png" />
+
 ```cs
 
+[System.Serializable]
+public struct T1 { public string name; public Texture2D icon; }
+
+[Inline] public Vector3 inlined1 = default;
+[FieldSize(nameof(T1.name), 40f)]
+[Inline] public T1 inlined2 = default;
 ```
 
 </details>
@@ -152,7 +158,7 @@ snippets
 
 <details>
     <summary><b>📏 Expand</b></summary>
-    <img src="/.github/preview/expand.png" />
+    
 
 <br/>
 
@@ -160,6 +166,7 @@ snippets
 
 <br/>
 
+<img src="/.github/preview/expand.png" />
 
 ```cs
 
@@ -370,7 +377,7 @@ public string stringColor;
 
 <br/>
 
-`string` -> saves assembly qualified name of type
+`string`
 
 <br/>
 
@@ -409,15 +416,14 @@ public string componentType;
 
 <br/>
 
-Variants:
+:
 
-* DropdownInt
-* DropdownFloat
-* DropdownBool
-* DropdownString
-* DropdownColor
-* DropdownAsset
-* DropdownType
+* Int
+* Float
+* Bool
+* String
+* Color
+* Asset
 
 <br/>
 
@@ -425,11 +431,23 @@ Variants:
 
 
 ```cs
-[DropdownString("option1","option2")]
-public string stringOption;
+[DropdownString("option1", "option2")]
+public string _string;
 
-[DropdownAsset("Assets/Icons/")]
-public string stringOption;
+[DropdownFloat(0.5f, 1.2f, 2.4f)]
+public float _float;
+
+[DropdownColor("red", "blue", "cyan")]
+public Color _color;
+
+[DropdownBool("Off", "On")]
+public bool _bool;
+
+[DropdownInt(0, 10)]
+public int _int;
+
+[DropdownAsset("Assets/Demo/")]
+public Texture2D _texture;
 
 ```
 
@@ -522,8 +540,8 @@ public int someSortingLayer;
 
 <br/>
 
-* `string` -> scene path
-* `int` -> index in build settings
+* `string`
+* `int`
 
 <br/>
 
@@ -551,8 +569,8 @@ public int sceneIndex;
 
 <br/>
 
-* `string` -> parameter name
-* `int` -> parameter index
+* `string`
+* `int`
 
 <br/>
 
@@ -583,7 +601,7 @@ public int parameterIndex;
 
 <br/>
 
-* `int` -> index of referenced renderer field 
+* `int`
 
 <br/>
 
@@ -611,8 +629,8 @@ public int materialIndex
 
 <br/>
 
-* `int` -> index of blend shape in ref. renderer
-* `string` -> name of blend shape in ref. renderer
+* `int`
+* `string`
 
 <br/>
 
