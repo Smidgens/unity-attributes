@@ -19,10 +19,10 @@ snippets
 
 # ℹ️ Features
 
-* Collection of useful field attributes and decorators for the Unity inspector.
-* Simple set-up.
-* Combine attributes in a multitude of ways.
-* Automatically stripped in production: `[Conditional("UNITY_EDITOR")]`
+* Collection of general use drawer and decorator attributes.
+* Stripped in production: `[Conditional("UNITY_EDITOR")]`
+* 🤞 Reasonably lightweight.
+
 
 <br/>
 
