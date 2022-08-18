@@ -378,6 +378,8 @@ public string stringColor;
 <br/>
 
 <img src="/.github/preview/searchtype.png" />
+<br/>
+<img src="/.github/preview/typefind.png" />
 
 
 ```cs
