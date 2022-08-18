@@ -168,11 +168,18 @@ public string staticActionField;
 ```cs
 
 [System.Serializable]
-public struct T1 { public string name; public Texture2D icon; }
+public struct T1
+{
+    public string name;
+    public Texture2D icon;
+}
 
-[Inline] public Vector3 inlined1 = default;
+[Inline]
+public Vector3 inlined1;
+
 [FieldSize("name", 40f)]
-[Inline] public T1 inlined2 = default;
+[Inline]
+public T1 inlined2;
 ```
 
 </details>
@@ -237,7 +244,7 @@ public T2 expanded2;
 [System.Serializable]
 struct ToggleData
 {
-    public bool item1,item2,item3;
+    public bool v1,v2,v3;
 }
 
 [Tabs]
@@ -313,10 +320,13 @@ public Options options;
 
 ```cs
 [Slider(1f,10f,1)]
-public float precisionSlider;
+public float sliderPrecision;
 
 [Slider(1f,10f,0.5f)]
-public float stepSlider;
+public float sliderStep;
+
+[Slider(1,10)]
+public int sliderInt;
 ```
 
 </details>
@@ -360,7 +370,7 @@ public float slider01;
 ```cs
 
 [HexColor]
-public string stringColor;
+public string hexColor;
 
 ```
 
@@ -384,18 +394,18 @@ public string stringColor;
 ```cs
 [SearchType]
 public string anyType;
+    
+// only show component types
+[SearchType(baseTypes = new Type[]{ typeof(Component) })]
+public string componentType;
 
 // only show static classes
 [SearchType(onlyStatic = true)]
-public string anyType;
+public string staticType;
 
 // only show system types
 [SearchType(assemblies = new string[]{ "mscorlib" })]
 public string systemType;
-
-// only show component types
-[SearchType(baseTypes = new Type[]{ typeof(Component) })]
-public string componentType;
 ```
 
 </details>
@@ -592,10 +602,10 @@ public int materialIndex
 public SkinnedMeshRenderer myRenderer;
 
 [AnimatorParameter("myRenderer")]
-public string shapeIndex
+public string blendShapeName
 
 [AnimatorParameter("myRenderer")]
-public int shapeName
+public int blendShapeIndex
 ```
 
 </details>
