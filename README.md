@@ -175,11 +175,11 @@ public struct T1
 }
 
 [Inline]
-public Vector3 inlined1;
+public Vector3 inlinedVector;
 
 [FieldSize("name", 40f)]
 [Inline]
-public T1 inlined2;
+public T1 inlinedCustom;
 ```
 
 </details>
