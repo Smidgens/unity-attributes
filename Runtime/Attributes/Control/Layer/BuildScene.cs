@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if !ATTRIBUTES_SCENE_0
+
 namespace Smidgenomics.Unity.Attributes
 {
 	/// <summary>
@@ -8,3 +10,5 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public class BuildSceneAttribute : __BaseControl { }
 }
+
+#endif
