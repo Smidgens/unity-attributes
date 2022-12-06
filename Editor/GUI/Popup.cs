@@ -99,25 +99,54 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 		}
 
+		private static (int,string,string) GetScene(int i)
+		{
+			string scenePath = SceneUtility.GetScenePathByBuildIndex(i);
+			string sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+			return (i, scenePath, sceneName);
+		}
+
+
 		public static void Scene(in Rect pos, SP prop)
 		{
 			var n = SceneManager.sceneCountInBuildSettings;
-			Scene scene = default;
+			//Scene scene = default;
+
+
+
+
+			(int, string, string) currentScene = (-1,null,null);
+
 			var label = "<invalid scene>";
+
+			int targetIndex = -1;
+
+
 			if (prop.IsInt() && prop.intValue > -1 && prop.intValue < n)
 			{
-				scene = SceneManager.GetSceneByBuildIndex(prop.intValue);
+				//currentScene = GetScene(prop.intValue);
+				targetIndex = prop.intValue;
+				//scene = SceneManager.GetSceneByBuildIndex(prop.intValue);
 			}
 			
 			if(prop.IsString() && !string.IsNullOrEmpty(prop.stringValue))
 			{
-				scene = SceneManager.GetSceneByPath(prop.stringValue);
+				targetIndex = SceneUtility.GetBuildIndexByScenePath(prop.stringValue);
+				//scene = SceneManager.GetSceneByPath(prop.stringValue);
 			}
 
-			var isUnset = scene.buildIndex == -1;
+			if(targetIndex > -1)
+			{
+				currentScene = GetScene(targetIndex);
+			}
+
+
+			var isUnset = currentScene.Item1 == -1;
+
+			bool isValid = !isUnset && currentScene.Item2 != null;
 
 			if (isUnset) { label = EConstants.Label.POPUP_DEFAULT; }
-			else if (scene.IsValid()) { label = $"{scene.buildIndex}: {scene.name}"; }
+			else if (isValid) { label = $"{currentScene.Item1}: {currentScene.Item3}"; }
 
 			if (DrawerGUI.PopupButton(pos, label))
 			{
@@ -130,18 +159,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					prop.serializedObject.ApplyModifiedProperties();
 				});
 				m.AddSeparator("");
+
 				if(n == 0) { m.AddDisabledItem(new GUIContent("No Options")); }
+
 				for (var i = 0; i < n; i++)
 				{
-					var cs = SceneManager.GetSceneByBuildIndex(i);
-					var active = prop.IsInt() ? i == prop.intValue : cs.path == prop.stringValue;
-					m.AddItem(new GUIContent(cs.name), active, () =>
+					int sceneIndex = i;
+					string scenePath = SceneUtility.GetScenePathByBuildIndex(i);
+					string sceneName = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+
+					var active = prop.IsInt() ? i == prop.intValue : scenePath == prop.stringValue;
+					m.AddItem(new GUIContent(sceneName), active, () =>
 					{
-						if (prop.IsInt()) { prop.intValue = cs.buildIndex; }
-						else if (prop.IsString()) { prop.stringValue = cs.path; }
+						if (prop.IsInt()) { prop.intValue = sceneIndex; }
+						else if (prop.IsString()) { prop.stringValue = scenePath; }
 						prop.serializedObject.ApplyModifiedProperties();
 					});
 				}
+
+
 				m.DropDown(pos);
 			}
 		}
