@@ -1,5 +1,7 @@
 // smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
@@ -78,13 +80,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			if (!prop.IsInt())
 			{
-				DrawerGUI.MutedInfo(pos, Config.Info.FIELD_NON_INT);
+				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_INT);
 				return;
 			}
 
 			var label = prop.intValue >= 0
 			? $"{prop.intValue}: {USortingLayer.IDToName(prop.intValue)}"
-			: Config.Label.POPUP_DEFAULT;
+			: EConstants.Label.POPUP_DEFAULT;
 
 			if (DrawerGUI.PopupButton(pos, label))
 			{
@@ -114,14 +116,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var isUnset = scene.buildIndex == -1;
 
-			if (isUnset) { label = Config.Label.POPUP_DEFAULT; }
+			if (isUnset) { label = EConstants.Label.POPUP_DEFAULT; }
 			else if (scene.IsValid()) { label = $"{scene.buildIndex}: {scene.name}"; }
 
 			if (DrawerGUI.PopupButton(pos, label))
 			{
 				var m = new GenericMenu();
 				m.allowDuplicateNames = true;
-				m.AddItem(new GUIContent(Config.Label.POPUP_DEFAULT), isUnset, () =>
+				m.AddItem(new GUIContent(EConstants.Label.POPUP_DEFAULT), isUnset, () =>
 				{
 					if (prop.IsInt()) { prop.intValue = -1; }
 					else if (prop.IsString()) { prop.stringValue = ""; }
@@ -148,13 +150,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			if (!prop.IsString())
 			{
-				DrawerGUI.MutedInfo(pos, Config.Info.FIELD_NON_STRING);
+				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_STRING);
 				return;
 			}
 			var isEmpty = string.IsNullOrEmpty(prop.stringValue);
 
 			var label = isEmpty
-			? Config.Label.POPUP_DEFAULT
+			? EConstants.Label.POPUP_DEFAULT
 			: prop.stringValue;
 
 			if (DrawerGUI.PopupButton(pos, label))
@@ -173,7 +175,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					m.AddItem(new GUIContent(l), prop.stringValue == v, () => setFn.Invoke(v));
 				};
 
-				optionFn.Invoke(Config.Label.POPUP_DEFAULT, "");
+				optionFn.Invoke(EConstants.Label.POPUP_DEFAULT, "");
 
 				m.AddSeparator("");
 
@@ -186,3 +188,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 	}
 }
+
+#endif

@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
@@ -25,11 +27,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
-			var label = ctx.property.objectReferenceValue?.name ?? Config.Label.POPUP_DEFAULT;
+			var label = ctx.property.objectReferenceValue?.name ?? EConstants.Label.POPUP_DEFAULT;
 
 			if (GUI.Button(ctx.position, label, EditorStyles.popup))
 			{
-				GetMenu(ctx.property, Config.Label.POPUP_DEFAULT)
+				GetMenu(ctx.property, EConstants.Label.POPUP_DEFAULT)
 				.DropDown(ctx.position);
 			}
 		}
@@ -65,7 +67,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			if(assets.Length == 0)
 			{
-				m.AddDisabledItem(new GUIContent(Config.Info.NO_POPUP_OPTIONS));
+				m.AddDisabledItem(new GUIContent(EConstants.Info.NO_POPUP_OPTIONS));
 			}
 			return m;
 		}
@@ -90,3 +92,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 	}
 }
+
+#endif

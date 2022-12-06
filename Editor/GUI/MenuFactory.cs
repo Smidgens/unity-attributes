@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
@@ -14,7 +16,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private static readonly Lazy<GUIContent>
 		_NO_OPTIONS_LABEL = new Lazy<GUIContent>(() =>
 		{
-			return new GUIContent(Config.Info.NO_POPUP_OPTIONS);
+			return new GUIContent(EConstants.Info.NO_POPUP_OPTIONS);
 		});
 
 		public static Menu StringifiedValues<T>
@@ -48,7 +50,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var m = new Menu();
 
-			m.AddItem(new GUIContent(Config.Label.POPUP_DEFAULT), value == -1, () => setFn.Invoke(-1));
+			m.AddItem(new GUIContent(EConstants.Label.POPUP_DEFAULT), value == -1, () => setFn.Invoke(-1));
 			m.AddSeparator("");
 
 			var layers = SortingLayer.layers;
@@ -62,7 +64,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return m;
 		}
 
-#if ANIMATION_ATTRIBUTES
+#if ATTRIBUTES_ANIMATION_1
 		public static Menu AnimatorParameters(
 			Animator animator,
 			in string value,
@@ -140,7 +142,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (showDefault)
 			{
-				m.AddItem(new GUIContent(Config.Label.POPUP_DEFAULT), value == -1, () => setFn.Invoke(-1));
+				m.AddItem(new GUIContent(EConstants.Label.POPUP_DEFAULT), value == -1, () => setFn.Invoke(-1));
 				m.AddSeparator("");
 			}
 
@@ -165,3 +167,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	}
 
 }
+
+#endif

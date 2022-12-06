@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
@@ -10,7 +12,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(RendererMaterialAttribute))]
 	internal class RendererMaterial_ : PropertyDrawer
 	{
-		public const string EMPTY_LABEL = Config.Label.POPUP_DEFAULT;
+		public const string EMPTY_LABEL = EConstants.Label.POPUP_DEFAULT;
 		public const string NO_RENDERER_MSG = "no renderer";
 		public const string NO_MATERIALS_MSG = "no material slots";
 		public const string NULL_LABEL = "(null)";
@@ -125,3 +127,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 	}
 }
+
+#endif

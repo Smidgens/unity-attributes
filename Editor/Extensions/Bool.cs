@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	internal static class Bool_
@@ -8,3 +10,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public static bool ToBool(this int v) => v == 0 ? false : true;
 	}
 }
+
+#endif

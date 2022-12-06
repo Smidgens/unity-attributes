@@ -2,8 +2,10 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
-	internal static class Config
+	// magic constants, lt.dan
+	internal static class Constants
 	{
+		// assembly name
 		public const string ASSEMBLY =
 		nameof(Smidgenomics)
 		+ "." + nameof(Unity)

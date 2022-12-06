@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	internal static class Array_
@@ -13,3 +15,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 	}
 }
+
+#endif

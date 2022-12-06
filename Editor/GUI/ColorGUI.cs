@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
@@ -13,7 +15,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			// valid type?
 			if (!prop.IsString())
 			{
-				DrawerGUI.MutedInfo(pos, Config.Info.FIELD_NON_STRING);
+				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_STRING);
 				return;
 			}
 			using(var check = new EditorGUI.ChangeCheckScope())
@@ -36,3 +38,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 	}
 }
+
+#endif

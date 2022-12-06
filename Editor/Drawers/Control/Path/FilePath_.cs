@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
@@ -9,7 +11,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(ProjectPath.FilePathAttribute))]
 	internal class FilePath_ : PropertyDrawer
 	{
-		public const string EMPTY_LABEL = Config.Label.POPUP_DEFAULT;
+		public const string EMPTY_LABEL = EConstants.Label.POPUP_DEFAULT;
 
 		public override void OnGUI(Rect pos, SP prop, GUIContent l)
 		{
@@ -19,7 +21,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			// type != string
 			if (!prop.IsString())
 			{
-				DrawerGUI.MutedInfo(pos, Config.Info.FIELD_NON_STRING);
+				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_STRING);
 			}
 
 			DrawPopup(pos, prop, (ProjectPath.FilePathAttribute)attribute);
@@ -82,3 +84,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 	}
 }
+
+#endif

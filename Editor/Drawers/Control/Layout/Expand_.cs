@@ -5,6 +5,8 @@
  *	- support arrays
  */
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using System.Reflection;
@@ -158,3 +160,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 	}
 }
+
+#endif

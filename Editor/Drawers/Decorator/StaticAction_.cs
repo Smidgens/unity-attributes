@@ -1,5 +1,7 @@
 // smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
@@ -47,3 +49,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private MethodInfo _method = null;
 	}
 }
+
+#endif

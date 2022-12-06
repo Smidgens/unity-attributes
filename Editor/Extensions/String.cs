@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if UNITY_EDITOR
+
 /*
  * String transforms
  */
@@ -72,3 +74,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 
 }
+
+#endif

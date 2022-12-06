@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using System;
@@ -45,7 +47,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 	internal abstract class __ControlDrawer<T> : PropertyDrawer where T : __BaseControl
 	{
-		public const string DEFAULT_MSG = Config.Info.NOT_IMPLEMENTED;
+		public const string DEFAULT_MSG = EConstants.Info.NOT_IMPLEMENTED;
 		public const float BUTTON_MARGIN = 2f;
 		public const float BUTTON_HEIGHT = 19f; // find later
 
@@ -277,3 +279,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 	}
 }
+
+#endif

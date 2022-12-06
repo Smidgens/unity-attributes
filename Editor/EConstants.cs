@@ -1,15 +1,14 @@
 ﻿// smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
-	/// <summary>
-	/// Various constants used across assembly
-	/// </summary>
-	internal static class Config
+	// magic editor constants, lt.dan
+	internal static class EConstants
 	{
 
 		public const string DEV_DEFINE = "SMIDGENOMICS_DEV";
-
 
 		// common labels
 		public static class Label
@@ -57,3 +56,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 	}
 }
+
+#endif

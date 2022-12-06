@@ -1,6 +1,6 @@
 ﻿// smidgens @ github
 
-#if ANIMATION_ATTRIBUTES
+#if UNITY_EDITOR && ATTRIBUTES_ANIMATION_1
 
 namespace Smidgenomics.Unity.Attributes.Editor
 {

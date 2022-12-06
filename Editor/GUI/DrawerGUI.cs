@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if UNITY_EDITOR
+
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
@@ -18,7 +20,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		// icon atlas
 		private readonly static Lazy<Texture> _SWITCH_ICON = new Lazy<Texture>(() =>
 		{
-			return Resources.Load<Texture>(Config.Resource.ICON_SWITCH);
+			return Resources.Load<Texture>(EConstants.Resource.ICON_SWITCH);
 		});
 
 		public static bool PointerButton(in Rect pos)
@@ -49,7 +51,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 
 
-#if ANIMATION_ATTRIBUTES
+#if ATTRIBUTES_ANIMATION_1
 		public static void AnimatorParameter(in Rect pos, SP prop, in string animatorFieldPath)
 		{
 			var animatorProp = prop.serializedObject.FindProperty(animatorFieldPath);
@@ -139,13 +141,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var rendererProp = prop.serializedObject.FindProperty(rendererField);
 			if (rendererProp == null)
 			{
-				MutedInfo(pos, Config.Info.FIELD_INVALID);
+				MutedInfo(pos, EConstants.Info.FIELD_INVALID);
 				return;
 			}
 
 			if(!rendererProp.IsRefType<SkinnedMeshRenderer>())
 			{
-				MutedInfo(pos, Config.Info.FIELD_NON_SKINNEDRENDERER);
+				MutedInfo(pos, EConstants.Info.FIELD_NON_SKINNEDRENDERER);
 				return;
 			}
 
@@ -185,7 +187,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				shape.Item2 = prop.stringValue;
 			}
 
-			var label = Config.Label.POPUP_DEFAULT;
+			var label = EConstants.Label.POPUP_DEFAULT;
 
 			if(shape.Item2.Length > 0)
 			{
@@ -198,7 +200,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				var isUnset = shape.Item1 < -1;
 
-				m.AddItem(new GUIContent(Config.Label.POPUP_DEFAULT), isUnset, () =>
+				m.AddItem(new GUIContent(EConstants.Label.POPUP_DEFAULT), isUnset, () =>
 				{
 					if (prop.IsInt()) { prop.intValue = -1; }
 					else if (prop.IsString()) { prop.stringValue = ""; }
@@ -236,7 +238,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			if (!prop.IsFloat() && !prop.IsInt())
 			{
-				MutedInfo(pos, Config.Info.FIELD_NON_NUM);
+				MutedInfo(pos, EConstants.Info.FIELD_NON_NUM);
 				return;
 			}
 
@@ -285,7 +287,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			// valid type?
 			if (!prop.IsInt())
 			{
-				MutedInfo(pos, Config.Info.FIELD_NON_INT);
+				MutedInfo(pos, EConstants.Info.FIELD_NON_INT);
 				return;
 			}
 
@@ -302,7 +304,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			// invalid type
 			if (!prop.IsInt())
 			{
-				MutedInfo(pos, Config.Info.FIELD_NON_INT);
+				MutedInfo(pos, EConstants.Info.FIELD_NON_INT);
 				return;
 			}
 
@@ -310,7 +312,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			string btnLabel = prop.intValue >= 0 && prop.intValue < layers.Length
 			? $"{prop.intValue}: {layers[prop.intValue]}"
-			: Config.Label.POPUP_DEFAULT;
+			: EConstants.Label.POPUP_DEFAULT;
 
 			if (GUI.Button(pos, btnLabel, EditorStyles.popup))
 			{
@@ -371,3 +373,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		});
 	}
 }
+
+#endif
