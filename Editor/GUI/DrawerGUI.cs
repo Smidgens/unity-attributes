@@ -57,13 +57,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var animatorProp = prop.serializedObject.FindProperty(animatorFieldPath);
 			if (animatorProp == null)
 			{
-				MutedInfo(pos, Config.Info.FIELD_INVALID);
+				MutedInfo(pos, EConstants.Info.FIELD_INVALID);
 				return;
 			}
 
 			if (!animatorProp.IsRefType("Animator"))
 			{
-				MutedInfo(pos, Config.Info.FIELD_NON_ANIMATOR);
+				MutedInfo(pos, EConstants.Info.FIELD_NON_ANIMATOR);
 				return;
 			}
 
@@ -102,7 +102,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var isUnset = parameter.Item1 < 0 || parameter.Item2.Length == 0;
 
-			var btnLabel = Config.Label.POPUP_DEFAULT;
+			var btnLabel = EConstants.Label.POPUP_DEFAULT;
 
 			if (!isUnset)
 			{

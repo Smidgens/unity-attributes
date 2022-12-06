@@ -1,5 +1,7 @@
 ﻿// smidgens @ github
 
+#if ATTRIBUTES_ANIMATION_1
+
 namespace Smidgenomics.Unity.Attributes
 {
 	public sealed class AnimatorParameterAttribute : __BaseControl
@@ -12,3 +14,5 @@ namespace Smidgenomics.Unity.Attributes
 		}
 	}
 }
+
+#endif

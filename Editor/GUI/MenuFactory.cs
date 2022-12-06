@@ -72,11 +72,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		)
 		{
 			var m = new Menu();
-			m.AddItem(new GUIContent(Config.Label.POPUP_DEFAULT), value == "", () => setFn.Invoke(-1));
+			m.AddItem(new GUIContent(EConstants.Label.POPUP_DEFAULT), value == "", () => setFn.Invoke(-1));
 			m.AddSeparator("");
 			if(animator.parameterCount == 0)
 			{
-				m.AddDisabledItem(new GUIContent(Config.Info.NO_POPUP_OPTIONS));
+				m.AddDisabledItem(new GUIContent(EConstants.Info.NO_POPUP_OPTIONS));
 			}
 
 			for(var i = 0; i < animator.parameterCount; i++)
