@@ -4,9 +4,10 @@ namespace Smidgenomics.Unity.Attributes
 {
 	using UnityEngine;
 
-	// common empties
+	// common empties for null fallbacks
 	internal static class Empty
 	{
+		// empty arrays of common types
 		public static class Array
 		{
 			public static readonly Material[] MATERIAL = Get<Material>();
