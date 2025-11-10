@@ -1,5 +1,7 @@
 // smidgens @ github
 
+// resharper disable all
+
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
@@ -7,17 +9,17 @@ namespace Smidgenomics.Unity.Attributes
 	/// <summary>
 	/// System.Type.AssemblyQualifiedName
 	/// </summary>
-	public class SearchTypeAttribute : __BaseControl
+	public sealed class SearchTypeAttribute : __BaseControl
 	{
-		public bool hideNested = true;
-		public bool hideAbstract = false;
-		public bool showHidden = false;
-		
-		public bool onlyStatic = false;
-		public bool onlyInterfaces = false;
+		public readonly bool hideNested = true;
+		public readonly bool hideAbstract = false;
+		public readonly bool showHidden = false;
 
-		public string[] namespaces = null;
-		public string[] assemblies = null;
-		public Type[] baseTypes = null;
+		public readonly bool onlyStatic = false;
+		public readonly bool onlyInterfaces = false;
+
+		public readonly string[] namespaces = null;
+		public readonly string[] assemblies = null;
+		public readonly Type[] baseTypes = null;
 	}
 }

@@ -60,7 +60,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				DrawerGUI.MutedInfo(r, err); return;
 			}
 
-			var materials = renderer ? renderer.sharedMaterials : Empty.Array.MATERIAL;
+			var materials = renderer ? renderer.sharedMaterials : Array.Empty<Material>();
 
 			string l = prop.intValue > -1 && prop.intValue < materials.Length
 			? GetLabel(prop.intValue, materials[prop.intValue]?.name)
@@ -115,7 +115,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private static string[] ListMaterials(in DrawerContext ctx)
 		{
 			Renderer renderer = ctx.renderer;
-			Material[] materials = renderer?.sharedMaterials ?? Empty.Array.MATERIAL;
+			Material[] materials = renderer?.sharedMaterials ?? Array.Empty<Material>();
 			var labels = new string[materials.Length];
 
 			for(var i = 0; i < materials.Length; i++)

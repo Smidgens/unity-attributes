@@ -9,7 +9,7 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		public byte thumbQuality { get; set; } = 1;
 
-		public readonly static string[] DEFAULT_FOLDERS =
+		public static readonly string[] DEFAULT_FOLDERS =
 		{
 			"Assets/" // project wide
 		};

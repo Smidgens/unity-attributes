@@ -16,7 +16,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public const float BUTTON_MARGIN = 2f;
 		public const float BUTTON_HEIGHT = 19f; // find later
 
-		public override sealed float GetPropertyHeight(SP property, GUIContent label)
+		public sealed override float GetPropertyHeight(SP property, GUIContent label)
 		{
 			EnsureInit();
 			return
@@ -24,7 +24,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			+ GetHeight(property, label);
 		}
 
-		public override sealed void OnGUI(Rect pos, SP prop, GUIContent l)
+		public sealed override void OnGUI(Rect pos, SP prop, GUIContent l)
 		{
 
 			DrawActions(ref pos, prop);
@@ -47,6 +47,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					{
 						position = pos,
 						property = prop,
+						label = l,
 					};
 
 					if (HasIcon())
@@ -66,6 +67,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			public Rect position;
 			public SP property;
+			public GUIContent label;
 		}
 
 		protected virtual float GetHeight(SP prop, GUIContent label)

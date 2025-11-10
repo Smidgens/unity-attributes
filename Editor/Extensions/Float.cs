@@ -44,7 +44,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		public static float[] Subdivide(this float v, params float[] sizes)
 		{
-			if (sizes.Length == 0) { return Empty.Array.FLOAT; }
+			if (sizes.Length == 0) { return System.Array.Empty<float>(); }
 			float flex = v; 
 			// sum up remaining size after
 			for(int i = 0; i < sizes[i]; i++)
