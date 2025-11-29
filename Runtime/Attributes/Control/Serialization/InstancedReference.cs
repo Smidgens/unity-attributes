@@ -2,15 +2,22 @@
 
 // resharper disable all
 
+
+
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
 	using UnityEngine;
+	
 
 	// 
 	[AttributeUsage(AttributeTargets.Field)]
 	public sealed class InstancedReferenceAttribute : __BaseControl
 	{
+		/// <summary>
+		/// Assembly string reference to static function: System.Type->String
+		/// </summary>
+		public bool labelFn { get; set; }
 	}
 }
 
@@ -26,6 +33,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System.Collections.Generic;
 	using UObject = UnityEngine.Object;
 	using SP = UnityEditor.SerializedProperty;
+	using System.ComponentModel;
 
 	[CustomPropertyDrawer(typeof(InstancedReferenceAttribute))]
 	internal sealed class _InstancedReferenceAttribute : __ControlDrawer<InstancedReferenceAttribute>
@@ -40,46 +48,63 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var prop = ctx.property;
 			var pos = ctx.position;
 			var l = ctx.label;
-			
-			if (prop.propertyType != SerializedPropertyType.ManagedReference)
-			{
-				pos = EditorGUI.PrefixLabel(pos, l);
-				EditorGUI.LabelField(pos, "Invalid type", EditorStyles.miniLabel);
-				return;
-			}
-		
-			var typeRect = SliceTop(ref pos, EditorGUIUtility.singleLineHeight);
-			SliceTop(ref pos, 2);
-		
-			if(l != GUIContent.none && !fieldInfo.FieldType.IsArray)
-			{
-				typeRect = EditorGUI.PrefixLabel(typeRect, l);
-			}
-			
-			if (prop.propertyType != SerializedPropertyType.ManagedReference)
+
+			var isArray = fieldInfo.FieldType.IsArray;
+
+			if (isArray && prop.propertyType != SerializedPropertyType.ManagedReference)
 			{
 				EditorGUI.LabelField(pos, "Invalid type", EditorStyles.miniLabel);
 				return;
 			}
 
-			// var typeRect = SliceTop(ref pos, EditorGUIUtility.singleLineHeight);
-			SliceTop(ref pos, 2);
+			if (!isArray && prop.propertyType != SerializedPropertyType.ManagedReference)
+			{
+				pos = EditorGUI.PrefixLabel(pos, l);
+				EditorGUI.LabelField(pos, "Invalid type", EditorStyles.miniLabel);
+				return;
+			}
+
+			if (isArray)
+			{
+				// horrible...
+				var indentSize = 5f;
+				pos.position -= new Vector2(indentSize, 0f);
+				pos.size += new Vector2(indentSize, 0f);
+			}
+
+			if (isArray)
+			{
+				prop.isExpanded = true;
+			}
 			
+			var tIndent = EditorGUI.indentLevel;
+			EditorGUI.indentLevel = isArray ? 0 : EditorGUI.indentLevel;
+		
+			var typeRect = SliceRow(ref pos);
+
+			if(l != GUIContent.none && !isArray)
+			{
+				typeRect = EditorGUI.PrefixLabel(typeRect, l);
+			}
+
 			SelectorDropdown(typeRect, prop);
 			if (prop.managedReferenceValue == null)
 			{
+				EditorGUI.indentLevel = tIndent;
 				return;
 			}
-			var extraIndent = 1;
+
+			var extraIndent = isArray ? 0 : 1;
+			
 			EditorGUI.indentLevel += extraIndent;
 			foreach (var field in FindInspectorFields<object>(prop.managedReferenceValue.GetType()))
 			{
-				var fRect = SliceTop(ref pos, EditorGUIUtility.singleLineHeight);
+				var fRect = SliceRow(ref pos);
 				var fProp = prop.serializedObject.FindProperty(prop.propertyPath + "." + field.Name);
 				EditorGUI.PropertyField(fRect, fProp);
-				SliceTop(ref pos, 2);
 			}
-			EditorGUI.indentLevel -= extraIndent;
+
+			EditorGUI.indentLevel = tIndent;
 		}
 
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
@@ -89,8 +114,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				rowCount += FindInspectorFields<object>(prop.managedReferenceValue.GetType()).Count();
 			}
-			var padding = (rowCount - 1) * 2;
-			return (rowCount) * EditorGUIUtility.singleLineHeight + padding;
+			// var padding = (rowCount - 1) * 2;
+			var rowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
+			return (rowCount) * rowHeight;
 		}
 
 		private void SelectorDropdown(Rect pos, SerializedProperty prop)
@@ -178,7 +205,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				return "(none)";
 			}
-			// TODO: use regex to format name
+
+			var attr = type.GetCustomAttribute<DisplayNameAttribute>();
+
+			if (attr != null)
+			{
+				return attr.DisplayName;
+			}
+			
 			return type.Name;
 		}
 		
@@ -234,6 +268,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return true;
 		}
 		
+		private static Rect SliceRow(ref Rect r)
+		{
+			var r2 = SliceTop(ref r, EditorGUIUtility.singleLineHeight);
+			SliceTop(ref r, EditorGUIUtility.standardVerticalSpacing);
+			return r2;
+		}
+		
 		private static Rect SliceTop(ref Rect r, in float h)
 		{
 			var r2 = r;
@@ -242,6 +283,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			r.position += new Vector2(0f, h);
 			return r2;
 		}
+		
+		
 
 	}
 }
