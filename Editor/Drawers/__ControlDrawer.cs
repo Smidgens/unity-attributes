@@ -29,9 +29,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			DrawActions(ref pos, prop);
 
+			var tIndent = EditorGUI.indentLevel;
+			EditorGUI.indentLevel = fieldInfo.FieldType.IsArray ? 0 : EditorGUI.indentLevel;
+
 			using (new EditorGUI.PropertyScope(pos, l, prop))
 			{
-				using (new EditorGUI.IndentLevelScope(_extraIndent))
+				var indent = fieldInfo.FieldType.IsArray ? 0 : _extraIndent;
+				
+				using (new EditorGUI.IndentLevelScope(indent))
 				{
 					// label
 					OnLabel(ref pos, l);
@@ -42,6 +47,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 						DrawerGUI.MutedInfo(pos, err);
 						return;
 					}
+					
 					pos = EditorGUI.IndentedRect(pos);
 					var ctx = new DrawContext
 					{
@@ -58,7 +64,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					}
 					OnField(ctx);
 				}
+
 			}
+			
+			EditorGUI.indentLevel = tIndent;
+			
 		}
 
 		protected T _Attribute => attribute as T;
