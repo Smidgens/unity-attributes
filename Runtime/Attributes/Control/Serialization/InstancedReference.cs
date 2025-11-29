@@ -49,8 +49,23 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var pos = ctx.position;
 			var l = ctx.label;
 
-			var isArray = fieldInfo.FieldType.IsArray;
+			var isArray = fieldInfo.FieldType.IsArray || prop.propertyPath.EndsWith($"].{prop.name}");
 
+			// if (prop.propertyPath.EndsWith($"].{prop.name}"))
+			// {
+			// 	var parentPath = prop.propertyPath.Substring(0, prop.propertyPath.LastIndexOf("."));
+			//
+			// 	var parentProp = prop.serializedObject.FindProperty(parentPath);
+			// 	
+			// 	Debug.Log(parentProp);
+			//
+			// 	if (parentProp != null)
+			// 	{
+			// 		parentProp.isExpanded = true;
+			// 	}
+			// }
+			
+			
 			if (isArray && prop.propertyType != SerializedPropertyType.ManagedReference)
 			{
 				EditorGUI.LabelField(pos, "Invalid type", EditorStyles.miniLabel);
@@ -119,6 +134,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			return (rowCount) * rowHeight;
 		}
+
+		// private SerializedProperty GetParentProp()
+		// {
+		// 	
+		// }
 
 		private void SelectorDropdown(Rect pos, SerializedProperty prop)
 		{
