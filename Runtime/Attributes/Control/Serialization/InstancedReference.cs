@@ -18,6 +18,11 @@ namespace Smidgenomics.Unity.Attributes
 		/// Assembly string reference to static function: System.Type->String
 		/// </summary>
 		public bool labelFn { get; set; }
+
+		/// <summary>
+		/// Display label for null values
+		/// </summary>
+		public string emptyValueLabel { get; set; } = "(none)";
 	}
 }
 
@@ -51,21 +56,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var isArray = fieldInfo.FieldType.IsArray || prop.propertyPath.EndsWith($"].{prop.name}");
 
-			// if (prop.propertyPath.EndsWith($"].{prop.name}"))
-			// {
-			// 	var parentPath = prop.propertyPath.Substring(0, prop.propertyPath.LastIndexOf("."));
-			//
-			// 	var parentProp = prop.serializedObject.FindProperty(parentPath);
-			// 	
-			// 	Debug.Log(parentProp);
-			//
-			// 	if (parentProp != null)
-			// 	{
-			// 		parentProp.isExpanded = true;
-			// 	}
-			// }
-			
-			
 			if (isArray && prop.propertyType != SerializedPropertyType.ManagedReference)
 			{
 				EditorGUI.LabelField(pos, "Invalid type", EditorStyles.miniLabel);
@@ -135,15 +125,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return (rowCount) * rowHeight;
 		}
 
-		// private SerializedProperty GetParentProp()
-		// {
-		// 	
-		// }
-
 		private void SelectorDropdown(Rect pos, SerializedProperty prop)
 		{
 			Type currentType = prop.managedReferenceValue?.GetType();
-			if (!GUI.Button(pos, GetTypeDisplayName(currentType), EditorStyles.popup))
+			string label = currentType != null ? GetTypeDisplayName(currentType) : (attribute as InstancedReferenceAttribute).emptyValueLabel;
+			
+			if (!GUI.Button(pos, label, EditorStyles.popup))
 			{
 				return;
 			}
@@ -154,9 +141,17 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					return;
 				}
+
+				if (o == null)
+				{
+					prop.managedReferenceValue = null;
+					prop.serializedObject.ApplyModifiedProperties();
+					return;
+				}
+				
 				prop.managedReferenceValue = Activator.CreateInstance(newType);
 				prop.serializedObject.ApplyModifiedProperties();
-			});
+			}, label);
 			m.DropDown(pos);
 		}
 
@@ -167,13 +162,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			: fieldInfo.FieldType.GetElementType();
 		}
 
-		private static GenericMenu CreateTypeMenu(Type baseType, GenericMenu.MenuFunction2 fn)
+		private static GenericMenu CreateTypeMenu(Type baseType, GenericMenu.MenuFunction2 fn, string defaultLabel = "(none)")
 		{
 			var menu = new GenericMenu();
 
 			var types = GetDerivedTypes(baseType);
 
 			Assembly currentAssembly = null;
+
+			menu.AddItem(new GUIContent(defaultLabel), false, fn, null);
+			menu.AddSeparator("");
 
 			foreach (var type in types)
 			{
@@ -190,6 +188,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					currentAssembly = type.Assembly;
 					menu.AddDisabledItem(new GUIContent(currentAssembly.GetName().Name));
 				}
+
 				var dname = GetTypeLabel(type);
 				menu.AddItem(dname, false, fn,  type);
 			}
@@ -223,7 +222,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			if (type == null)
 			{
-				return "(none)";
+				return "";
 			}
 
 			var attr = type.GetCustomAttribute<DisplayNameAttribute>();
