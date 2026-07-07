@@ -128,7 +128,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private void SelectorDropdown(Rect pos, SerializedProperty prop)
 		{
 			Type currentType = prop.managedReferenceValue?.GetType();
-			string label = currentType != null ? GetTypeDisplayName(currentType) : (attribute as InstancedReferenceAttribute).emptyValueLabel;
+
+			string defaultLabel = (attribute as InstancedReferenceAttribute).emptyValueLabel;
+			string label = currentType != null ? GetTypeDisplayName(currentType) : defaultLabel;
 			
 			if (!GUI.Button(pos, label, EditorStyles.popup))
 			{
@@ -151,7 +153,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				
 				prop.managedReferenceValue = Activator.CreateInstance(newType);
 				prop.serializedObject.ApplyModifiedProperties();
-			}, label);
+			}, defaultLabel);
 			m.DropDown(pos);
 		}
 
