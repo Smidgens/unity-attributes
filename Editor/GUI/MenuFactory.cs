@@ -100,17 +100,17 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 #endif
 
-		public static Menu Layers(in int value, Action<int> setFn)
-		{
-			return GetIntMenu
-			(
-				value,
-				InternalEditorUtility.layers.Stringify(),
-				setFn,
-				true,
-				i => $"{i}: "
-			);
-		}
+		// public static Menu Layers(in int value, Action<int> setFn)
+		// {
+		// 	return GetIntMenu
+		// 	(
+		// 		value,
+		// 		InternalEditorUtility.layers.Stringify(),
+		// 		setFn,
+		// 		true,
+		// 		i => $"{i}: "
+		// 	);
+		// }
 
 		public static Menu GetMenu(SP prop, in int[] values, bool showDefault = false, Func<int, string> prefixFn = null)
 		{

@@ -8,6 +8,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 	using UnityEditorInternal;
 	using System;
+	using System.Linq;
 	using System.Reflection;
 	using UnityObject = UnityEngine.Object;
 	using SP = UnityEditor.SerializedProperty;
@@ -299,6 +300,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 		}
 
+		private static GenericMenu _layerMenu;
+
 		public static void Layer(in Rect pos, SP prop)
 		{
 			// invalid type
@@ -308,20 +311,35 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return;
 			}
 
-			string[] layers = InternalEditorUtility.layers;
+			var currentValue = prop.intValue;
 
-			string btnLabel = prop.intValue >= 0 && prop.intValue < layers.Length
-			? $"{prop.intValue}: {layers[prop.intValue]}"
-			: EConstants.Label.POPUP_DEFAULT;
+			string currentName = LayerMask.LayerToName(currentValue);
+
+			var btnLabel = !string.IsNullOrEmpty(currentName)
+			? $"{currentValue}: {currentName}"
+			: "<none>";
 
 			if (GUI.Button(pos, btnLabel, EditorStyles.popup))
 			{
-				MenuFactory.Layers(prop.intValue, v =>
+				var m = new GenericMenu();
+				foreach (var layerIndex in Enumerable.Range(0, 31))
 				{
-					prop.intValue = v;
-					prop.serializedObject.ApplyModifiedProperties();
-				})
-				.DropDown(pos);
+					var name = LayerMask.LayerToName(layerIndex);
+					if (string.IsNullOrEmpty(name))
+					{
+						continue;
+					}
+
+					var v = layerIndex;
+
+					m.AddItem(new GUIContent($"{layerIndex}: {name}"), layerIndex == currentValue, () =>
+					{
+							prop.intValue = v;
+							prop.serializedObject.ApplyModifiedProperties();
+					});
+
+				}
+				m.DropDown(pos);
 			}
 		}
 

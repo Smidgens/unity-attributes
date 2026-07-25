@@ -84,17 +84,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return;
 			}
 
-			var label = prop.intValue >= 0
-			? $"{prop.intValue}: {USortingLayer.IDToName(prop.intValue)}"
-			: EConstants.Label.POPUP_DEFAULT;
+			var lName = USortingLayer.IDToName(prop.intValue);
+			var valid = !string.IsNullOrEmpty(lName);
+
+			var label = valid
+			? $"{USortingLayer.GetLayerValueFromID(prop.intValue)}: {lName}"
+			: "<none>";
 
 			if (DrawerGUI.PopupButton(pos, label))
 			{
-				var m = MenuFactory.SortingLayers(prop.intValue, id =>
+				var m = new GenericMenu();
+				foreach (var sLayer in USortingLayer.layers)
 				{
-					prop.intValue = id;
-					prop.serializedObject.ApplyModifiedProperties();
-				});
+					var v = sLayer.id;
+					m.AddItem(new GUIContent($"{sLayer.value}: {sLayer.name}"), prop.intValue == v, () =>
+					{
+						prop.intValue = v;
+						prop.serializedObject.ApplyModifiedProperties();
+					});
+				}
 				m.DropDown(pos);
 			}
 		}
@@ -111,9 +119,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var n = SceneManager.sceneCountInBuildSettings;
 			//Scene scene = default;
-
-
-
 
 			(int, string, string) currentScene = (-1,null,null);
 
