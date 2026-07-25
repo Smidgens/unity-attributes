@@ -11,15 +11,15 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public sealed class SearchTypeAttribute : __BaseControl
 	{
-		public readonly bool hideNested = true;
-		public readonly bool hideAbstract = false;
-		public readonly bool showHidden = false;
+		public bool hideNested = true;
+		public bool hideAbstract = false;
+		public bool showHidden = false;
 
-		public readonly bool onlyStatic = false;
-		public readonly bool onlyInterfaces = false;
+		public bool onlyStatic = false;
+		public bool onlyInterfaces = false;
 
-		public readonly string[] namespaces = null;
-		public readonly string[] assemblies = null;
-		public readonly Type[] baseTypes = null;
+		public string[] namespaces = null;
+		public string[] assemblies = null;
+		public Type[] baseTypes = null;
 	}
 }
