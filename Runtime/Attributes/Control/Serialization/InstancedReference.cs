@@ -81,7 +81,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				prop.isExpanded = true;
 			}
-			
+
 			var tIndent = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = isArray ? 0 : EditorGUI.indentLevel;
 		
@@ -102,27 +102,67 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var extraIndent = isArray ? 0 : 1;
 			
 			EditorGUI.indentLevel += extraIndent;
-			foreach (var field in FindInspectorFields<object>(prop.managedReferenceValue.GetType()))
+
+			if (_fields != null)
 			{
-				var fRect = SliceRow(ref pos);
-				var fProp = prop.serializedObject.FindProperty(prop.propertyPath + "." + field.Name);
-				EditorGUI.PropertyField(fRect, fProp);
+				var i = -1;
+				foreach (var field in _fields)
+				{
+					i++;
+					var fProp = prop.serializedObject.FindProperty(prop.propertyPath + "." + field.Name);
+					var pHeight = EditorGUI.GetPropertyHeight(fProp);
+					var fRect = SliceTop(ref pos, pHeight);
+					EditorGUI.PropertyField(fRect, fProp);
+					if (i < _fields.Length - 1)
+					{
+						SliceTop(ref pos, EditorGUIUtility.standardVerticalSpacing);
+					}
+				}
 			}
 
 			EditorGUI.indentLevel = tIndent;
 		}
 
+		private Type _lastType;
+		private FieldInfo[] _fields;
+
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
 		{
-			int rowCount = 1;
-			if (prop.managedReferenceValue != null)
-			{
-				rowCount += FindInspectorFields<object>(prop.managedReferenceValue.GetType()).Count();
-			}
-			// var padding = (rowCount - 1) * 2;
-			var rowHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+			var isArray = fieldInfo.FieldType.IsArray || prop.propertyPath.EndsWith($"].{prop.name}");
 
-			return (rowCount) * rowHeight;
+			var totalHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
+			if (isArray)
+			{
+				// totalHeight += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+			}
+
+			if (_lastType != prop.managedReferenceValue?.GetType())
+			{
+				_lastType = null;
+				_fields = null;
+			}
+
+			if (prop.managedReferenceValue == null)
+			{
+				return totalHeight;
+			}
+
+			if (_fields == null)
+			{
+				_fields = FindInspectorFields<object>(prop.managedReferenceValue.GetType()).ToArray();
+				_lastType = prop.managedReferenceValue.GetType();
+			}
+
+			foreach (var f in _fields)
+			{
+				var innerProp = prop.FindPropertyRelative(f.Name);
+				totalHeight += EditorGUI.GetPropertyHeight(innerProp);
+			}
+
+			totalHeight += (Mathf.Max(_fields.Length - 1, 0f)) * EditorGUIUtility.standardVerticalSpacing;
+			
+			return totalHeight;
 		}
 
 		private void SelectorDropdown(Rect pos, SerializedProperty prop)
