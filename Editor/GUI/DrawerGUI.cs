@@ -52,7 +52,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 
 
-#if ATTRIBUTES_ANIMATION_1
+#if ATTRIBUTES_ANIMATION_1 || SM_DEV
 		public static void AnimatorParameter(in Rect pos, SP prop, in string animatorFieldPath)
 		{
 			var animatorProp = prop.serializedObject.FindProperty(animatorFieldPath);

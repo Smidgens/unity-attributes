@@ -64,7 +64,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return m;
 		}
 
-#if ATTRIBUTES_ANIMATION_1
+#if ATTRIBUTES_ANIMATION_1 || SM_DEV
 		public static Menu AnimatorParameters(
 			Animator animator,
 			in string value,
