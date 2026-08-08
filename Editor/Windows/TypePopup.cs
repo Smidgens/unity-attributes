@@ -41,8 +41,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		public static readonly Color
 		HOVER_COLOR = Color.cyan * 0.6f,
-		HEADER_HOVER_COLOR = Color.white * 0.25f,
-		HEADER_COLOR = Color.black * 0.3f;
+		HEADER_HOVER_COLOR = Color.white * 0.25f;
+
+
+		public static readonly Color HEADER_COLOR = EditorGUIUtility.isProSkin
+			? Color.black * 0.3f
+			: Color.black * 0.1f;
 
 		public static void Open
 		(
@@ -165,12 +169,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return null;
 			}
 			private const string
-			_CLASSES = "Classes",
-			_EXCEPTIONS = "Exceptions",
-			_STRUCTS = "Structs",
-			_INTERFACES = "Structs",
-			_PRIMITIVES = "Primitives",
-			_ENUMS = "Enums";
+			_CLASSES = "# Class",
+			_EXCEPTIONS = "# Exception",
+			_STRUCTS = "# Struct",
+			_INTERFACES = "# Interface",
+			_PRIMITIVES = "# Primitive",
+			_ENUMS = "# Enum";
 		}
 
 		private static Type[] _cachedTypes = null;

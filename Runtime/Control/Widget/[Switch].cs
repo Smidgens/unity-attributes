@@ -83,15 +83,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 		});
 
-		private static Rect GetSwitchCoords(bool enabled)
-		{
-			var coords = enabled ? _SWITCH_1_COORDS : _SWITCH_0_COORDS;
-			if (!EditorGUIUtility.isProSkin)
-			{
-				coords.position += new Vector2(0.25f, 0f);
-			}
-			return coords;
-		}
 		
 		private void DrawSingle(in DrawContext ctx)
 		{
@@ -118,9 +109,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				val = !val;
 			}
 
-			var coords = GetSwitchCoords(val);
+			var coords = val ? _SWITCH_1_COORDS : _SWITCH_0_COORDS;
+
+			var color = EditorGUIUtility.isProSkin
+				? Color.white * 0.8f
+				: Color.black * 0.5f;
 			
-			DrawerGUI.DrawTex(_SWITCH_ICON.Value, icoRect, coords, Color.white);
+			DrawerGUI.DrawTex(_SWITCH_ICON.Value, icoRect, coords, color);
 			
 			var s = val ? EditorStyles.boldLabel : EditorStyles.label;
 			EditorGUI.LabelField(pos, label, s);

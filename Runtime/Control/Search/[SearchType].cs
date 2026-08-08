@@ -56,6 +56,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			_popupInit = true;
 		}
 
+		private static Lazy<GUIStyle> _BTN_LABEL_STYLE = new(() =>
+		{
+			var s = new GUIStyle(EditorStyles.miniLabel);
+			s.fontSize = (int)(s.fontSize * 0.85f);
+			return s;
+
+		});
+		
 		private TypeSearch.Constraints GetConstraints()
 		{
 			if (!_popupInit) { InitConstraints(); }
@@ -64,9 +72,37 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private TypeSearch.Constraints _constraints = default;
 		
-		private static void AssemblyTypePopup(in Rect pos, SerializedProperty prop, Func<TypeSearch.Constraints> optsFn)
+		private const string _SWITCH_GUID = "e769e4d9f339626498a12b64168231ee";
+
+		private static readonly Rect _CLOSE_COORDS = new Rect(0.25f, 0, 0.25f, 0.25f);
+
+		// icon atlas
+		private static readonly Lazy<Texture2D> _TEX_ATLAS = new (() =>
 		{
-			var label = "...";
+			var path = AssetDatabase.GUIDToAssetPath(_SWITCH_GUID);
+			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+		});
+
+		private static bool DrawClearButton(Rect pos)
+		{
+			var pressed = GUI.Button(pos, GUIContent.none, GUIStyle.none);
+
+			var color = EditorGUIUtility.isProSkin
+			? Color.white * 0.7f
+			: Color.black * 0.5f;
+
+			var icoRect = pos.Resize(-pos.height * 0.4f);
+			
+			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
+
+			DrawerGUI.DrawTex(_TEX_ATLAS.Value, icoRect, _CLOSE_COORDS, color);
+			
+			return pressed;
+		}
+		
+		private static void AssemblyTypePopup(Rect pos, SerializedProperty prop, Func<TypeSearch.Constraints> optsFn)
+		{
+			var label = "(none)";
 
 			Type t = null;
 
@@ -78,51 +114,49 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				: "<type missing>";
 			}
 
-			var brect = pos;
-			brect.width -= pos.height + 2f;
+			if (!string.IsNullOrEmpty(prop.stringValue))
+			{
+				if (DrawClearButton(pos.SliceRight(pos.height)))
+				{
+					prop.stringValue = string.Empty;
+					prop.serializedObject.ApplyModifiedProperties();
+				}
+			}
 
-			var clearRect = pos;
-			clearRect.width = pos.height;
-			clearRect.position += new Vector2(brect.width + 2f, 0f);
+			var brect = pos;
 
 			GUI.Box(brect, GUIContent.none, EditorStyles.helpBox);
 
 			EditorGUIUtility.AddCursorRect(brect, MouseCursor.Link);
 
 			var c = GUI.color;
-			GUI.color *= 0.5f;
-			if (GUI.Button(brect, t == null ? label : ""))
+			// GUI.color *= 0.5f;
+			if (GUI.Button(brect, GUIContent.none))
 			{
 				var opts = optsFn.Invoke();
 				TypeSearch.Open(brect, t, opts, v =>
 				{
-					prop.stringValue = v?.AssemblyQualifiedName ?? "";
+					prop.stringValue = v?.AssemblyQualifiedName ?? String.Empty;
 					prop.serializedObject.ApplyModifiedProperties();
 				});
 			}
 			GUI.color = c;
+			EditorGUI.LabelField(brect, t == null ? label : "", EditorStyles.centeredGreyMiniLabel);
 
 			if(t != null)
 			{
 				var lpos = brect;
-				lpos.width -= 10f;
-				lpos.position += new Vector2(5f, 0f);
+				var lCenter = lpos.center;
+				lpos.size -= new Vector2(10f, 0f);
+				lpos.center = lCenter;
 				var tIndent = EditorGUI.indentLevel;
 				EditorGUI.indentLevel = 0;
-				EditorGUI.LabelField(lpos, label, EditorStyles.miniLabel);
+				EditorGUI.LabelField(lpos, label, _BTN_LABEL_STYLE.Value);
 				EditorGUI.indentLevel = tIndent;
 			}
 
-			using (new EditorGUI.DisabledGroupScope(t == null))
-			{
-				if (GUI.Button(clearRect, "", EditorStyles.miniButton))
-				{
-					prop.stringValue = "";
-					prop.serializedObject.ApplyModifiedProperties();
-				}
-				
-			}
-			EditorGUI.LabelField(clearRect, "x", EditorStyles.centeredGreyMiniLabel);
+			
+			
 		}
 
 	}
