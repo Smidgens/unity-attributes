@@ -71,9 +71,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					continue;
 				}
-				fValues.Add((labels[i], vals[i]));
+				fValues.Add((labels[i].ToSentenceCase(), vals[i]));
 			}
-
 			_flagValues = fValues.ToArray();
 		}
 
