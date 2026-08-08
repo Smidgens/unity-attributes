@@ -1,7 +1,7 @@
 ﻿// smidgens @ github
 
 /*
- * TODOS
+ * Maybe
  *	- custom switch icon
  */
 namespace Smidgenomics.Unity.Attributes
@@ -30,6 +30,7 @@ namespace Smidgenomics.Unity.Attributes
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using System;
+	using System.Collections.Generic;
 	using System.Reflection;
 	using UnityEditor;
 	using UnityEngine;
@@ -41,7 +42,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			if (_isFlags)
 			{
-				return EditorGUIUtility.singleLineHeight * _fcount;
+				return
+				Mathf.Max(EditorGUIUtility.singleLineHeight * _flagValues.Length, EditorGUIUtility.singleLineHeight);
 			}
 			return base.GetHeight(property, label);
 		}
@@ -49,37 +51,69 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected override void OnInit()
 		{
 			var t = fieldInfo.GetItemType();
-			_isFlags =
-			t.IsEnum
-			&& t.GetCustomAttribute<FlagsAttribute>() != null;
+			_isEnum = t.IsEnum;
+			_isBool = fieldInfo.FieldType == typeof(bool);
+			_isFlags = t.IsEnum && t.GetCustomAttribute<FlagsAttribute>() != null;
 
-			if (!_isFlags) { return; }
+			if (!_isFlags)
+			{
+				return;
+			}
 
-			_flagValues = (int[])Enum.GetValues(t);
-			var n = _flagValues.Length;
-			if (_flagValues[0] == 0) { n--; }
-			if (_flagValues[_flagValues.Length - 1] == -1) { n--; }
-			_fcount = n;
+			var vals = (int[])Enum.GetValues(t);
+			var labels = Enum.GetNames(t);
+
+			List<(string, int)> fValues = new();
+
+			for (var i = 0; i < vals.Length; i++)
+			{
+				if (vals[i] == 0 || !Mathf.IsPowerOfTwo(vals[i]))
+				{
+					continue;
+				}
+				fValues.Add((labels[i], vals[i]));
+			}
+
+			_flagValues = fValues.ToArray();
 		}
 
 		protected override void OnField(in DrawContext ctx)
 		{
-			if (_isFlags) { DrawFlags(ctx); }
-			else { DrawSingle(ctx); }
+			if (_isEnum)
+			{
+				if (_isFlags)
+				{
+					DrawFlags(ctx);
+				}
+				else
+				{
+					DrawerGUI.MutedInfo(ctx.position, "Enum should be flags");
+				}
+			}
+			else
+			{
+				if (_isBool)
+				{
+					DrawSingle(ctx);
+				}
+				else
+				{
+					DrawerGUI.MutedInfo(ctx.position, "Should be bool or enum");
+				}
+			}
 		}
 
+		private bool _isBool;
+		private bool _isEnum;
 		private bool _isFlags;
-		private int _fcount = 0;
-		private int[] _flagValues = { };
-		private const string _SWITCH_GUID = "e769e4d9f339626498a12b64168231ee";
-
+		private (string, int)[] _flagValues;
 		private static readonly Rect _SWITCH_0_COORDS = new Rect(0, 0, 0.25f, 0.125f);
 		private static readonly Rect _SWITCH_1_COORDS = new Rect(0, 0.125f, 0.25f, 0.125f);
 
 		// icon atlas
-		private static readonly Lazy<Texture2D> _SWITCH_ICON = new (() =>
+		private static readonly Lazy<Texture2D> _TEX_ATLAS = new (() =>
 		{
-			var path = AssetDatabase.GUIDToAssetPath(_SWITCH_GUID);
+			var path = AssetDatabase.GUIDToAssetPath("e769e4d9f339626498a12b64168231ee");
 			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 		});
 
@@ -99,7 +133,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static bool DrawSwitch(Rect pos, bool val, in string l0, in string l1)
 		{
-			// var (rl,rr) = pos.GetColumns(pos.height * 2f, 1f, 2);
 			var label = val ? l1 : l0;
 
 			var icoRect = pos.SliceLeft(pos.height * 2);
@@ -112,15 +145,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var coords = val ? _SWITCH_1_COORDS : _SWITCH_0_COORDS;
 
 			var color = EditorGUIUtility.isProSkin
-				? Color.white * 0.8f
-				: Color.black * 0.5f;
+			? Color.white * 0.8f
+			: Color.black * 0.5f;
 			
-			DrawerGUI.DrawTex(_SWITCH_ICON.Value, icoRect, coords, color);
+			DrawerGUI.DrawTex(_TEX_ATLAS.Value, icoRect, coords, color);
 			
 			var s = val ? EditorStyles.boldLabel : EditorStyles.label;
 			EditorGUI.LabelField(pos, label, s);
 			return val;
 		}
+
 		private void DrawFlags(in DrawContext ctx)
 		{
 			if (!fieldInfo.GetItemType().IsEnum)
@@ -128,31 +162,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return;
 			}
 
-			if (_fcount == 0)
-			{
-				return;
-			}
+			var pos = ctx.position;
 			var evalue = ctx.property.intValue;
-			var values = _flagValues;
-			var dnames = ctx.property.enumDisplayNames;
-			var frow = ctx.position;
-			frow.height = ctx.position.height / _fcount;
-			for (var i = 0; i < _fcount; i++)
+
+			foreach (var (name, value) in _flagValues)
 			{
-				var r = frow;
-				r.position += new Vector2(0f, r.height * i);
-				var l = dnames[i + 1];
-				var v = values[i + 1];
-				var active = (evalue & v) != 0;
-				var nv =
-				DrawSwitch(r, active, l, l);
+				var row = pos.SliceTop(EditorGUIUtility.singleLineHeight);
+
+				var active = (evalue & value) != 0;
+				var nv = DrawSwitch(row, active, name, name);
 				if (nv != active)
 				{
 					if (!nv)
 					{
-						evalue &= ~v;
+						evalue &= ~value;
 					}
-					else { evalue |= v; }
+					else
+					{
+						evalue |= value;
+					}
 				}
 			}
 			ctx.property.intValue = evalue;
