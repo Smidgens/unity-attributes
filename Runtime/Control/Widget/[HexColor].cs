@@ -1,0 +1,57 @@
+﻿// smidgens @ github
+
+namespace Smidgenomics.Unity.Attributes
+{
+	/// <summary>
+	/// Hex color
+	/// </summary>
+	public sealed class HexColorAttribute : __BaseControl { }
+}
+
+#if UNITY_EDITOR
+
+namespace Smidgenomics.Unity.Attributes.Editor
+{
+	using UnityEditor;
+	using UnityEngine;
+	
+	[CustomPropertyDrawer(typeof(HexColorAttribute))]
+	internal sealed class _HexColorAttribute : __ControlDrawer<HexColorAttribute>
+	{
+		protected override EFieldType GetValidTypes() => EFieldType.String;
+
+		protected override void OnField(in DrawContext ctx)
+		{
+			HexColor(ctx.position, ctx.property);
+		}
+
+		private static void HexColor(in Rect pos, SerializedProperty prop)
+		{
+			// valid type?
+			if (prop.propertyType != SerializedPropertyType.String)
+			{
+				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_STRING);
+				return;
+			}
+			using(var check = new EditorGUI.ChangeCheckScope())
+			{
+				var newColor = EditorGUI.ColorField(pos, HexToColor(prop.stringValue));
+				if(check.changed)
+				{
+					prop.stringValue = newColor.ToHexString();
+				}
+			}
+		}
+
+		private static Color HexToColor(in string hex)
+		{
+			if (ColorUtility.TryParseHtmlString(hex, out var c))
+			{
+				return c;
+			}
+			return Color.clear;
+		}
+	}
+}
+
+#endif

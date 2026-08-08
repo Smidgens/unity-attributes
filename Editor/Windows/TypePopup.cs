@@ -20,24 +20,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System.Collections.Generic;
 	using System.Linq;
 
-	internal class TypeSearch : PopupWindowContent
+	internal sealed class TypeSearch : PopupWindowContent
 	{
-		[Flags]
-		public enum VType
-		{
-			None = 0,
-			Class = 1,
-			Struct = 2,
-			Enum = 4,
-			Primitive = 8,
-			All = ~0,
-		}
 
 		public struct Constraints
 		{
 			public Type[] types; // use specific types, ignore rest
 			public Type[] derivedTypes;
-			public VType vtypes;
 			public bool staticOnly;
 			public bool onlyInterfaces;
 			public bool showAbstract;
@@ -268,7 +257,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				var fp =
 				t.Namespace
-				+ (catName != null ? $".· {catName} ·." : ".")
+				+ (catName != null ? $".ï¿½ {catName} ï¿½." : ".")
 				+ t.Name;
 
 				var path = fp.Split('.');

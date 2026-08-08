@@ -91,7 +91,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected virtual bool CanDraw(SP prop, ref string msg)
 		{
 			var types = GetValidTypes();
-			if (types != FieldType.Any)
+			if (types != EFieldType.Any)
 			{
 				return types.HasFlag(prop.GetTypeFlags());
 			}
@@ -115,7 +115,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			DrawerGUI.MutedInfo(ctx.position, DEFAULT_MSG);
 		}
 
-		protected virtual FieldType GetValidTypes() => FieldType.Any;
+		protected virtual EFieldType GetValidTypes() => EFieldType.Any;
 		protected virtual void OnInit() { }
 
 		protected MT FindMod<MT>() where MT : __BaseModifier

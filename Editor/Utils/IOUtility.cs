@@ -45,11 +45,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			params string[] ignorePatterns
 		)
 		{
-			//var sub = a.Path;
-			//var wildcard = a.Pattern;
-			//var so = a.Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-			//var ignored = a.IgnoredFolders != null ? a.IgnoredFolders : new string[0];
-
 			var sub = subPath;
 			var wildcard = matchPattern;
 			var so = recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
