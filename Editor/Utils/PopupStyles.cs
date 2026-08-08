@@ -11,32 +11,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	internal static class PopupStyles
 	{
 		public static GUIStyle HeaderLabel => _HEADER_STYLE.Value;
-		public static GUIStyle ItemLabel => _ITEM_STYLE.Value;
+		public static GUIStyle ItemLabel => EditorStyles.miniLabel;
 
-		private static readonly Lazy<GUIStyle> _HEADER_STYLE = new (() =>
+		private static readonly Lazy<GUIStyle> _HEADER_STYLE = new (() => new GUIStyle(EditorStyles.centeredGreyMiniLabel)
 		{
-			var s = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
-			{
-				normal =
-				{
-					textColor = Color.white
-				},
-				fontStyle = FontStyle.Bold
-			};
-			return s;
-		});
-
-		private static readonly Lazy<GUIStyle> _ITEM_STYLE = new (() =>
-		{
-			var s = new GUIStyle(EditorStyles.miniLabel)
-			{
-				normal =
-				{
-					textColor = Color.white
-				},
-				fontStyle = FontStyle.Bold
-			};
-			return s;
+			fontStyle = FontStyle.Bold
 		});
 	}
 }

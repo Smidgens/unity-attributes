@@ -74,8 +74,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				t = Type.GetType(prop.stringValue, false);
 				label = t != null
-					? t.FullName
-					: "<type missing>";
+				? t.FullName
+				: "<type missing>";
 			}
 
 			var brect = pos;
@@ -85,7 +85,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			clearRect.width = pos.height;
 			clearRect.position += new Vector2(brect.width + 2f, 0f);
 
-			GUI.Box(brect, "", EditorStyles.helpBox);
+			GUI.Box(brect, GUIContent.none, EditorStyles.helpBox);
 
 			EditorGUIUtility.AddCursorRect(brect, MouseCursor.Link);
 
@@ -107,7 +107,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var lpos = brect;
 				lpos.width -= 10f;
 				lpos.position += new Vector2(5f, 0f);
+				var tIndent = EditorGUI.indentLevel;
+				EditorGUI.indentLevel = 0;
 				EditorGUI.LabelField(lpos, label, EditorStyles.miniLabel);
+				EditorGUI.indentLevel = tIndent;
 			}
 
 			using (new EditorGUI.DisabledGroupScope(t == null))

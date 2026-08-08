@@ -73,12 +73,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private int[] _flagValues = { };
 		private const string _SWITCH_GUID = "e769e4d9f339626498a12b64168231ee";
 
+		private static readonly Rect _SWITCH_0_COORDS = new Rect(0, 0, 0.25f, 0.125f);
+		private static readonly Rect _SWITCH_1_COORDS = new Rect(0, 0.125f, 0.25f, 0.125f);
+
 		// icon atlas
-		private static readonly Lazy<Texture> _SWITCH_ICON = new (() =>
+		private static readonly Lazy<Texture2D> _SWITCH_ICON = new (() =>
 		{
 			var path = AssetDatabase.GUIDToAssetPath(_SWITCH_GUID);
-			return AssetDatabase.LoadAssetAtPath<Texture>(path);
+			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
 		});
+
+		private static Rect GetSwitchCoords(bool enabled)
+		{
+			var coords = enabled ? _SWITCH_1_COORDS : _SWITCH_0_COORDS;
+			if (!EditorGUIUtility.isProSkin)
+			{
+				coords.position += new Vector2(0.25f, 0f);
+			}
+			return coords;
+		}
 		
 		private void DrawSingle(in DrawContext ctx)
 		{
@@ -93,23 +106,37 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return GUI.Button(pos, GUIContent.none, GUIStyle.none);
 		}
 
-		private static bool DrawSwitch(in Rect pos, bool val, in string l0, in string l1)
+		private static bool DrawSwitch(Rect pos, bool val, in string l0, in string l1)
 		{
-			var (rl,rr) = pos.GetColumns(pos.height * 2f, 1f, 2);
+			// var (rl,rr) = pos.GetColumns(pos.height * 2f, 1f, 2);
 			var label = val ? l1 : l0;
-			if (PointerButton(pos))
+
+			var icoRect = pos.SliceLeft(pos.height * 2);
+
+			if (PointerButton(icoRect))
 			{
 				val = !val;
 			}
-			SpriteGUI.AtlasRow(rl, _SWITCH_ICON.Value, 2, val.ToInt());
+
+			var coords = GetSwitchCoords(val);
+			
+			DrawerGUI.DrawTex(_SWITCH_ICON.Value, icoRect, coords, Color.white);
+			
 			var s = val ? EditorStyles.boldLabel : EditorStyles.label;
-			EditorGUI.LabelField(rr, label, s);
+			EditorGUI.LabelField(pos, label, s);
 			return val;
 		}
 		private void DrawFlags(in DrawContext ctx)
 		{
-			if (!fieldInfo.GetItemType().IsEnum) { return; }
-			if(_fcount == 0) { return; }
+			if (!fieldInfo.GetItemType().IsEnum)
+			{
+				return;
+			}
+
+			if (_fcount == 0)
+			{
+				return;
+			}
 			var evalue = ctx.property.intValue;
 			var values = _flagValues;
 			var dnames = ctx.property.enumDisplayNames;

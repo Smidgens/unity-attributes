@@ -142,7 +142,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			t.Name[0] == '<'
 			|| t.Name.StartsWith("__");
 
-			private static Func<Type, bool>[] _SKIP_PREDICATES =
+			private static readonly Func<Type, bool>[] _SKIP_PREDICATES =
 			{
 				TypeIsNested,
 				TypeHasWeirdPrefix
@@ -257,7 +257,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				var fp =
 				t.Namespace
-				+ (catName != null ? $".� {catName} �." : ".")
+				+ (catName != null ? $".{catName}." : ".")
 				+ t.Name;
 
 				var path = fp.Split('.');
@@ -278,39 +278,56 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			root.Sort();
 			return root;
 		}
+		
+		// icon atlas
+		private static readonly Lazy<Texture2D> _TEX_ATLAS = new (() =>
+		{
+			var path = AssetDatabase.GUIDToAssetPath("e769e4d9f339626498a12b64168231ee");
+			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+		});
 
-		private static bool DrawHeader(in Rect pos, in string label, bool root = false)
+		private static readonly Rect _ARROWL_COORDS = new Rect(0.5f, 0, 0.25f, 0.25f);
+		private static readonly Rect _ARROWR_COORDS = new Rect(0.75f, 0, 0.25f, 0.25f);
+
+		private static bool DrawHeader(Rect pos, in string label, bool root = false)
 		{
 			EditorGUI.DrawRect(pos, HEADER_COLOR);
 
+			var hoverRect = pos;
+			
 			if (!root)
 			{
-				var ipos = pos;
-				ipos.width = pos.height;
-				ipos.position += Vector2.right * 5f;
-				SpriteGUI.DrawIcon(ipos, AtlasIcon.ArrowLeft);
+				var icoRect = pos.SliceLeft(pos.height);
+				icoRect = icoRect.Resize(-icoRect.height * 0.4f);
+				DrawerGUI.DrawTex(_TEX_ATLAS.Value, icoRect, _ARROWL_COORDS, Color.white * 0.5f);
 			}
 
-			if (pos.Contains(Event.current.mousePosition))
+			if (hoverRect.Contains(Event.current.mousePosition))
 			{
-				EditorGUI.DrawRect(pos, HEADER_HOVER_COLOR);
+				EditorGUI.DrawRect(hoverRect, HEADER_HOVER_COLOR);
 			}
 
-			EditorGUI.LabelField(pos.ResizeW(-5f), label, PopupStyles.HeaderLabel);
+			EditorGUI.LabelField(hoverRect, label, PopupStyles.HeaderLabel);
 			return !root && GUI.Button(pos, "", GUIStyle.none);
 		}
 
-		private static bool DrawItem(in Rect pos, in string label, bool leaf = false)
+		private static bool DrawItem( Rect pos, in string label, bool leaf = false)
 		{
-			var (rl, rr) = pos.GetColumns(1f, pos.height, 2);
-
+			var hoverRect = pos;
+			
+			pos.SliceLeft(pos.height * 0.25f);
+			
 			if (!leaf)
 			{
-				SpriteGUI.DrawIcon(rr, AtlasIcon.ArrowRight);
+				var icoRect = pos.SliceRight(pos.height);
+				icoRect = icoRect.Resize(-icoRect.height * 0.4f);
+				DrawerGUI.DrawTex(_TEX_ATLAS.Value, icoRect, _ARROWR_COORDS, Color.white * 0.5f);
+
 			}
-			if (pos.Contains(Event.current.mousePosition))
+			var (rl, rr) = pos.GetColumns(1f, pos.height, 2);
+			if (hoverRect.Contains(Event.current.mousePosition))
 			{
-				EditorGUI.DrawRect(pos, HOVER_COLOR);
+				EditorGUI.DrawRect(hoverRect, HOVER_COLOR);
 			}
 			EditorGUI.LabelField(rl.ResizeW(-5f), label, PopupStyles.ItemLabel);
 			return GUI.Button(pos, "", GUIStyle.none);

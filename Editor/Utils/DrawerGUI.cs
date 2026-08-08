@@ -17,6 +17,37 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		public const float PAD_FULL = 2f;
 		public const float PAD_MINI = 5f;
+		
+		public static void DrawTex(in Texture2D tex, in Rect area, in Rect coords, Color color)
+		{
+			if (!tex)
+			{
+				return;
+			}
+			
+			var tc = GUI.color;
+			GUI.color = color;
+
+			using (new GUI.ClipScope(area))
+			{
+				var sx = 1f / coords.size.x;
+				var sy = 1f / coords.size.y;
+				var ir = area;
+				ir.size = new Vector2
+				(
+					sx * area.width,
+					sy * area.height
+				);
+				ir.position = new Vector2
+				(
+					-coords.position.x * area.width * sx,
+					-coords.position.y * area.height * sy
+				);
+				GUI.DrawTexture(ir, tex, ScaleMode.StretchToFill);
+			}
+			
+			GUI.color = tc;
+		}
 
 		public static void ColorPreview(in Rect pos, in Color c)
 		{
