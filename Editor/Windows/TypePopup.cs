@@ -2,12 +2,10 @@
 
 /*
  * TODO
- * - optimize
- *		- lazy type loading
- *		- gui layout
+ * - filter bar
+ * Maybe
  * - show namespace breadcrumbs
- * - show currently set value
- * - show search filter
+ * - show currently selected type
  */
 
 #if UNITY_EDITOR
@@ -19,34 +17,27 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System;
 	using System.Collections.Generic;
 	using System.Linq;
+	using System.Reflection;
 
 	internal sealed class TypeSearch : PopupWindowContent
 	{
-
 		public struct Constraints
 		{
-			public Type[] types; // use specific types, ignore rest
-			public Type[] derivedTypes;
-			public bool staticOnly;
-			public bool onlyInterfaces;
-			public bool showAbstract;
-			public bool includeHidden;
+			public ESearchTypeFlags flags;
 			public string[] assemblies;
 			public string[] namespaces;
+			public Type[] baseTypes;
 		}
 
-		public const float
-		MIN_WIDTH = 200f,
-		MAX_HEIGHT = 300f;
+		private const float _MIN_WIDTH = 240f;
+		private const float _MAX_HEIGHT = 300f;
 
-		public static readonly Color
-		HOVER_COLOR = Color.cyan * 0.6f,
-		HEADER_HOVER_COLOR = Color.white * 0.25f;
+		private static readonly Color _HOVER_COLOR = new Color(0.2392157f, 0.3764706f, 0.5686275f) * 0.9f;
+		private static readonly Color _HEADER_HOVER_COLOR = Color.white * 0.25f;
 
-
-		public static readonly Color HEADER_COLOR = EditorGUIUtility.isProSkin
-			? Color.black * 0.3f
-			: Color.black * 0.1f;
+		private static readonly Color _HEADER_COLOR = EditorGUIUtility.isProSkin
+		? Color.black * 0.3f
+		: Color.black * 0.1f;
 
 		public static void Open
 		(
@@ -56,18 +47,19 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			Action<Type> setFn
 		)
 		{
-			var p = new TypeSearch(value, setFn);
-			p._preferredWidth = pos.width;
+			var p = new TypeSearch(value, setFn)
+			{
+				_preferredWidth = pos.width
+			};
 			var clipPos = pos;
 			clipPos.position = default;
-			p._options = options;
 			p._currentPage = FilterTypes(options);
 			PopupWindow.Show(pos, p);
 		}
 
 		public override Vector2 GetWindowSize()
 		{
-			return new Vector2(Mathf.Max(MIN_WIDTH, _preferredWidth), MAX_HEIGHT);
+			return new Vector2(Mathf.Max(_MIN_WIDTH, _preferredWidth), _MAX_HEIGHT);
 		}
 
 		public override void OnGUI(Rect rect)
@@ -76,15 +68,49 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			editorWindow.Repaint();
 		}
 
+		private readonly Action<Type> _setFn;
 		private float _preferredWidth = 1f;
-		private Action<Type> _setFn = null;
-		private PNode _currentPage = null;
-		private Vector2 _scroll = default;
-		private Constraints _options = default;
+		private PNode _currentPage;
+		private Vector2 _scroll;
+		private static (Assembly, Type[])[] _cachedTypes;
+		
+		private static readonly (ESearchTypeFlags, Func<Type, bool>)[] _FLAG_FILTERS =
+		{
+			(ESearchTypeFlags.Static, t => t.IsClass && t.IsStatic()),
+			(ESearchTypeFlags.Interface, t => t.IsInterface),
+			(ESearchTypeFlags.Abstract, t => t.IsAbstract && !t.IsInterface && !t.IsStatic()),
+			(ESearchTypeFlags.Struct, t => t.IsStruct()),
+			(ESearchTypeFlags.Enum, t => t.IsEnum),
+			(ESearchTypeFlags.Hidden, t => !t.IsVisible),
+			(ESearchTypeFlags.Nested, t => t.IsNested),
+			(ESearchTypeFlags.Class, t => t.IsClass && !t.IsStatic()),
+			(ESearchTypeFlags.Primitive, t => t.IsPrimitive && !t.IsEnum),
+			(ESearchTypeFlags.Newable, t => t.GetConstructor(Type.EmptyTypes) != null)
+		};
+
+		private static readonly (string, Func<Type, bool>)[] _TYPE_CATEGORIES =
+		{
+			("# Exception", t => t.IsClass && typeof(Exception).IsAssignableFrom(t)),
+			("# Static", t => t.IsClass && t.IsStatic()),
+			("# Class", t => t.IsClass),
+			("# Enum", t => t.IsEnum),
+			("# Struct", t => t.IsStruct()),
+			("# Interface", t => t.IsInterface),
+			("# Primitive", t => t.IsPrimitive),
+			("# Enum", t => t.IsEnum),
+		};
+
+		private static readonly Lazy<Texture2D> _TEX_ATLAS = new (() =>
+		{
+			var path = AssetDatabase.GUIDToAssetPath("e769e4d9f339626498a12b64168231ee");
+			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+		});
+
+		private static readonly Rect _ARROWL_COORDS = new (0.5f, 0, 0.25f, 0.25f);
+		private static readonly Rect _ARROWR_COORDS = new (0.75f, 0, 0.25f, 0.25f);
 
 		private TypeSearch(Type value, Action<Type> setFn)
 		{
-			// todo: display currently set value
 			_setFn = setFn;
 		}
 
@@ -95,15 +121,17 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			editorWindow.Close();
 		}
 
+		private static void DrawIcon(in Rect pos, in Rect coords, Color color)
+		{
+			DrawerGUI.DrawTex(_TEX_ATLAS.Value, pos, coords, color);
+		}
+
 		private class PNode
 		{
 			public PNode parent;
 			public string name;
-
 			public Type type;
-
-			public Dictionary<string, PNode>
-			links = new Dictionary<string, PNode>();
+			public Dictionary<string, PNode> links = new ();
 
 			public void Sort()
 			{
@@ -118,93 +146,59 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 			}
 
-			public PNode FindChildOrNew(string name)
+			public PNode FindChildOrNew(string cName)
 			{
-				if (!links.TryGetValue(name, out var node))
+				if (!links.TryGetValue(cName, out var node))
 				{
-					node = new PNode();
-					node.name = name;
-					node.parent = this;
-					links[name] = node;
+					node = new PNode
+					{
+						name = cName,
+						parent = this
+					};
+					links[cName] = node;
 				}
 				return node;
 			}
 		}
 
-		private static class TypeFilter
-		{
-			public static bool ShouldInclude(Type t)
-			{
-				for(var i = 0; i < _SKIP_PREDICATES.Length; i++)
-				{
-					if (_SKIP_PREDICATES[i].Invoke(t)) { return false; }
-				}
-				return true;
-			}
-			public static bool TypeIsNested(Type t) => t.IsNested;
-			public static bool TypeHasWeirdPrefix(Type t) =>
-			t.Name[0] == '<'
-			|| t.Name.StartsWith("__");
-
-			private static readonly Func<Type, bool>[] _SKIP_PREDICATES =
-			{
-				TypeIsNested,
-				TypeHasWeirdPrefix
-			};
-		}
-
-		private static class TypeCategory
-		{
-			public static string Get(Type t)
-			{
-				if (t.IsClass)
-				{
-					if (typeof(Exception).IsAssignableFrom(t)) { return _EXCEPTIONS; }
-					else { return _CLASSES; }
-				}
-				if (t.IsEnum) { return _ENUMS; }
-				if (t.IsPrimitive) { return _PRIMITIVES; }
-				if (t.IsValueType && !t.IsPrimitive) { return _STRUCTS; }
-				if (t.IsInterface) { return _INTERFACES;  }
-				return null;
-			}
-			private const string
-			_CLASSES = "# Class",
-			_EXCEPTIONS = "# Exception",
-			_STRUCTS = "# Struct",
-			_INTERFACES = "# Interface",
-			_PRIMITIVES = "# Primitive",
-			_ENUMS = "# Enum";
-		}
-
-		private static Type[] _cachedTypes = null;
-
-		private static Type[] GetAllTypes()
+		private static (Assembly, Type[])[] GetAllAssemblyTypes()
 		{
 			if(_cachedTypes == null)
 			{
-				var tl = new List<Type>();
+				List<(Assembly, Type[])> aTypes = new();
 				var assemblies =
 				AppDomain.CurrentDomain.GetAssemblies()
 				.OrderBy(x => x.GetName().Name)
 				.ToArray();
 				foreach (var a in assemblies)
 				{
-					var types = a.GetTypes();
-					foreach (var t in types)
+					List<Type> tList = new();
+					foreach (var t in a.GetTypes())
 					{
-						if (!TypeFilter.ShouldInclude(t)) { continue; }
-						tl.Add(t);
+						tList.Add(t);
 					}
-					_cachedTypes = tl.ToArray();
+					aTypes.Add((a, tList.ToArray()));
 				}
+				_cachedTypes = aTypes.ToArray();
 			}
 			return _cachedTypes;
 		}
 
-		private static bool HasItem(in string[] arr, in string name)
+		private static bool HasItem(in string[] arr, string name)
 		{
-			return Array.IndexOf(arr, name) > -1;
+			return Array.FindIndex(arr, s => s.StartsWith(name)) > -1;
+		}
+
+		private static string GetTypeCategory(Type t)
+		{
+			foreach (var (cat, fn) in _TYPE_CATEGORIES)
+			{
+				if (fn.Invoke(t))
+				{
+					return cat;
+				}
+			}
+			return null;
 		}
 
 		private static PNode FilterTypes(in Constraints opts)
@@ -212,90 +206,73 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var root = new PNode();
 			root.name = "Types";
 
-			Type[] types = opts.types != null
-			? opts.types
-			: GetAllTypes();
-
-			var applyConstraints = opts.types == null;
-
-			foreach (var t in types)
+			foreach (var (assembly, aTypes) in GetAllAssemblyTypes())
 			{
-				if (applyConstraints)
+				if (opts.assemblies != null && !HasItem(opts.assemblies, assembly.GetName().Name))
 				{
-					if (opts.staticOnly && !t.IsStatic())
-					{
-						continue;
-					}
-
-					if(opts.onlyInterfaces && !t.IsInterface)
-					{
-						continue;
-					}
-
-					if (!opts.includeHidden && !t.IsVisible)
-					{
-						continue;
-					}
-
-					if(!opts.showAbstract && t.IsAbstract)
-					{
-						continue;
-					}
-
-					if (opts.namespaces != null && !HasItem(opts.namespaces, t.Namespace))
-					{
-						continue;
-					}
-
-					if (opts.assemblies != null && !HasItem(opts.assemblies, t.Assembly.GetName().Name))
-					{
-						continue;
-					}
-					if (opts.derivedTypes != null && !t.DerivesFrom(opts.derivedTypes))
-					{
-						continue;
-					}
+					continue;
 				}
 
-				string catName = TypeCategory.Get(t); ;
-
-				var fp =
-				t.Namespace
-				+ (catName != null ? $".{catName}." : ".")
-				+ t.Name;
-
-				var path = fp.Split('.');
-
-				if (path.Length == 1)
+				foreach (var aType in aTypes)
 				{
-					path = new string[] { ".", t.Name };
-				}
+					var include = true;
 
-				var cn = root;
-				foreach (var name in path)
-				{
-					cn = cn.FindChildOrNew(name);
+					foreach (var (flag, filter) in _FLAG_FILTERS)
+					{
+						if (filter.Invoke(aType) && !opts.flags.HasFlag(flag))
+						{
+							include = false;
+							break;
+						}
+					}
+
+					if (!include)
+					{
+						continue;
+					}
+
+					if (opts.namespaces != null && !HasItem(opts.namespaces, aType.Namespace))
+					{
+						continue;
+					}
+
+					if (opts.baseTypes != null && !aType.DerivesFrom(opts.baseTypes))
+					{
+						continue;
+					}
+					
+					string catName = GetTypeCategory(aType);
+
+					var tLabel = aType.Name;
+
+					var fp =
+					aType.Namespace
+					+ (catName != null ? $".{catName}." : ".")
+					+ tLabel;
+
+					var path = fp.Split('.');
+
+					if (path.Length == 1)
+					{
+						path = new [] { ".", tLabel };
+					}
+
+					var cn = root;
+					foreach (var name in path)
+					{
+						cn = cn.FindChildOrNew(name);
+					}
+					cn.type = aType;
 				}
-				cn.type = t;
 			}
 
 			root.Sort();
 			return root;
 		}
-		
-		// icon atlas
-		private static readonly Lazy<Texture2D> _TEX_ATLAS = new (() =>
-		{
-			var path = AssetDatabase.GUIDToAssetPath("e769e4d9f339626498a12b64168231ee");
-			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-		});
-
-		private static readonly Rect _ARROWL_COORDS = new Rect(0.5f, 0, 0.25f, 0.25f);
-		private static readonly Rect _ARROWR_COORDS = new Rect(0.75f, 0, 0.25f, 0.25f);
 
 		private static bool DrawHeader(Rect pos, in string label, bool root = false)
 		{
-			EditorGUI.DrawRect(pos, HEADER_COLOR);
+			EditorGUI.DrawRect(pos, _HEADER_COLOR);
 
 			var hoverRect = pos;
 			
@@ -303,16 +280,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				var icoRect = pos.SliceLeft(pos.height);
 				icoRect = icoRect.Resize(-icoRect.height * 0.4f);
-				DrawerGUI.DrawTex(_TEX_ATLAS.Value, icoRect, _ARROWL_COORDS, Color.white * 0.5f);
+				DrawIcon(icoRect, _ARROWL_COORDS, Color.white * 0.5f);
 			}
 
 			if (hoverRect.Contains(Event.current.mousePosition))
 			{
-				EditorGUI.DrawRect(hoverRect, HEADER_HOVER_COLOR);
+				EditorGUI.DrawRect(hoverRect, _HEADER_HOVER_COLOR);
 			}
 
 			EditorGUI.LabelField(hoverRect, label, PopupStyles.HeaderLabel);
-			return !root && GUI.Button(pos, "", GUIStyle.none);
+			return !root && GUI.Button(hoverRect, "", GUIStyle.none);
 		}
 
 		private static bool DrawItem( Rect pos, in string label, bool leaf = false)
@@ -325,13 +302,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				var icoRect = pos.SliceRight(pos.height);
 				icoRect = icoRect.Resize(-icoRect.height * 0.4f);
-				DrawerGUI.DrawTex(_TEX_ATLAS.Value, icoRect, _ARROWR_COORDS, Color.white * 0.5f);
+				DrawIcon(icoRect, _ARROWR_COORDS, Color.white * 0.5f);
 
 			}
 			var (rl, rr) = pos.GetColumns(1f, pos.height, 2);
 			if (hoverRect.Contains(Event.current.mousePosition))
 			{
-				EditorGUI.DrawRect(hoverRect, HOVER_COLOR);
+				EditorGUI.DrawRect(hoverRect, _HOVER_COLOR);
 			}
 			EditorGUI.LabelField(rl.ResizeW(-5f), label, PopupStyles.ItemLabel);
 			return GUI.Button(pos, "", GUIStyle.none);
@@ -356,55 +333,51 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			using (var s = new GUI.ScrollViewScope(rows[1], _scroll, itemRect))
 			{
 				var offset = 30f;
-
+				var ci = 0;
+				foreach (var it in p.links)
 				{
-					var ci = 0;
-					foreach (var it in p.links)
+					if(it.Value.links.Count == 0 && it.Value.type == null)
 					{
-						if(it.Value.links.Count == 0 && it.Value.type == null)
+						continue;
+					}
+
+					var c = it.Value;
+
+					var posy = offset;
+
+					var min = posy;
+					var max = posy + ih;
+
+					var shouldDraw =
+					max >= _scroll.y
+					&& max <= _scroll.y + itemRect.height;
+
+					if (shouldDraw)
+					{
+						var itemPos = itemRect;
+						itemPos.height = ih;
+						itemPos.position = new Vector2(0f, offset);
+
+						if (DrawItem(itemPos, c.name, c.type != null))
 						{
-							continue;
-						}
-
-						var c = it.Value;
-
-						var posy = offset;
-
-						var min = posy;
-						var max = posy + ih;
-
-						var shouldDraw =
-						max >= _scroll.y
-						&& max <= _scroll.y + itemRect.height;
-
-						if (shouldDraw)
-						{
-							var itemPos = itemRect;
-							itemPos.height = ih;
-							itemPos.position = new Vector2(0f, offset);
-
-							if (DrawItem(itemPos, c.name, c.type != null))
+							if (c.type == null)
 							{
-								if (c.type == null)
-								{
-									_scroll = default;
-									
-									_currentPage = c;
-								}
-								else
-								{
-									Select(c.type);
-								}
+								_scroll = default;
+								
+								_currentPage = c;
+							}
+							else
+							{
+								Select(c.type);
 							}
 						}
-
-						offset += ih;
-						ci++;
 					}
+
+					offset += ih;
+					ci++;
 				}
-
+			
 				_scroll = s.scrollPosition;
-
 			}
 
 			if (newPage != null)

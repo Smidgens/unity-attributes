@@ -7,20 +7,97 @@ namespace Smidgenomics.Unity.Attributes
 	using System;
 
 	/// <summary>
+	/// Filtering flags for [SearchType]
+	/// </summary>
+	[System.Flags]
+	public enum ESearchTypeFlags
+	{
+		None = 0,
+		/// <summary>
+		/// Private or internal
+		/// </summary>
+		Hidden = 1,
+		/// <summary>
+		/// Include interfaces
+		/// </summary>
+		Interface = 2,
+		/// <summary>
+		/// Include static
+		/// </summary>
+		Static = 4,
+		/// <summary>
+		/// Include abstract classes
+		/// </summary>
+		Abstract = 8,
+		/// <summary>
+		/// Include nested types
+		/// </summary>
+		Nested = 16,
+		/// <summary>
+		/// Include enums
+		/// </summary>
+		Enum = 32,
+		/// <summary>
+		/// Include structs
+		/// </summary>
+		Struct = 64,
+		/// <summary>
+		/// Include classes
+		/// </summary>
+		Class = 128,
+		/// <summary>
+		/// int, float, etc
+		/// </summary>
+		Primitive = 256,
+		/// <summary>
+		/// Has parameterless constructor
+		/// </summary>
+		Newable = 512,
+		/// <summary>
+		/// Class + Newable
+		/// </summary>
+		NewableClass = Newable | Class,
+		/// <summary>
+		/// Include every type
+		/// </summary>
+		All = ~0
+	}
+}
+
+namespace Smidgenomics.Unity.Attributes
+{
+	using System;
+
+	/// <summary>
 	/// System.Type.AssemblyQualifiedName
 	/// </summary>
 	public sealed class SearchTypeAttribute : __BaseControl
 	{
-		public bool hideNested = true;
-		public bool hideAbstract = false;
-		public bool showHidden = false;
+		public SearchTypeAttribute()
+		{
+		}
 
-		public bool onlyStatic = false;
-		public bool onlyInterfaces = false;
+		public SearchTypeAttribute
+		(
+			ESearchTypeFlags flags = ESearchTypeFlags.All,
+			string[] namespaces = null,
+			string[] assemblies = null,
+			Type baseType = null
+		)
+		{
+			this.flags = flags;
+			this.namespaces = namespaces;
+			this.assemblies = assemblies;
+			if (baseType != null)
+			{
+				this.baseTypes = new []{ baseType };
+			}
+		}
 
-		public string[] namespaces = null;
-		public string[] assemblies = null;
-		public Type[] baseTypes = null;
+		internal string[] namespaces { get; }
+		internal string[] assemblies  { get; }
+		internal Type[] baseTypes { get; }
+		internal ESearchTypeFlags flags { get; } = ESearchTypeFlags.All;
 	}
 }
 
@@ -42,20 +119,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			AssemblyTypePopup(ctx.position, ctx.property, GetConstraints);
 		}
 
-		private bool _popupInit = false;
-
-		private void InitConstraints()
-		{
-			_constraints = new TypeSearch.Constraints();
-			_constraints.showAbstract = !_Attribute.hideAbstract;
-			_constraints.staticOnly = _Attribute.onlyStatic;
-			_constraints.derivedTypes = _Attribute.baseTypes;
-			_constraints.namespaces = _Attribute.namespaces;
-			_constraints.assemblies = _Attribute.assemblies;
-			_constraints.includeHidden = _Attribute.showHidden;
-			_popupInit = true;
-		}
-
 		private static Lazy<GUIStyle> _BTN_LABEL_STYLE = new(() =>
 		{
 			var s = new GUIStyle(EditorStyles.miniLabel);
@@ -63,15 +126,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return s;
 
 		});
-		
+
 		private TypeSearch.Constraints GetConstraints()
 		{
-			if (!_popupInit) { InitConstraints(); }
-			return _constraints;
+			return new TypeSearch.Constraints
+			{
+				flags = _Attribute.flags,
+				baseTypes = _Attribute.baseTypes,
+				namespaces = _Attribute.namespaces,
+				assemblies = _Attribute.assemblies
+			};
 		}
 
-		private TypeSearch.Constraints _constraints = default;
-		
 		private const string _SWITCH_GUID = "e769e4d9f339626498a12b64168231ee";
 
 		private static readonly Rect _CLOSE_COORDS = new Rect(0.25f, 0, 0.25f, 0.25f);
@@ -99,19 +165,27 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			
 			return pressed;
 		}
+
+		private const string _EMPTY_LABEL = "(none)";
+		private const string _MISSING_LABEL = "<type missing>";
+
+		private static readonly GUIContent _dummyLabel = new GUIContent();
 		
 		private static void AssemblyTypePopup(Rect pos, SerializedProperty prop, Func<TypeSearch.Constraints> optsFn)
 		{
-			var label = "(none)";
+			var label = _EMPTY_LABEL;
 
 			Type t = null;
+
+			var tIndent = EditorGUI.indentLevel;
+			EditorGUI.indentLevel = 0;
 
 			if (!string.IsNullOrEmpty(prop.stringValue))
 			{
 				t = Type.GetType(prop.stringValue, false);
 				label = t != null
 				? t.FullName
-				: "<type missing>";
+				: _MISSING_LABEL;
 			}
 
 			if (!string.IsNullOrEmpty(prop.stringValue))
@@ -129,9 +203,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			EditorGUIUtility.AddCursorRect(brect, MouseCursor.Link);
 
-			var c = GUI.color;
-			// GUI.color *= 0.5f;
-			if (GUI.Button(brect, GUIContent.none))
+			_dummyLabel.text = string.Empty;
+			_dummyLabel.tooltip = prop.stringValue;
+
+			var shouldOpenPopup = GUI.Button(brect, _dummyLabel);
+
+			EditorGUI.LabelField(brect, t == null ? label : string.Empty, EditorStyles.centeredGreyMiniLabel);
+
+			if(t != null)
+			{
+				var lpos = brect;
+				var lCenter = lpos.center;
+				lpos.size -= new Vector2(10f, 0f);
+				lpos.center = lCenter;
+				EditorGUI.LabelField(lpos, label, _BTN_LABEL_STYLE.Value);
+			}
+
+			EditorGUI.indentLevel = tIndent;
+
+			if (shouldOpenPopup)
 			{
 				var opts = optsFn.Invoke();
 				TypeSearch.Open(brect, t, opts, v =>
@@ -140,21 +230,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					prop.serializedObject.ApplyModifiedProperties();
 				});
 			}
-			GUI.color = c;
-			EditorGUI.LabelField(brect, t == null ? label : "", EditorStyles.centeredGreyMiniLabel);
-
-			if(t != null)
-			{
-				var lpos = brect;
-				var lCenter = lpos.center;
-				lpos.size -= new Vector2(10f, 0f);
-				lpos.center = lCenter;
-				var tIndent = EditorGUI.indentLevel;
-				EditorGUI.indentLevel = 0;
-				EditorGUI.LabelField(lpos, label, _BTN_LABEL_STYLE.Value);
-				EditorGUI.indentLevel = tIndent;
-			}
-
 			
 			
 		}
