@@ -185,11 +185,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (full)
 			{
-				GUI.DrawTexture(pos.Resize(-PAD_FULL), AssetPreview.GetAssetPreview(o));
+				GUI.DrawTexture(pos.Resized(-PAD_FULL), AssetPreview.GetAssetPreview(o));
 			}
 			else
 			{
-				GUI.DrawTexture(pos.Resize(-PAD_MINI), AssetPreview.GetMiniThumbnail(o));
+				GUI.DrawTexture(pos.Resized(-PAD_MINI), AssetPreview.GetMiniThumbnail(o));
 			}
 
 			if (GUI.Button(pos, GUIContent.none, GUIStyle.none))

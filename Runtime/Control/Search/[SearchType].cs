@@ -54,9 +54,14 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		Newable = 512,
 		/// <summary>
+		/// Generic template types
+		/// </summary>
+		Generic = 1024,
+		/// <summary>
 		/// Class + Newable
 		/// </summary>
-		NewableClass = Newable | Class,
+		NewableClass = Newable|Class,
+		ConcreteClass = All & ~Interface & ~Abstract,
 		/// <summary>
 		/// Include every type
 		/// </summary>
@@ -77,27 +82,43 @@ namespace Smidgenomics.Unity.Attributes
 		{
 		}
 
+		private const ESearchTypeFlags DEFAULT_FLAGS =
+		ESearchTypeFlags.All
+		& ~ESearchTypeFlags.Generic;
+
+		public SearchTypeAttribute(params Type[] baseTypes)
+		{
+			this.baseTypes = baseTypes.Length == 0 ? null : baseTypes;
+			this.flags = this.flags & ~ESearchTypeFlags.Abstract;
+		}
+
 		public SearchTypeAttribute
 		(
-			ESearchTypeFlags flags = ESearchTypeFlags.All,
+			ESearchTypeFlags flags = DEFAULT_FLAGS,
 			string[] namespaces = null,
 			string[] assemblies = null,
-			Type baseType = null
+			Type baseType = null,
+			bool searchbar = true,
+			bool useDisplayNameAttr = false
 		)
 		{
 			this.flags = flags;
 			this.namespaces = namespaces;
 			this.assemblies = assemblies;
+			this.searchbar = searchbar;
+			this.useDisplayNameAttr = useDisplayNameAttr;
 			if (baseType != null)
 			{
 				this.baseTypes = new []{ baseType };
 			}
 		}
 
+		internal bool searchbar { get; } = true;
+		internal bool useDisplayNameAttr { get; } = true;
 		internal string[] namespaces { get; }
 		internal string[] assemblies  { get; }
 		internal Type[] baseTypes { get; }
-		internal ESearchTypeFlags flags { get; } = ESearchTypeFlags.All;
+		internal ESearchTypeFlags flags { get; } = DEFAULT_FLAGS;
 	}
 }
 
@@ -127,14 +148,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		});
 
-		private TypeSearch.Constraints GetConstraints()
+		private TypeSearch.Options GetConstraints()
 		{
-			return new TypeSearch.Constraints
+			return new TypeSearch.Options
 			{
 				flags = _Attribute.flags,
 				baseTypes = _Attribute.baseTypes,
 				namespaces = _Attribute.namespaces,
-				assemblies = _Attribute.assemblies
+				assemblies = _Attribute.assemblies,
+				searchbar = _Attribute.searchbar,
+				useDisplayName = _Attribute.useDisplayNameAttr
 			};
 		}
 
@@ -157,7 +180,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			? Color.white * 0.7f
 			: Color.black * 0.5f;
 
-			var icoRect = pos.Resize(-pos.height * 0.4f);
+			var icoRect = pos.Resized(-pos.height * 0.4f);
 			
 			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
 
@@ -169,10 +192,20 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private const string _EMPTY_LABEL = "(none)";
 		private const string _MISSING_LABEL = "<type missing>";
 
+		private static GUIStyle _defaultLabelStyle;
+
 		private static readonly GUIContent _dummyLabel = new GUIContent();
 		
-		private static void AssemblyTypePopup(Rect pos, SerializedProperty prop, Func<TypeSearch.Constraints> optsFn)
+		private static void AssemblyTypePopup(Rect pos, SerializedProperty prop, Func<TypeSearch.Options> optsFn)
 		{
+			if (_defaultLabelStyle == null)
+			{
+				_defaultLabelStyle = new GUIStyle(EditorStyles.miniLabel)
+				{
+					alignment = TextAnchor.MiddleCenter
+				};
+			}
+
 			var label = _EMPTY_LABEL;
 
 			Type t = null;
@@ -183,10 +216,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			if (!string.IsNullOrEmpty(prop.stringValue))
 			{
 				t = Type.GetType(prop.stringValue, false);
-				label = t != null
-				? t.FullName
-				: _MISSING_LABEL;
+				label = t != null ? t.FullName : _MISSING_LABEL;
 			}
+
+			var missingType = !string.IsNullOrEmpty(prop.stringValue) && t == null;
 
 			if (!string.IsNullOrEmpty(prop.stringValue))
 			{
@@ -206,9 +239,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			_dummyLabel.text = string.Empty;
 			_dummyLabel.tooltip = prop.stringValue;
 
-			var shouldOpenPopup = GUI.Button(brect, _dummyLabel);
+			var shouldOpenPopup = GUI.Button(brect, _dummyLabel, EditorStyles.popup);
 
-			EditorGUI.LabelField(brect, t == null ? label : string.Empty, EditorStyles.centeredGreyMiniLabel);
+			if (missingType)
+			{
+				EditorGUI.DrawRect(brect, Color.red * 0.2f);
+			}
+			EditorGUI.LabelField(brect, t == null ? label : string.Empty, _defaultLabelStyle);
+			
 
 			if(t != null)
 			{
