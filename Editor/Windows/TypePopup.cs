@@ -1,13 +1,5 @@
 // smidgens @ github
 
-/*
- * TODO
- * - filter bar
- * Maybe
- * - show namespace breadcrumbs
- * - show currently selected type
- */
-
 #if UNITY_EDITOR
 
 namespace Smidgenomics.Unity.Attributes.Editor
@@ -24,23 +16,103 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public struct Options
 		{
 			public bool useDisplayName;
-			public bool searchbar;
 			public ESearchTypeFlags flags;
 			public string[] assemblies;
 			public string[] namespaces;
 			public Type[] baseTypes;
+			public Func<Type, bool> customFilter;
+		}
+
+		private readonly struct SearchFilter
+		{
+			public static SearchFilter Empty => new (string.Empty);
+			
+			public SearchFilter(string search)
+			{
+				search ??= string.Empty;
+				filterString = search.Trim().ToLower();
+				segments = filterString.Split(" ");
+			}
+
+			private readonly string filterString;
+			private readonly string[] segments;
+
+			public bool MatchString(string str)
+			{
+				if (string.IsNullOrEmpty(filterString)|| filterString.Length < _MIN_SEARCH_LEN)
+				{
+					return true;
+				}
+
+				if (segments is { Length: > 0 })
+				{
+					foreach (var p in segments)
+					{
+						var ps = p.Trim();
+						if (ps.Length == 0)
+						{
+							continue;
+						}
+						if (!str.Contains(ps))
+						{
+							return false;
+						}
+					}
+					return true;
+				}
+				return str.Contains(filterString);
+			}
 		}
 
 		private static readonly float _MIN_WIDTH = Screen.width * 0.4f;
-		private static readonly float _MAX_HEIGHT = Screen.height * 0.25f;
 		private const int _MIN_SEARCH_LEN = 3;
 
-		private static readonly Color _HOVER_COLOR = new Color(0.2392157f, 0.3764706f, 0.5686275f) * 0.9f;
-		private static readonly Color _HEADER_HOVER_COLOR = Color.white * 0.25f;
+		private static T PickSkin<T>(in T dark, in T light)
+		{
+			return EditorGUIUtility.isProSkin ? dark : light;
+		}
 
-		private static readonly Color _HEADER_COLOR = EditorGUIUtility.isProSkin
-		? Color.black * 0.3f
-		: Color.black * 0.1f;
+		private static Color Fade(Color c, float a)
+		{
+			c.a = a;
+			return c;
+		}
+
+		private static readonly Color _UNITY_SELECT_COLOR = new Color(0.24f, 0.5f, 0.874f);
+
+		private static readonly Color _HOVER_COLOR = PickSkin
+		(
+			// new Color(0.2392157f, 0.3764706f, 0.5686275f) * 0.9f
+			Fade(_UNITY_SELECT_COLOR, 0.6f)
+			,Fade(_UNITY_SELECT_COLOR, 0.8f)
+		);
+		
+		private static readonly Color _HEADER_HOVER_COLOR
+		= PickSkin(Color.white * 0.25f, Fade(Color.white, 0.2f));
+
+		private static readonly Color _HEADER_COLOR
+		= PickSkin(Color.black * 0.2f, Color.black * 0.1f);
+		
+		private static readonly Color _ARROW_COLOR
+		= PickSkin(Color.white * 0.5f, Color.black * 0.5f);
+
+		private static readonly Color _ACTIVE_ITEM_COLOR
+		= PickSkin(Color.white * 0.5f, Fade(Color.black,0.1f));
+		
+		private static readonly Color _SEP_COLOR
+		= PickSkin(Fade(Color.white,0.05f), Color.black * 0.3f);
+		
+		private const string _ATLAS_GUID = "e769e4d9f339626498a12b64168231ee";
+
+		private const string _SEARCH_FIELD_NAME = "search_field";
+
+		private static readonly Lazy<Texture2D> _TEX_ATLAS =
+		new (() => AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(_ATLAS_GUID)));
+
+		private static readonly Rect _COORDS_ARROWL = new (0.5f, 0, 0.25f, 0.25f);
+		private static readonly Rect _COORDS_ARROWR = new (0.75f, 0, 0.25f, 0.25f);
+
+		private const float _SEP_WIDTH = 1f;
 
 		public static void Open
 		(
@@ -50,55 +122,48 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			Action<Type> setFn
 		)
 		{
-			var p = new TypeSearch(value, options, setFn)
-			{
-				_preferredWidth = pos.width
-			};
+			var p = new TypeSearch(value, options, setFn);
 			PopupWindow.Show(pos, p);
 		}
 
 		public override Vector2 GetWindowSize()
 		{
-			return new Vector2(Mathf.Max(_MIN_WIDTH, _preferredWidth), _MAX_HEIGHT);
+			var height = PopupStyles.HeaderHeight + PopupStyles.ItemHeight * 16f;
+			return new Vector2(Mathf.Max(_MIN_WIDTH, _preferredWidth * 0.6f), height);
 		}
 
 		private static readonly float _SEARCH_PAD = EditorGUIUtility.singleLineHeight * 0.3f;
 
 		public override void OnGUI(Rect rect)
 		{
-			if (_options.searchbar)
-			{
-				var searchbarHeight = EditorStyles.toolbarSearchField.CalcHeight(GUIContent.none, 10);
-				var searchHeight = searchbarHeight + _SEARCH_PAD * 2f;
-				DrawSearchField(rect.SliceTop(searchHeight));
+			var searchbarHeight = EditorStyles.toolbarSearchField.CalcHeight(GUIContent.none, 10);
+			var searchHeight = searchbarHeight + _SEARCH_PAD * 2f;
+			DrawSearchField(rect.SliceTop(searchHeight));
 
-				if (!_focused)
-				{
-					GUI.FocusControl(_SEARCH_FIELD_NAME);
-					_focused = true;
-				}
+			if (!_searchFocused)
+			{
+				GUI.FocusControl(_SEARCH_FIELD_NAME);
+				_searchFocused = true;
 			}
 
 			if (_refreshTree && EditorApplication.timeSinceStartup > (_timeSearched + 0.2f))
 			{
 				_flatMode = _filterString.Length >= _MIN_SEARCH_LEN;
 				_refreshTree = false;
-				_currentPage.Filter(_filterString.ToLower());
-				
-				_currentPage = _rootNode;
+				_currentNode.Filter(new SearchFilter(_filterString));
+				_currentNode = _rootNode;
 			}
 
-			DrawNode(rect, _currentPage);
+			DrawNode(rect, _currentNode);
 			editorWindow.Repaint();
 		}
 
-		private bool _focused;
-
-		private readonly Options _options;
+		private bool _searchFocused;
 		private readonly Action<Type> _setFn;
-		private float _preferredWidth = 1f;
-		private TypeNode _currentPage;
-		private readonly TypeNode _rootNode;
+		private readonly float _preferredWidth;
+		private MenuNode _currentNode;
+		private readonly Type _currentValue;
+		private readonly MenuNode _rootNode;
 		private static (Assembly, Type[])[] _cachedTypes;
 		private Vector2 _pageScroll;
 		private bool _refreshTree;
@@ -111,12 +176,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		// used to match types with enum flags
 		private static readonly (ESearchTypeFlags, Func<Type, bool>)[] _FLAG_FILTERS =
 		{
-			(ESearchTypeFlags.Static, t => t.IsClass && t.IsStatic()),
+			(ESearchTypeFlags.StaticClass, t => t.IsClass && t.IsStatic()),
 			(ESearchTypeFlags.Interface, t => t.IsInterface),
 			(ESearchTypeFlags.Abstract, t => t.IsAbstract && !t.IsInterface && !t.IsStatic()),
 			(ESearchTypeFlags.Struct, t => t.IsStruct()),
 			(ESearchTypeFlags.Enum, t => t.IsEnum),
-			(ESearchTypeFlags.Hidden, t => !t.IsVisible),
+			(ESearchTypeFlags.Private, t => !t.IsVisible),
 			(ESearchTypeFlags.Nested, t => t.IsNested),
 			(ESearchTypeFlags.Class, t => t.IsClass && !t.IsStatic()),
 			(ESearchTypeFlags.Primitive, t => t.IsPrimitive && !t.IsEnum),
@@ -138,23 +203,40 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			("# Enum", t => t.IsEnum),
 		};
 
-		private const string _ATLAS_GUID = "e769e4d9f339626498a12b64168231ee";
-
-		private const string _SEARCH_FIELD_NAME = "search_field";
-
-		private static readonly Lazy<Texture2D> _TEX_ATLAS =
-		new (() => AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(_ATLAS_GUID)));
-
-		private static readonly Rect _ARROWL_COORDS = new (0.5f, 0, 0.25f, 0.25f);
-		private static readonly Rect _ARROWR_COORDS = new (0.75f, 0, 0.25f, 0.25f);
-
 		private TypeSearch(Type currentValue, Options options, Action<Type> setFn)
 		{
 			_setFn = setFn;
-			_options = options;
-			_currentPage = CreateTypeTree(options, _filterString);
-			_currentPage.RefreshCount();
-			_rootNode = _currentPage;
+			_rootNode = CreateMenuTree(options, currentValue, out var selectedNode, out var longestLabel);
+
+			_currentNode = _rootNode;
+			_currentValue = currentValue;
+
+			if (selectedNode != null && _rootNode.count >= _MAX_FLAT_RESULTS)
+			{
+				_currentNode = selectedNode.parent;
+			}
+
+			if (_currentValue != null && selectedNode != null)
+			{
+				var sIndex = 0;
+				for (var i = 0; i < selectedNode.parent.children.Count; i++)
+				{
+					var cNode = selectedNode.parent.children[i];
+					if (cNode.filteredCount == 0)
+					{
+						continue;
+					}
+
+					if (cNode.leafValue == _currentValue)
+					{
+						break;
+					}
+					sIndex++;
+				}
+				_pageScroll = new Vector2(0f, PopupStyles.ItemHeight * sIndex);
+			}
+			
+			_preferredWidth = PopupStyles.ItemLabel.CalcSize(new GUIContent(longestLabel)).x;
 		}
 
 		private void Select(Type t)
@@ -162,9 +244,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			_setFn?.Invoke(t);
 			editorWindow.Close();
 		}
-		
+
 		private void DrawSearchField(Rect rect)
 		{
+			var sepRect = rect;
+			sepRect = sepRect.SliceBottom(_SEP_WIDTH);
+			
+			
 			EditorGUI.DrawRect(rect, _HEADER_COLOR * 0.6f);
 
 			var inner = rect.Resized(-_SEARCH_PAD*2f);
@@ -184,6 +270,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					_timeSearched = EditorApplication.timeSinceStartup;
 				}
 			}
+			
+			EditorGUI.DrawRect(sepRect, _SEP_COLOR);
 		}
 
 		private static void DrawIcon(in Rect pos, in Rect coords, Color color)
@@ -191,17 +279,19 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			DrawerGUI.DrawTex(_TEX_ATLAS.Value, pos, coords, color);
 		}
 
-		private class TypeNode : IComparable<TypeNode>
+		private class MenuNode : IComparable<MenuNode>
 		{
-			public TypeNode parent;
+			public MenuNode parent;
 			public string name;
-			public Type type;
+			public Type leafValue;
 			public string filterName;
 			public int filteredCount { get; private set; }
 			public int count { get; private set; }
 			public int filterCountRecursive { get; private set; }
-			public readonly List<TypeNode> children = new ();
+			public readonly List<MenuNode> children = new ();
 
+			private string _cachedBreadcrumbs;
+			
 			public void RefreshCount()
 			{
 				GetCount();
@@ -209,7 +299,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			private int GetCount()
 			{
-				int c = type != null ? 1 : 0;
+				int c = leafValue != null ? 1 : 0;
 				foreach (var child in children)
 				{
 					c += child.GetCount();
@@ -218,11 +308,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return c;
 			}
 
-			public bool Filter(string searchString)
+			public bool Filter(in SearchFilter args)
 			{
 				filteredCount = 0;
 				filterCountRecursive = 0;
-				if (type != null && MatchFilter(filterName, searchString))
+				if (leafValue != null && args.MatchString(filterName))
 				{
 					filteredCount++;
 					filterCountRecursive++;
@@ -230,21 +320,20 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				foreach (var c in children)
 				{
-					if (c.Filter(searchString))
+					if (c.Filter(args))
 					{
 						filteredCount++;
 						filterCountRecursive += c.filterCountRecursive;
 					}
 				}
-
 				return filteredCount > 0;
 			}
 
-			public int CompareTo(TypeNode b)
+			public int CompareTo(MenuNode b)
 			{
-				int ret = (type != null) == (b.type != null)
+				int ret = (leafValue != null) == (b.leafValue != null)
 				? 0
-				: (type != null ? 1 : -1);
+				: (leafValue != null ? 1 : -1);
 				return ret != 0 ? ret : string.CompareOrdinal(name, b.name);
 			}
 
@@ -257,15 +346,43 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 			}
 
-			public TypeNode FindChildOrNew(string nodeName)
+			public string GetBreadcrumbLabel()
+			{
+				if (_cachedBreadcrumbs != null)
+				{
+					return _cachedBreadcrumbs;
+				}
+				var node = this;
+				_cachedBreadcrumbs = "";
+				var i = 0;
+				while (node != null)
+				{
+					if (node.parent == null)
+					{
+						break; // skip root
+					}
+
+					var currentPath = node.name;
+					if (i > 0)
+					{
+						currentPath += " / ";
+					}
+					_cachedBreadcrumbs = currentPath + _cachedBreadcrumbs;
+					node = node.parent;
+					i++;
+				}
+				return _cachedBreadcrumbs;
+			}
+
+			public MenuNode FindChildOrNew(string nodeName)
 			{
 				var node = children.Find(x => x.name == nodeName);
 				if (node == null)
 				{
-					node = new TypeNode
+					node = new MenuNode
 					{
 						name = nodeName,
-						parent = this
+						parent = this,
 					};
 					children.Add(node);
 				}
@@ -275,13 +392,32 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static (Assembly, Type[])[] GetAllAssemblyTypes()
 		{
+			// TODO: look into optimizing using UnityEditor.TypeCache
+
 			if(_cachedTypes == null)
 			{
-				var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-				_cachedTypes = new (Assembly, Type[])[assemblies.Length];
-				for (var i = 0; i < assemblies.Length; i++)
+				List<(Assembly, Type[])> filteredAssemblies = new();
+
+				foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
 				{
-					_cachedTypes[i] = (assemblies[i], assemblies[i].GetTypes());
+					if (!a.IsUserRelevant())
+					{
+						continue;
+					}
+
+					var types = a.GetTypes();
+					if (types.Length == 0)
+					{
+						continue;
+					}
+					filteredAssemblies.Add((a, types));
+				}
+
+				_cachedTypes = new (Assembly, Type[])[filteredAssemblies.Count];
+
+				for (var i = 0; i < filteredAssemblies.Count; i++)
+				{
+					_cachedTypes[i] = (filteredAssemblies[i].Item1, filteredAssemblies[i].Item2);
 				}
 			}
 			return _cachedTypes;
@@ -304,30 +440,43 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return null;
 		}
 
-		private static bool MatchFilter(string text, string searchString)
-		{
-			if (searchString.Length < _MIN_SEARCH_LEN)
-			{
-				return true;
-			}
-			return text.Contains(searchString);
-		}
-
 		private static string GetFilterableName(Type t)
 		{
 			return (t.FullName ?? t.Name).ToLower();
 		}
 
-		private static TypeNode CreateTypeTree(in Options opts, string filterString = "")
+		private static bool CheckFlagFilters(Type t, ESearchTypeFlags flags)
 		{
-			var root = new TypeNode
+			foreach (var (flag, filter) in _FLAG_FILTERS)
+			{
+				if (filter.Invoke(t) && !flags.HasFlag(flag))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private static MenuNode CreateMenuTree(in Options opts, Type currentValue, out MenuNode currentNode, out string longestLabel)
+		{
+			var root = new MenuNode
 			{
 				name = "Type"
 			};
-			int weirdName = 0;
+
+			currentNode = null;
+
+			longestLabel = string.Empty;
+			
+			var weirdTypes = 0;
 
 			foreach (var (assembly, aTypes) in GetAllAssemblyTypes())
 			{
+				if (!opts.flags.HasFlag(ESearchTypeFlags.EditorAssembly) && assembly.IsEditorAssembly())
+				{
+					continue;
+				}
+
 				if (opts.assemblies != null && !HasItem(opts.assemblies, assembly.GetName().Name))
 				{
 					continue;
@@ -335,30 +484,43 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				foreach (var aType in aTypes)
 				{
-					if (aType.Name.StartsWith("<"))
+					if (aType.IsCompilerGenerated())
 					{
-						weirdName++;
 						continue;
 					}
 
-					if (aType.IsNested && aType.FullName != null && aType.FullName.StartsWith("<"))
+					if (!aType.IsUserRelevant())
 					{
-						weirdName++;
 						continue;
 					}
 					
-					var include = true;
-
-					foreach (var (flag, filter) in _FLAG_FILTERS)
+					if (!opts.flags.HasFlag(ESearchTypeFlags.EditorAssembly) && aType.IsEditorType())
 					{
-						if (filter.Invoke(aType) && !opts.flags.HasFlag(flag))
-						{
-							include = false;
-							break;
-						}
+						continue;
 					}
 
-					if (!include)
+					// misc generated for unity
+					if (aType.FullName.StartsWith("UnitySource"))
+					{
+						continue;
+					}
+
+					if (opts.customFilter != null && !opts.customFilter.Invoke(aType))
+					{
+						continue;
+					}
+
+					if (opts.flags.HasFlag(ESearchTypeFlags.Serializable) && !aType.IsSerializable())
+					{
+						continue;
+					}
+
+					if (!opts.flags.HasFlag(ESearchTypeFlags.Obsolete) && aType.IsObsolete())
+					{
+						continue;
+					}
+
+					if (!CheckFlagFilters(aType, opts.flags))
 					{
 						continue;
 					}
@@ -368,7 +530,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 						continue;
 					}
 
-					if (opts.baseTypes != null && !aType.DerivesFrom(opts.baseTypes))
+					if (opts.baseTypes != null && !aType.DerivesFromAny(opts.baseTypes))
 					{
 						continue;
 					}
@@ -380,12 +542,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					if (opts.useDisplayName)
 					{
 						var dn = aType.GetCustomAttribute<DisplayNameAttribute>();
-
 						if (dn != null)
 						{
 							tLabel = dn.DisplayName;
 						}
-
 					}
 
 					if (aType.IsNested)
@@ -397,55 +557,76 @@ namespace Smidgenomics.Unity.Attributes.Editor
 						}
 					}
 
+					if (longestLabel.Length < tLabel.Length)
+					{
+						longestLabel = tLabel;
+					}
+
 					var namespacePrefix = string.IsNullOrEmpty(aType.Namespace)
 					? $"(No Namespace).{aType.Assembly.GetName().Name}"
 					: aType.Namespace;
 
-					var pagePathString =
+					var nodePathString =
 					namespacePrefix
 					+ (catName != null ? $".{catName}." : ".")
 					+ tLabel;
 
-					var pagePath = pagePathString.Split('.');
+					var nodePath = nodePathString.Split('.');
 
-					if (pagePath.Length == 1)
+					if (nodePath.Length == 1)
 					{
-						pagePath = new [] { ".", tLabel };
+						nodePath = new [] { ".", tLabel };
 					}
-					
+
 					if (aType.IsNested) // nb, kinda shit
 					{
-						for (int i = 0; i < pagePath.Length; i++)
+						for (int i = 0; i < nodePath.Length; i++)
 						{
-							pagePath[i] = pagePath[i].Replace("+", ".");
+							nodePath[i] = nodePath[i].Replace("+", ".");
 						}
 					}
 					var cn = root;
-					foreach (var name in pagePath)
+
+					foreach (var name in nodePath)
 					{
 						cn = cn.FindChildOrNew(name);
 					}
-					cn.type = aType;
+					cn.leafValue = aType;
+					if (aType == currentValue)
+					{
+						currentNode = cn;
+					}
 					cn.filterName = GetFilterableName(aType);
 				}
 			}
 			
+#if SM_DEV
+			Debug.Log(weirdTypes);
+#endif
+
 			root.Sort();
-			root.Filter("");
+			root.RefreshCount();
+			root.Filter(SearchFilter.Empty);
 			return root;
 		}
 
-		private static bool DrawHeader(Rect pos, in string label, bool root = false)
+		private static bool DrawHeader(Rect pos, MenuNode node, bool flatMode)
 		{
+			var sepRect = pos;
+			sepRect = sepRect.SliceBottom(_SEP_WIDTH);
 			EditorGUI.DrawRect(pos, _HEADER_COLOR);
 
 			var hoverRect = pos;
-			
-			if (!root)
+
+			bool isRoot = node.parent == null;
+
+			var headerLabel = flatMode ? _SEARCH_LABEL : node.name;
+
+			if (!isRoot) // not a root node
 			{
 				var icoRect = pos.SliceLeft(pos.height);
-				icoRect = icoRect.Resized(-icoRect.height * 0.4f);
-				DrawIcon(icoRect, _ARROWL_COORDS, Color.white * 0.5f);
+				icoRect = icoRect.Resized(-icoRect.height * 0.6f);
+				DrawIcon(icoRect, _COORDS_ARROWL, _ARROW_COLOR);
 			}
 
 			if (hoverRect.Contains(Event.current.mousePosition))
@@ -453,15 +634,38 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				EditorGUI.DrawRect(hoverRect, _HEADER_HOVER_COLOR);
 			}
 
-			EditorGUI.LabelField(hoverRect, label, PopupStyles.HeaderLabel);
-			return !root && GUI.Button(hoverRect, string.Empty, GUIStyle.none);
+			EditorGUI.LabelField(hoverRect, headerLabel, PopupStyles.HeaderLabel);
+			
+			EditorGUI.DrawRect(sepRect, _SEP_COLOR);
+			
+			return !isRoot && GUI.Button(hoverRect, string.Empty, GUIStyle.none);
+		}
+		
+		private static void DrawBreadcrumbs(Rect pos, MenuNode node)
+		{
+			var sepRect = pos;
+			sepRect = sepRect.SliceBottom(_SEP_WIDTH);
+			
+			EditorGUI.DrawRect(pos, _HEADER_COLOR * 0.8f);
+			var tColor = GUI.color;
+			GUI.color = Color.white * 0.9f;
+			EditorGUI.LabelField(pos, node.GetBreadcrumbLabel(), PopupStyles.Breadcrumbs);
+			GUI.color = tColor;
+			EditorGUI.DrawRect(sepRect, _SEP_COLOR);
 		}
 
-		private static bool DrawItemRow(Rect pos, in string label, bool leaf = false)
+		private static bool DrawItemRow(Rect pos, in string label, bool leaf, bool active)
 		{
 			var hoverRect = pos;
 
-			if (hoverRect.Contains(Event.current.mousePosition))
+			if (active)
+			{
+				EditorGUI.DrawRect(pos, _ACTIVE_ITEM_COLOR);
+			}
+
+			var hovered = hoverRect.Contains(Event.current.mousePosition);
+
+			if (hovered)
 			{
 				EditorGUI.DrawRect(hoverRect, _HOVER_COLOR);
 			}
@@ -469,23 +673,31 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				var icoRect = pos.SliceRight(pos.height);
 				icoRect = icoRect.Resized(-icoRect.height * 0.4f);
-				DrawIcon(icoRect, _ARROWR_COORDS, Color.white * 0.5f);
+				DrawIcon(icoRect, _COORDS_ARROWR, _ARROW_COLOR);
 			}
+
+			var style = label.StartsWith("#")
+			? PopupStyles.CategoryLabel
+			: PopupStyles.ItemLabel;
+
+			var tColor = style.normal.textColor;
+			style.normal.textColor = hovered ? Color.white : style.normal.textColor;
+			EditorGUI.LabelField(pos, label, style);
+			style.normal.textColor = tColor;
 			
-			EditorGUI.LabelField(pos, label, PopupStyles.ItemLabel);
-			return GUI.Button(pos, "", GUIStyle.none);
+			return GUI.Button(pos, GUIContent.none, GUIStyle.none);
 		}
 
-		private void DrawNodeFlat(Rect pos, TypeNode node)
+		private void DrawNodeFlat(Rect pos, MenuNode node)
 		{
 			var rowHeight = PopupStyles.ItemHeight;
 
-			if (node.type != null)
+			if (node.leafValue != null)
 			{
 				var itemRect = pos.SliceTop(rowHeight);
-				if (DrawItemRow(itemRect, node.name, true))
+				if (DrawItemRow(itemRect, node.name, true, _currentValue != null && node.leafValue == _currentValue))
 				{
-					Select(node.type);
+					Select(node.leafValue);
 				}
 			}
 
@@ -498,7 +710,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 		}
 
-		private void DrawNodeLinked(Rect pos, TypeNode node)
+		private void DrawNodeLinked(Rect pos, MenuNode node)
 		{
 			var rowHeight = PopupStyles.ItemHeight;
 			foreach (var page in node.children)
@@ -508,27 +720,26 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					continue;
 				}
 				var rowRect = pos.SliceTop(rowHeight);
-				if (page.children.Count == 0 && page.type == null)
+				if (page.children.Count == 0 && page.leafValue == null)
 				{
 					continue;
 				}
-				if (DrawItemRow(rowRect, page.name, page.type != null))
+				if (DrawItemRow(rowRect, page.name, page.leafValue != null, _currentValue != null && page.leafValue == _currentValue))
 				{
-					if (page.type == null)
+					if (page.leafValue == null)
 					{
 						_pageScroll = default;
-						_currentPage = page;
+						_currentNode = page;
 					}
 					else
 					{
-						Select(page.type);
+						Select(page.leafValue);
 					}
 				}
 			}
 		}
 
-
-		private void DrawNode(Rect pos, TypeNode node)
+		private void DrawNode(Rect pos, MenuNode node)
 		{
 			var rowHeight = PopupStyles.ItemHeight;
 			var rowCount = node.filteredCount;
@@ -537,7 +748,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (node.count < _MAX_FLAT_RESULTS)
 			{
-				flatMode = true;
+				// flatMode = true;
 			}
 			
 			if (flatMode)
@@ -545,15 +756,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				rowCount = node.filterCountRecursive;
 			}
 
-			TypeNode newPage = null;
-
-			var headerLabel = _flatMode ? _SEARCH_LABEL : node.name;
+			MenuNode newPage = null;
 
 			var headerHeight = PopupStyles.HeaderHeight;
 			
-			if (DrawHeader(pos.SliceTop(headerHeight), headerLabel, node.parent == null))
+			if (DrawHeader(pos.SliceTop(headerHeight), node, flatMode))
 			{
 				newPage = node.parent;
+			}
+
+			if (!flatMode)
+			{
+				DrawBreadcrumbs(pos.SliceTop(PopupStyles.BreadcrumbHeight), node);
 			}
 
 			var scrollRect = new Rect(0f, 0f, pos.width, rowCount * rowHeight);
@@ -577,7 +791,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			GUI.EndScrollView();
 			if (newPage != null)
 			{
-				_currentPage = newPage;
+				_currentNode = newPage;
 			}
 		}
 		
@@ -585,25 +799,41 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			public static GUIStyle HeaderLabel => _HEADER_STYLE.Value;
 			public static GUIStyle ItemLabel => _ITEM_STYLE.Value;
+			public static GUIStyle CategoryLabel => _CAT_ITEM_STYLE.Value;
+			public static GUIStyle Breadcrumbs => _BREADCRUMB_STYLE.Value;
 			public static float ScrollbarWidth => _SCROLLBAR_W.Value;
-
 			public static float HeaderHeight => _HEADER_STYLE.Value.CalcHeight(GUIContent.none, 100);
 			public static float ItemHeight => ItemLabel.CalcHeight(GUIContent.none, 100);
+			public static float BreadcrumbHeight => Breadcrumbs.CalcHeight(GUIContent.none, 100);
 
 			private static readonly Lazy<float> _SCROLLBAR_W =
-				new(() => GUI.skin.verticalScrollbar.CalcSize(GUIContent.none).x);
+			new(() => GUI.skin.verticalScrollbar.CalcSize(GUIContent.none).x);
+			
+			private static readonly Lazy<GUIStyle> _BREADCRUMB_STYLE =
+			new (() => new GUIStyle(EditorStyles.miniLabel)
+			{
+				padding = new RectOffset(5,5,5,5),
+				fontSize = (int)(EditorStyles.miniLabel.fontSize * 0.95f),
+			});
 		
 			private static readonly Lazy<GUIStyle> _ITEM_STYLE =
 				new (() => new GUIStyle(EditorStyles.miniLabel)
 				{
 					padding = new RectOffset(6,3,3,3)
 				});
+			
+			private static readonly Lazy<GUIStyle> _CAT_ITEM_STYLE =
+			new (() => new GUIStyle(EditorStyles.miniLabel)
+			{
+				padding = new RectOffset(6,3,3,3),
+				fontStyle = FontStyle.Bold
+			});
 
 			private static readonly Lazy<GUIStyle> _HEADER_STYLE = new (() => new GUIStyle(EditorStyles.label)
 			{
 				fontStyle = FontStyle.Bold,
 				alignment = TextAnchor.MiddleCenter,
-				padding = new RectOffset(5,5,7,7)
+				padding = new RectOffset(5,5,4,4)
 			});
 		}
 	}
