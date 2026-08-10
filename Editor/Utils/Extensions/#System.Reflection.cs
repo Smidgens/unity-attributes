@@ -20,7 +20,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 		public static bool IsArray(this FieldInfo fo) => fo.FieldType.IsArray;
 		public static bool IsStatic(this Type t) => t.IsAbstract && t.IsSealed;
-
 		public static bool IsStruct(this Type t) => t.IsValueType && !t.IsPrimitive && !t.IsEnum;
 
 		// most common editor types
@@ -32,39 +31,53 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			typeof(UnityEditor.EditorWindow),
 			typeof(UnityEditor.AssetImporter),
 		};
+		
+		private static readonly string[] _KNOWN_IRRELEVANT_ASSEMBLIES =
+		{
+			"Unity.InputSystem.DocCodeSamples"
+		};
 
 		private static readonly string[] _KNOWN_EDITOR_ASSEMBLIES =
 		{
 			"UnityEditor",
 			"JetBrains",
 			"PlayerBuild",
+			"Bee."
+		};
+
+		private static readonly string[] _KNOWN_EDITOR_NAMESPACES =
+		{
+			"JetBrains",
+			"UnityEditor"
 		};
 
 		public static bool IsEditorType(this Type t)
 		{
 			// absolutely not robust
-			if (!string.IsNullOrEmpty(t.Namespace) && t.Namespace.StartsWith("UnityEditor"))
+			if (!string.IsNullOrEmpty(t.Namespace))
 			{
-				return true;
-			}
-
-			var aName = t.Assembly.GetName().Name;
-			
-			if (aName.StartsWith("Unity.") && t.Name.EndsWith("Editor"))
-			{
-				return true;
-			}
-
-			// this is iffy - could conceivably refer to a runtime editor/gameplay related
-			if (t.Namespace != null && t.Namespace.EndsWith(".Editor"))
-			{
+				foreach (var ns in _KNOWN_EDITOR_NAMESPACES)
+				{
+					if (t.Namespace.StartsWith(ns))
+					{
+						return true;
+					}
+				}
+				
+				// this is iffy - could conceivably refer to a runtime editor/gameplay related
 				if (t.Namespace.EndsWith(".Editor"))
 				{
 					return true;
 				}
 			}
 
-			// this is unnecessarily costly and absolutely not reliable
+			var aName = t.Assembly.GetName().Name;
+			if (aName.StartsWith("Unity.") && t.Name.EndsWith("Editor"))
+			{
+				return true;
+			}
+
+			// this is unnecessarily costly and not 100% exhaustive
 			if (t.DerivesFromAny(_KNOWN_EDITOR_TYPES))
 			{
 				return true;
@@ -80,7 +93,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				return true;
 			}
-
+			
 			var aName = assembly.GetName().Name;
 
 			foreach (var prefix in _KNOWN_EDITOR_ASSEMBLIES)
@@ -96,15 +109,27 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				return true;
 			}
-
 			return false;
 		}
 
 		public static bool IsUserRelevant(this Assembly assembly)
 		{
-			// TODO: identify absolutely irrelevant assemblies
+			// TODO: identify absolutely irrelevant assemblies more smartly
 
+			var aName = assembly.GetName().Name;
+			foreach (var prefix in _KNOWN_IRRELEVANT_ASSEMBLIES)
+			{
+				if (aName.StartsWith(prefix))
+				{
+					return false;
+				}
+			}
 			return true;
+		}
+
+		public static bool IsNewable(this Type t)
+		{
+			return t.GetConstructor(Type.EmptyTypes) != null;
 		}
 
 		public static bool IsUserRelevant(this Type t)
@@ -113,6 +138,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				return false;
 			}
+			
+			if (t.FullName != null)
+			{
+				if (t.FullName.StartsWith("UnitySource"))
+				{
+					return false;
+				}
+			}
+			
 			return true;
 		}
 

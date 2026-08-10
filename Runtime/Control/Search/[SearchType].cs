@@ -6,7 +6,7 @@ namespace Smidgenomics.Unity.Attributes
 	/// Filtering flags for [SearchType]
 	/// </summary>
 	[System.Flags]
-	public enum ESearchTypeFlags
+	public enum ESearchType
 	{
 		/// <summary>
 		/// You probably won't need this one...
@@ -15,7 +15,7 @@ namespace Smidgenomics.Unity.Attributes
 		/// <summary>
 		/// Include private/internal
 		/// </summary>
-		Private = 1,
+		NonPublic = 1,
 		/// <summary>
 		/// Include interfaces
 		/// </summary>
@@ -89,58 +89,39 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public sealed class SearchTypeAttribute : __BaseControl
 	{
-		public SearchTypeAttribute()
-		{
-		}
-
-		private const ESearchTypeFlags DEFAULT_FLAGS =
-		ESearchTypeFlags.All
-		& ~ESearchTypeFlags.Obsolete
-		& ~ESearchTypeFlags.Serializable
-		& ~ESearchTypeFlags.EditorAssembly
-		& ~ESearchTypeFlags.Generic;
-
-		public SearchTypeAttribute(params Type[] baseTypes)
-		{
-			this.baseTypes = baseTypes.Length == 0 ? null : baseTypes;
-			this.flags = this.flags & ~ESearchTypeFlags.Abstract;
-		}
-
-		public SearchTypeAttribute(string customFilter)
-		{
-			this.flags = ESearchTypeFlags.All;
-			this.customFilter = FindFilterDelegate(customFilter);
-		}
+		private const ESearchType DEFAULT_FLAGS =
+		ESearchType.All
+		& ~ESearchType.Obsolete
+		& ~ESearchType.Serializable
+		& ~ESearchType.EditorAssembly
+		& ~ESearchType.Generic;
 
 		public SearchTypeAttribute
 		(
-			ESearchTypeFlags flags = DEFAULT_FLAGS,
-			string[] namespaces = null,
-			string[] assemblies = null,
+			ESearchType flags = DEFAULT_FLAGS,
 			Type baseType = null,
-			string customFilter = null,
-			bool useDisplayNameAttr = false
+			string typeFilter = null,
+			string assemblyFilter = null,
+			string labelFn = null
 		)
 		{
 			this.flags = flags;
-			this.namespaces = namespaces;
-			this.assemblies = assemblies;
-			this.useDisplayNameAttr = useDisplayNameAttr;
-			this.customFilter = FindFilterDelegate(customFilter);
+			this.typeFilter = FindFunc<Type,bool>(typeFilter);
+			this.assemblyFilter = FindFunc<Assembly,bool>(assemblyFilter);
+			this.labelFn = FindFunc<Type, string>(labelFn);
 			if (baseType != null)
 			{
-				this.baseTypes = new []{ baseType };
+				baseTypes = new []{ baseType };
 			}
 		}
 
-		internal Func<Type,bool> customFilter { get; }
-		internal bool useDisplayNameAttr { get; }
-		internal string[] namespaces { get; }
-		internal string[] assemblies  { get; }
+		internal Func<Type,bool> typeFilter { get; }
+		internal Func<Assembly,bool> assemblyFilter { get; }
+		internal Func<Type,string> labelFn { get; }
 		internal Type[] baseTypes { get; }
-		internal ESearchTypeFlags flags { get; } = DEFAULT_FLAGS;
+		internal ESearchType flags { get; }
 
-		private static Func<Type, bool> FindFilterDelegate(string path)
+		private static Func<T, RT> FindFunc<T, RT>(string path)
 		{
 			if (string.IsNullOrEmpty(path))
 			{
@@ -160,10 +141,7 @@ namespace Smidgenomics.Unity.Attributes
 				return null;
 			}
 
-			BindingFlags methodFlags =
-			BindingFlags.Public
-			| BindingFlags.NonPublic
-			| BindingFlags.Static;
+			var methodFlags = BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static;
 
 			var method = type.GetMethod(segments[0], methodFlags);
 
@@ -172,17 +150,17 @@ namespace Smidgenomics.Unity.Attributes
 				return null;
 			}
 
-			if (method.ReturnType != typeof(bool))
+			if (method.ReturnType != typeof(RT))
 			{
 				return null;
 			}
 			var pms = method.GetParameters();
 
-			if (pms.Length != 1 || pms[0].ParameterType != typeof(Type))
+			if (pms.Length != 1 || pms[0].ParameterType != typeof(T))
 			{
 				return null;
 			}
-			return (Func<Type, bool>)method.CreateDelegate(typeof(Func<Type, bool>));
+			return (Func<T, RT>)method.CreateDelegate(typeof(Func<T, RT>));
 		}
 	}
 }
@@ -205,13 +183,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			AssemblyTypePopup(ctx.position, ctx.property, GetConstraints);
 		}
 
-		private static Lazy<GUIStyle> _BTN_LABEL_STYLE = new(() =>
+		private static readonly Lazy<GUIStyle> _BTN_LABEL_STYLE = new(() =>
 		{
 			var s = new GUIStyle(EditorStyles.miniLabel);
 			s.fontSize = (int)(s.fontSize * 0.85f);
 			s.padding = new RectOffset(4,20,0,0);
 			return s;
-
 		});
 
 		private TypeSearch.Options GetConstraints()
@@ -220,10 +197,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				flags = _Attribute.flags,
 				baseTypes = _Attribute.baseTypes,
-				namespaces = _Attribute.namespaces,
-				assemblies = _Attribute.assemblies,
-				useDisplayName = _Attribute.useDisplayNameAttr,
-				customFilter = _Attribute.customFilter
+				typeFilter = _Attribute.typeFilter,
+				assemblyFilter = _Attribute.assemblyFilter,
+				labelFn = _Attribute.labelFn,
 			};
 		}
 
@@ -241,17 +217,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private static bool DrawClearButton(Rect pos)
 		{
 			var pressed = GUI.Button(pos, GUIContent.none, GUIStyle.none);
-
 			var color = EditorGUIUtility.isProSkin
 			? Color.white * 0.7f
 			: Color.black * 0.5f;
-
-			var icoRect = pos.Resized(-pos.height * 0.4f);
-			
+			var icoRect = pos.Resized(-pos.height * 0.2f);
 			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
-
 			DrawerGUI.DrawTex(_TEX_ATLAS.Value, icoRect, _CLOSE_COORDS, color);
-			
 			return pressed;
 		}
 
@@ -277,7 +248,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return name;
 		}
 
-		private static void AssemblyTypePopup(Rect pos, SerializedProperty prop, Func<TypeSearch.Options> optsFn)
+		private TypeSearch.MenuNode _cachedMenu;
+
+		private void AssemblyTypePopup(Rect pos, SerializedProperty prop, Func<TypeSearch.Options> optsFn)
 		{
 			if (_defaultLabelStyle == null)
 			{
@@ -313,7 +286,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 
 			var brect = pos;
-
+			
 			GUI.Box(brect, GUIContent.none, EditorStyles.helpBox);
 
 			EditorGUIUtility.AddCursorRect(brect, MouseCursor.Link);
@@ -337,8 +310,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (shouldOpenPopup)
 			{
-				var opts = optsFn.Invoke();
-				TypeSearch.Open(brect, t, opts, v =>
+				if (_cachedMenu == null)
+				{
+					_cachedMenu = TypeSearch.CreateTypeMenuTree(optsFn.Invoke());
+				}
+
+				_cachedMenu.Filter(TypeSearch.SearchFilter.Empty);
+
+				TypeSearch.Open(brect, t, _cachedMenu, v =>
 				{
 					prop.stringValue = v?.AssemblyQualifiedName ?? String.Empty;
 					prop.serializedObject.ApplyModifiedProperties();

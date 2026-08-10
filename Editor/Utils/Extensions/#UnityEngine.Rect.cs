@@ -11,9 +11,30 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	/// </summary>
 	internal static class Rect_
 	{
+		public static void Resize(this ref Rect r, in float s) => r.Resize(s, s, s, s);
+
+		public static void Resize(this ref Rect r, float lr, in float tb) => r.Resize(lr, lr, tb, tb);
+		
+		public static void Resize
+		(
+			this ref Rect rect,
+			in float l,
+			in float r,
+			in float t,
+			in float b
+		)
+		{
+			var c = rect.center;
+			rect.width += l + r;
+			rect.height += t + b;
+			rect.center = c;
+		}
+		
 		public static Rect Resized(this Rect r, in float s)
 		{
-			return Resized(r, s, _PIVOT_CENTER);
+			var newRect = r;
+			newRect.Resize(s);
+			return newRect;
 		}
 
 		public static Rect Resized(this Rect r, in float s, in Vector2 pivot)
