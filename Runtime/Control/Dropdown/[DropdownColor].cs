@@ -52,7 +52,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnIcon(in Rect pos, in DrawContext ctx)
 		{
-			DrawerGUI.ColorPreview(pos, ctx.property.colorValue);
+			DrawColorPreview(pos, ctx.property.colorValue);
 		}
 
 		protected override void OnField(in DrawContext ctx)
@@ -74,6 +74,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				);
 				m.DropDown(ctx.position);
 			}
+		}
+		
+		private static void DrawColorPreview(in Rect pos, in Color c)
+		{
+			EditorGUI.DrawRect(pos, c);
 		}
 	}
 }

@@ -42,7 +42,33 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnIcon(in Rect pos, in DrawContext ctx)
 		{
-			DrawerGUI.AssetThumbnail(pos, ctx.property.objectReferenceValue, _Attribute.thumbQuality == 2);
+			DrawAssetThumbnail(pos, ctx.property.objectReferenceValue, _Attribute.thumbQuality == 2);
+		}
+		
+		private const float PAD_FULL = 2f;
+		private const float PAD_MINI = 5f;
+
+		private static void DrawAssetThumbnail(in Rect pos, UnityObject o, in bool full = false)
+		{
+			GUI.Box(pos, GUIContent.none, GUI.skin.box);
+			if (!o)
+			{
+				return;
+			}
+
+			if (full)
+			{
+				GUI.DrawTexture(pos.Resized(-PAD_FULL), AssetPreview.GetAssetPreview(o));
+			}
+			else
+			{
+				GUI.DrawTexture(pos.Resized(-PAD_MINI), AssetPreview.GetMiniThumbnail(o));
+			}
+
+			if (GUI.Button(pos, GUIContent.none, GUIStyle.none))
+			{
+				EditorGUIUtility.PingObject(o);
+			}
 		}
 
 		protected override void OnField(in DrawContext ctx)

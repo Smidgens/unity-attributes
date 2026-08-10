@@ -12,7 +12,9 @@ namespace Smidgenomics.Unity.Attributes
 
 namespace Smidgenomics.Unity.Attributes.Editor
 {
+	using System.Linq;
 	using UnityEditor;
+	using UnityEngine;
 
 	[CustomPropertyDrawer(typeof(LayerAttribute))]
 	internal sealed class _LayerAttribute : __ControlDrawer<LayerAttribute>
@@ -21,7 +23,48 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
-			DrawerGUI.Layer(ctx.position, ctx.property);
+			LayerPopup(ctx.position, ctx.property);
+		}
+		
+		public static void LayerPopup(in Rect pos, SerializedProperty prop)
+		{
+			// invalid type
+			if (prop.propertyType != SerializedPropertyType.Integer)
+			{
+				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_INT);
+				return;
+			}
+
+			var currentValue = prop.intValue;
+
+			string currentName = LayerMask.LayerToName(currentValue);
+
+			var btnLabel = !string.IsNullOrEmpty(currentName)
+				? $"{currentValue}: {currentName}"
+				: "<none>";
+
+			if (GUI.Button(pos, btnLabel, EditorStyles.popup))
+			{
+				var m = new GenericMenu();
+				foreach (var layerIndex in Enumerable.Range(0, 31))
+				{
+					var name = LayerMask.LayerToName(layerIndex);
+					if (string.IsNullOrEmpty(name))
+					{
+						continue;
+					}
+
+					var v = layerIndex;
+
+					m.AddItem(new GUIContent($"{layerIndex}: {name}"), layerIndex == currentValue, () =>
+					{
+						prop.intValue = v;
+						prop.serializedObject.ApplyModifiedProperties();
+					});
+
+				}
+				m.DropDown(pos);
+			}
 		}
 	}
 }

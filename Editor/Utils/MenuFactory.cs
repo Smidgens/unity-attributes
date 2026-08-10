@@ -23,8 +23,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			Func<T,T,bool> compareFn = null
 		)
 		{
-			var m = new GenericMenu();
-			m.allowDuplicateNames = true;
+			var m = new GenericMenu
+			{
+				allowDuplicateNames = true
+			};
 
 			if (values.Length == 0)
 			{
@@ -39,58 +41,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			return m;
 		}
-
-		public static GenericMenu GetMenu(SP prop, in int[] values, bool showDefault = false, Func<int, string> prefixFn = null)
-		{
-			return GetIntMenu
-			(
-				prop,
-				values.Stringify(),
-				showDefault,
-				prefixFn
-			);
-		}
-
-		public static GenericMenu GetIntMenu(SP prop, in string[] labels, bool showDefault = false, Func<int, string> prefixFn = null)
-		{
-			return GetIntMenu
-			(
-				prop.intValue,
-				labels,
-				v => Set(prop,v),
-				showDefault,
-				prefixFn
-			);
-		}
-
-		public static GenericMenu GetIntMenu(in int value, in string[] labels, Action<int> setFn, bool showDefault = false, Func<int, string> prefixFn = null)
-		{
-			var m = new GenericMenu();
-			m.allowDuplicateNames = true;
-
-			if (showDefault)
-			{
-				m.AddItem(new GUIContent(EConstants.Label.POPUP_DEFAULT), value == -1, () => setFn.Invoke(-1));
-				m.AddSeparator("");
-			}
-
-			for (var i = 0; i < labels.Length; i++)
-			{
-				var lv = i;
-				var prefix = prefixFn?.Invoke(i) ?? "";
-				var ll = $"{prefix}{labels[i]}";
-				m.AddItem(new GUIContent(ll), value == i, () => setFn.Invoke(lv));
-			}
-			return m;
-		}
-
-
-		private static void Set(SP p, int v)
-		{
-			p.intValue = v;
-			p.serializedObject.ApplyModifiedProperties();
-		}
-
 
 	}
 

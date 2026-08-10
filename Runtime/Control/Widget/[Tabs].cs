@@ -97,13 +97,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					EditorGUI.DrawRect(col, Color.red * 0.2f);
 					continue;
 				}
-				tProp.boolValue = DrawerGUI.TabButton(col, tProp.boolValue, tProp.displayName);
+				tProp.boolValue = DrawTabButton(col, tProp.boolValue, tProp.displayName);
 			}
 		}
 
 		private static bool TabButton(in Rect pos, in bool v, in string l)
 		{
-			return DrawerGUI.TabButton(pos, v, l);
+			return DrawTabButton(pos, v, l);
 		}
 
 		protected override void OnInit()
@@ -125,6 +125,40 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private bool _isFlags = false;
 		private int _fcount = 0;
 		private int[] _flagValues = null;
+		
+		private static bool DrawTabButton(in Rect pos, bool value, in string label)
+		{
+			// background
+			EditorGUI.DrawRect(pos, _TOGGLE_COLORS[value.ToInt()]);
+			if (GUI.Button(pos, "", _ToggleTabStyle.Value))
+			{
+				value = !value;
+			}
+			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
+			EditorGUI.LabelField(pos, label, _ToggleTabStyle.Value);
+			return value;
+		}
+		
+		private static readonly Color[] _TOGGLE_COLORS =
+		{
+			Color.black * 0.1f, // false
+			Color.white * 0.5f, // true
+		};
+		
+		private static readonly Lazy<GUIStyle> _ToggleTabStyle = new (() =>
+		{
+			var s = new GUIStyle
+			{
+				alignment = TextAnchor.MiddleCenter,
+				normal =
+				{
+					textColor = Color.white
+				},
+				fontStyle = FontStyle.Bold,
+				fontSize = 10
+			};
+			return s;
+		});
 
 		private void DrawFlags(in DrawContext ctx)
 		{
