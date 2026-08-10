@@ -1,12 +1,10 @@
 // smidgens @ github
 
-// resharper disable all
-
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
 	using UnityEngine;
-	
+
 	// 
 	[AttributeUsage(AttributeTargets.Field)]
 	public sealed class InstancedReferenceAttribute : __BaseControl
@@ -30,11 +28,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEngine;
 	using UnityEditor;
 	using System;
-	using System.Linq;
 	using System.Reflection;
 	using System.Collections.Generic;
-	using UObject = UnityEngine.Object;
-	using SP = UnityEditor.SerializedProperty;
 	using System.ComponentModel;
 
 	[CustomPropertyDrawer(typeof(InstancedReferenceAttribute))]
@@ -110,7 +105,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					var pHeight = EditorGUI.GetPropertyHeight(fProp);
 					var fRect = SliceTop(ref pos, pHeight);
 					EditorGUI.PropertyField(fRect, fProp);
-					if (i < _fields.Length - 1)
+					if (i < _fields.Count - 1)
 					{
 						SliceTop(ref pos, EditorGUIUtility.standardVerticalSpacing);
 					}
@@ -121,7 +116,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 
 		private Type _lastType;
-		private FieldInfo[] _fields;
+		private IReadOnlyList<FieldInfo> _fields;
 
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
 		{
@@ -147,7 +142,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (_fields == null)
 			{
-				_fields = FindInspectorFields<object>(prop.managedReferenceValue.GetType()).ToArray();
+				_fields = FindInspectorFields<object>(prop.managedReferenceValue.GetType());
 				_lastType = prop.managedReferenceValue.GetType();
 			}
 
@@ -157,7 +152,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				totalHeight += EditorGUI.GetPropertyHeight(innerProp);
 			}
 
-			totalHeight += (Mathf.Max(_fields.Length - 1, 0f)) * EditorGUIUtility.standardVerticalSpacing;
+			totalHeight += (Mathf.Max(_fields.Count - 1, 0f)) * EditorGUIUtility.standardVerticalSpacing;
 			
 			return totalHeight;
 		}
@@ -165,10 +160,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private void SelectorDropdown(Rect pos, SerializedProperty prop)
 		{
 			Type currentType = prop.managedReferenceValue?.GetType();
-
-			string defaultLabel = (attribute as InstancedReferenceAttribute).emptyValueLabel;
+			string defaultLabel = (attribute as InstancedReferenceAttribute)!.emptyValueLabel;
 			string label = currentType != null ? GetTypeDisplayName(currentType) : defaultLabel;
-			
+
 			if (!GUI.Button(pos, label, EditorStyles.popup))
 			{
 				return;
@@ -228,29 +222,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					menu.AddDisabledItem(new GUIContent(currentAssembly.GetName().Name));
 				}
 
-				var dname = GetTypeLabel(type);
+				var dname = new GUIContent(GetTypeDisplayName(type));
 				menu.AddItem(dname, false, fn,  type);
 			}
 			return menu;
 		}
 
-		private static GUIContent GetTypeLabel(Type type)
-		{
-			string category = null;
-			string dname = GetTypeDisplayName(type);
-			var path = category != null ? $"{category}/{dname}" : dname;
-			return new GUIContent(path);
-		}
-
-		private static System.Collections.Generic.IEnumerable<Type> GetDerivedTypes(Type baseType)
+		private static IReadOnlyList<Type> GetDerivedTypes(Type baseType)
 		{
 			List<Type> outTypes = new();
 			foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
 			{
-				var types = assembly.GetTypes()
-				.Where(t => baseType.IsAssignableFrom(t) && !t.IsAbstract);
+				var types = assembly.GetTypes();
+
 				foreach (var t in types)
 				{
+					if (t.IsAbstract || t.IsValueType || !baseType.IsAssignableFrom(t))
+					{
+						continue;
+					}
 					outTypes.Add(t);
 				}
 			}
@@ -275,7 +265,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 		
 		// Find all fields that Unity would default render in the inspector
-		internal static IEnumerable<FieldInfo> FindInspectorFields<T>(Type owner)
+		internal static IReadOnlyList<FieldInfo> FindInspectorFields<T>(Type owner)
 		{
 			// NOTE: doesn't work properly for unity components, flags might need to be different
 
