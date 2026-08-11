@@ -7,7 +7,12 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public sealed class ExpandAttribute : __BaseControl
 	{
-		
+		public ExpandAttribute(bool hideLabel = false)
+		{
+			this.hideLabel = hideLabel;
+		}
+
+		internal bool hideLabel { get; }
 	}
 }
 
@@ -29,146 +34,74 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(ExpandAttribute))]
 	internal sealed class _ExpandAttribute : __ControlDrawer<ExpandAttribute>
 	{
-		public const byte ROW_MARGIN = 2;
-
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
 		{
-			return
-			+_rows.Count * (ROW_MARGIN + EditorGUIUtility.singleLineHeight);
+			
+			var total = Mathf.Max(0f, EditorGUIUtility.standardVerticalSpacing * (_fields.Count - 1));;
+
+			if (!_Attribute.hideLabel)
+			{
+				total += EditorGUIUtility.standardVerticalSpacing;
+				total += EditorGUIUtility.singleLineHeight;
+			}
+
+			foreach (var f in _fields)
+			{
+				total += EditorGUI.GetPropertyHeight(prop.FindPropertyRelative(f.Name));
+			}
+
+			return total;
 		}
 
 		protected override void OnLabel(ref Rect pos, GUIContent l) { }
 
 		protected override void OnField(in DrawContext ctx)
 		{
+			var tIndent = EditorGUI.indentLevel;
+			
 			var pos = ctx.position;
-			var row = pos;
-			row.height = EditorGUIUtility.singleLineHeight;
-			var start = row.position;
 
-			for (var i = 0; i < _rows.Count; i++)
+			if (!_Attribute.hideLabel)
 			{
-				var oy = i * (row.height + ROW_MARGIN);
-				row.position = start + new Vector2(0, oy);
-				DrawFieldAt(row, _rows[i], ctx);
+				EditorGUI.indentLevel++;
+				var labelRect = pos.SliceTop(EditorGUIUtility.singleLineHeight);
+				var label = !string.IsNullOrEmpty(_customLabel.text) ? _customLabel : ctx.label;
+				EditorGUI.HandlePrefixLabel(ctx.position, labelRect, label);
+				pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 			}
+
+			foreach (var f in _fields)
+			{
+				var p = ctx.property.FindPropertyRelative(f.Name);
+				var h = EditorGUI.GetPropertyHeight(p);
+				var fRect = pos.SliceTop(h);
+
+				
+				fRect =	EditorGUI.PrefixLabel(fRect, new GUIContent(p.displayName));
+				
+				EditorGUI.indentLevel--;
+				EditorGUI.PropertyField(fRect, p, GUIContent.none);
+				EditorGUI.indentLevel++;
+				
+				
+				pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
+			}
+
+			EditorGUI.indentLevel = tIndent;
+
 		}
 
 		protected override void OnInit()
 		{
-			_rows = GetRows(fieldInfo);
-			_customLabel = GetCustomLabel();
+			_customLabel = new GUIContent(GetCustomLabel());
+			_fields = fieldInfo.FieldType.GetInnermostType().FindInspectorFields<object>();
 		}
 
-		private string _customLabel = null;
-		private List<FieldRow> _rows = null;
-
-		private const BindingFlags _BFLAGS =
-		BindingFlags.Instance
-		| BindingFlags.Public
-		| BindingFlags.NonPublic;
-
-		private struct FieldRow
-		{
-			public byte depth; // indent
-			public string path; // prop path
-			public bool isGroup; // child fields
-			public bool isArray;
-		}
-
-		private void DrawFieldAt(in Rect pos, in FieldRow r, in DrawContext ctx)
-		{
-			if (r.isArray)
-			{
-				DrawerGUI.MutedInfo(pos, "array expand not implemented");
-				return;
-			}
-
-			var p =
-			r.depth == 0
-			? ctx.property
-			: ctx.property.FindPropertyRelative(r.path);
-
-			if (p == null)
-			{
-				EditorGUI.DrawRect(pos, Color.red * 0.3f);
-				GUI.Box(pos, "?");
-				return;
-			}
-
-			var l = p.displayName;
-
-			if(r.depth == 0 && _customLabel != null) { l = _customLabel; }
-
-			using (new EditorGUI.IndentLevelScope(r.depth))
-			{
-				if (r.isGroup)
-				{
-					EditorGUI.LabelField(pos, l, EditorStyles.boldLabel);
-				}
-				else
-				{
-					EditorGUI.PropertyField(pos, p);
-				}
-			}
-		}
-
-		private static List<FieldRow> GetRows(FieldInfo fi)
-		{
-			var r = new List<FieldRow>();
-			GetRows(0, "", fi, r);
-			return r;
-		}
-
-		private static void GetRows(in byte depth, in string path, FieldInfo fi, List<FieldRow> rows)
-		{
-			if (fi.IsNotSerialized) { return; }
-
-			if (fi.IsArray())
-			{
-				rows.Add(new FieldRow
-				{
-					depth = depth,
-					isArray = true,
-					path = path,
-				});
-				return;
-			}
-
-			if (fi.GetCustomAttribute<HideInInspector>() != null) { return; }
-
-			var t = fi.FieldType;
-
-			var isGroup = t.IsClassOrStruct();
-
-			if (t.DerivesFrom(typeof(UnityObject)))
-			{
-				isGroup = false;
-			}
-			else if(t == typeof(string))
-			{
-				isGroup = false;
-			}
+		private GUIContent _customLabel;
+		private IReadOnlyList<FieldInfo> _fields;
 
 
-			var row = new FieldRow
-			{
-				depth = depth,
-				isGroup = isGroup,
-				path = path,
-			};
 
-			rows.Add(row);
-
-			if (row.isGroup)
-			{
-				foreach (var sub in t.GetFields(_BFLAGS))
-				{
-					var prefix = depth > 0 ? path + "." : "";
-					GetRows((byte)(depth + 1), prefix + sub.Name, sub, rows);
-				}
-			}
-		}
 	}
 }
 

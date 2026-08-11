@@ -37,33 +37,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return newRect;
 		}
 
-		public static Rect[] CalcColumns(this Rect pos, double pad, params float[] widths)
-		{
-			var r = new Rect[widths.Length];
-			if (widths.Length == 0) { return r; }
-			var (poffset, ptotal) = GetSplitPadding(widths.Length, pos.width, pad);
-			var totalSize = pos.width - ptotal;
-			var w = totalSize.Split(widths);
-			var offset = 0f;
-			for (var i = 0; i < w.Length; i++)
-			{
-				r[i] = pos;
-				r[i].x += offset;
-				r[i].width = w[i];
-				offset += w[i] + poffset;
-			}
-			return r;
-		}
-
-		private static (float, float) GetSplitPadding(int n, float v, double p)
-		{
-			if (n < 2) { return default; }
-			var o = System.Convert.ToSingle(p);
-			// ratio
-			if (o < 1) { o = o * v; }
-			return (o, o * (n - 1));
-		}
-		
 		public static Rect SliceBottom(this ref Rect r, in float h)
 		{
 			var r2 = r;

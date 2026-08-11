@@ -18,96 +18,6 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public sealed class InlineAttribute : __BaseControl
 	{
-		public InlineAttribute() { }
-
-		/// <summary>
-		/// Names of serialized fields to display inlined
-		/// </summary>
-		internal Type Type { get; private set; }
-		internal string[] Fields { get; private set; } = { };
-		internal float[] Sizes { get; private set; } = { };
-
-		internal void Init(Type t, FieldSizeAttribute[] options)
-		{
-			Type = t;
-			Init(t, options, out var fields, out var sizes);
-			Fields = fields;
-			Sizes = sizes;
-		}
-
-		private const BindingFlags _BFLAGS =
-		BindingFlags.Instance
-		| BindingFlags.Public
-		| BindingFlags.NonPublic;
-
-		private static void Init(
-			Type t,
-			FieldSizeAttribute[] options,
-			out string[] names, out float[] sizes
-		)
-		{
-			var fields = t.GetFields(_BFLAGS)
-			.Where(x =>
-			{
-				if (x.IsNotSerialized) { return false; }
-				if (x.GetCustomAttribute<HideInInspector>() != null)
-				{
-					return false;
-				}
-				return true;
-			})
-			.Select(x => x.Name)
-			.ToArray();
-
-			sizes = ComputeSizes(fields, options);
-			names = fields;
-		}
-
-		private static float[] ComputeSizes
-		(
-			in string[] fields,
-			in FieldSizeAttribute[] options
-		)
-		{
-			if(fields.Length == 0) { return new float[0]; }
-			var sizes = fields.Select(x => -1f).ToArray();
-			float defWidth = 1f / fields.Length;
-			for (var i = 0; i < fields.Length; i++)
-			{
-				var fn = fields[i];
-				var oi = Array.FindIndex(options, x => x.Name == fn);
-				sizes[i] = oi > -1 ? options[oi].Size : defWidth;
-			}
-			Normalize(sizes);
-			return sizes;
-		}
-
-		private static void Normalize(in float[] sizes)
-		{
-			if (sizes.Length == 0) { return; }
-			float rtotal = 0f;
-			var ratio = new List<int>();
-			var flex = new List<int>();
-			for (var i = 0; i < sizes.Length; i++)
-			{
-				var w = sizes[i];
-				if (w > 1f) { continue; }
-				if (w <= 0f) { flex.Add(i); continue; }
-				rtotal += w;
-				ratio.Add(i);
-			}
-			float flexRemainder = 1f - rtotal;
-			if (flexRemainder > 0f && flex.Count > 0)
-			{
-				var fw = flexRemainder / flex.Count;
-				foreach (var fi in flex) { sizes[fi] = fw; }
-				rtotal += flexRemainder;
-			}
-			foreach (var ri in ratio)
-			{
-				sizes[ri] = sizes[ri] / rtotal;
-			}
-		}
 	}
 }
 
@@ -115,20 +25,76 @@ namespace Smidgenomics.Unity.Attributes
 
 namespace Smidgenomics.Unity.Attributes.Editor
 {
-	using System.Linq;
+	using System.Collections.Generic;
 	using System.Reflection;
 	using UnityEditor;
 	using UnityEngine;
+	using System;
+	using SP = UnityEditor.SerializedProperty;
 
 	[CustomPropertyDrawer(typeof(InlineAttribute))]
 	internal sealed class _InlineAttribute : __ControlDrawer<InlineAttribute>
 	{
 		protected override void OnInit()
 		{
-			var opts = fieldInfo.GetCustomAttributes<FieldSizeAttribute>().ToArray();
-			_Attribute.Init(fieldInfo.GetItemType(), opts);
-			_fields = _Attribute.Fields;
-			_sizes = _Attribute.Sizes;
+			var fieldType = fieldInfo.FieldType.GetInnermostType();
+			InitFields(fieldType);
+		}
+
+		private void InitFields(Type type)
+		{
+			List<(FieldInfo, float)> fields = new();
+
+			var norm = 0f;
+
+			foreach (var f in type.FindInspectorFields<object>())
+			{
+				var wAttr = f.GetCustomAttribute<InlineWidthAttribute>();
+				var w = wAttr?.width ?? 0f;
+				if (w < 1f)
+				{
+					norm += w;
+				}
+
+				if (Mathf.Approximately(w, 0f))
+				{
+					_flexFields++;
+				}
+
+				fields.Add((f, w));
+			}
+
+			if (norm > 1f)
+			{
+				for (int i = 0; i < fields.Count; i++)
+				{
+					if (fields[i].Item2 >= 1f)
+					{
+						var val = fields[i];
+						val.Item2 = fields[i].Item2 / norm;
+						fields[i] = val;
+					}
+				}
+			}
+			_fields = fields;
+			_currentWidths = new float[_fields.Count];
+		}
+
+		private static readonly float _PAD = EditorGUIUtility.standardVerticalSpacing * 1.5f;
+
+		protected override float GetHeight(SP prop, GUIContent label)
+		{
+			var max = EditorGUIUtility.singleLineHeight;
+			foreach (var (f, _) in _fields)
+			{
+				var p = prop.FindPropertyRelative(f.Name);
+				var h = EditorGUI.GetPropertyHeight(p, GUIContent.none);
+				if (h > max)
+				{
+					max = h;
+				}
+			}
+			return max;
 		}
 
 		protected override void OnField(in DrawContext ctx)
@@ -136,27 +102,50 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var ti = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = 0;
 
-			// todo: optimize this
-			var cols = ctx.position.CalcColumns(2.0, _sizes);
+			var pos = ctx.position;
+		
+			var usableWidth = pos.width - Mathf.Max(0f, _fields.Count - 1) * _PAD;
+			
+			var remainingWidth = usableWidth;
 
-			for (var i = 0; i < _fields.Length; i++)
+			for(int i = 0; i < _currentWidths.Length; i++)
 			{
-				var col = cols[i];
-				var innerProp = ctx.property.FindPropertyRelative(_fields[i]);
-				if (innerProp == null)
-				{
-					EditorGUI.DrawRect(col, Color.red * 0.3f);
-					GUI.Box(col, "?");
-					continue;
-				}
-				EditorGUI.PropertyField(col, innerProp, GUIContent.none);
+				var width = _fields[i].Item2;
+				var fWidth = width > 1f ? width : width * usableWidth;
+				_currentWidths[i] = fWidth;
+				remainingWidth -= fWidth;
+				i++;
 			}
 
+			var flexWidth = _flexFields > 0 ? remainingWidth / _flexFields : 0f;
+
+			for(int i = 0; i < _currentWidths.Length; i++)
+			{
+				var w = Mathf.Approximately(_currentWidths[i], 0f)
+				? flexWidth
+				: _currentWidths[i];
+				
+				var fRect = pos.SliceLeft(w);
+				var field = _fields[i].Item1;
+				
+				var prop = ctx.property.FindPropertyRelative(field.Name);
+
+				var height = EditorGUI.GetPropertyHeight(prop, GUIContent.none);
+				fRect.height = height;
+
+				EditorGUI.PropertyField(fRect, prop, GUIContent.none);
+
+				if (i != _fields.Count - 1)
+				{
+					pos.SliceLeft(_PAD);
+				}
+			}
 			EditorGUI.indentLevel = ti;
 		}
 
-		private string[] _fields = null;
-		private float[] _sizes = null;
+		private int _flexFields;
+		private List<(FieldInfo, float)> _fields;
+		private float[] _currentWidths;
 	}
 
 }

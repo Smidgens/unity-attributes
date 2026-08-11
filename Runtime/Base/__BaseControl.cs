@@ -6,7 +6,7 @@ namespace Smidgenomics.Unity.Attributes
 	using System.Reflection;
 	using System.Linq;
 
-	[AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
+	[AttributeUsage(AttributeTargets.Field)]
 	public abstract class __BaseControl : __Base
 	{
 		public bool buttons = true;
