@@ -134,7 +134,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			
 			if (DrawerGUI.PopupButton(pos, currentValStr))
 			{
-				GetMenu(ctx.property, currentValStr, _FieldType, attr)
+				GetMenu(ctx.property, currentValStr, attr)
 				.DropDown(ctx.position);
 			}
 		}
@@ -181,22 +181,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static bool IsGUID(string str)
 		{
-			return Regex.IsMatch(str, "^([a-z]|[0-9]){32}$");
+			return Regex.IsMatch(str, "^([a-f]|[0-9]){32}$");
 		}
 
-		private static UnityEngine.Object LoadByGUID(string guid, Type type)
+		private static List<string> LoadAssetOptions(DropdownAttribute attr, Type fieldType)
 		{
-			var path = AssetDatabase.GUIDToAssetPath(guid);
-			return AssetDatabase.LoadAssetAtPath(path, type);
-		}
-		
-		private static List<UnityEngine.Object> LoadAssetOptions(DropdownAttribute attr, Type fieldType)
-		{
-			List<UnityEngine.Object> l = new();
+			List<string> paths = new();
 
 			if (attr.GetOptionType() != typeof(string))
 			{
-				return l;
+				return paths;
 			}
 
 			var folderPaths = new List<string>();
@@ -205,10 +199,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				if (IsGUID(value.stringRef))
 				{
-					var a = LoadByGUID(value.stringRef, fieldType);
-					if (a)
+					var path = AssetDatabase.GUIDToAssetPath(value.stringRef);
+					var aType = AssetDatabase.GetMainAssetTypeAtPath(path);
+					if (aType == fieldType)
 					{
-						l.Add(a);
+						paths.Add(path);
 					}
 					continue;
 				}
@@ -217,11 +212,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			foreach (var aGUID in AssetDatabase.FindAssets($"t:{fieldType.Name}", folderPaths.ToArray()))
 			{
-			
-				l.Add(LoadByGUID(aGUID, fieldType));
+				paths.Add(AssetDatabase.GUIDToAssetPath(aGUID));
 			}
-			
-			return l;
+
+			return paths;
 		}
 		
 		private string GetCurrentValueLabel(SerializedProperty prop, Type oType)
@@ -327,7 +321,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private List<(GUIContent, Type, DropdownAttribute.DropdownValue)> _boolOptions;
 
-		private GenericMenu GetMenu(SerializedProperty p, string currentLabel, System.Type fieldType, DropdownAttribute attr)
+		private GenericMenu GetMenu(SerializedProperty p, string currentLabel, DropdownAttribute attr)
 		{
 			var m = new GenericMenu
 			{
@@ -336,22 +330,43 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var values = attr.values;
 
-			if (fieldType == typeof(bool))
+			if (_FieldType == typeof(bool))
 			{
 				values = _boolOptions;
 			}
 			else if (p.propertyType == SerializedPropertyType.ObjectReference)
 			{
-				foreach (var a in LoadAssetOptions(attr, fieldType))
+				var currentAssetPath = p.objectReferenceValue
+				? AssetDatabase.GetAssetPath(p.objectReferenceValue)
+				: null;
+
+				m.AddItem(new GUIContent("None"), !p.objectReferenceValue, () =>
 				{
-					var val = a;
-					
-					m.AddItem(new GUIContent(a.name), a == p.objectReferenceValue, () =>
+					p.objectReferenceValue = null;
+					p.serializedObject.ApplyModifiedProperties();
+				});
+				
+				m.AddSeparator("");
+
+				foreach (var path in LoadAssetOptions(attr, _FieldType))
+				{
+					var aPath = path;
+					var dotIndex = path.LastIndexOf('.');
+					var nIndex = path.LastIndexOf('/') + 1;
+					var len = dotIndex - nIndex;
+					var label = path.Substring(nIndex, len);
+					m.AddItem(new GUIContent(label), aPath == currentAssetPath, () =>
 					{
-						p.objectReferenceValue = val;
+						p.objectReferenceValue = AssetDatabase.LoadAssetAtPath(aPath, this._FieldType);
 						p.serializedObject.ApplyModifiedProperties();
 					});
 				}
+
+				if (m.GetItemCount() == 2)
+				{
+					m.AddDisabledItem(new GUIContent("No options"));
+				}
+				
 				return m;
 			}
 
