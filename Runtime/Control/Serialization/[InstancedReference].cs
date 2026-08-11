@@ -76,6 +76,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var tIndent = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = isArray ? 0 : EditorGUI.indentLevel;
+			// EditorGUI.indentLevel = isArray ? 0 : EditorGUI.indentLevel;
 		
 			var typeRect = SliceRow(ref pos);
 
@@ -228,21 +229,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return menu;
 		}
 
-		private static IReadOnlyList<Type> GetDerivedTypes(Type baseType)
+		private static IReadOnlyCollection<Type> GetDerivedTypes(Type baseType)
 		{
 			List<Type> outTypes = new();
-			foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+			foreach (var t in TypeCache.GetTypesDerivedFrom(baseType))
 			{
-				var types = assembly.GetTypes();
-
-				foreach (var t in types)
+				if (t.IsAbstract || t.IsValueType)
 				{
-					if (t.IsAbstract || t.IsValueType || !baseType.IsAssignableFrom(t))
-					{
-						continue;
-					}
-					outTypes.Add(t);
+					continue;
 				}
+				outTypes.Add(t);
 			}
 			return outTypes;
 		}
