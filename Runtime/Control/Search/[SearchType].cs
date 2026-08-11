@@ -89,9 +89,13 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		ConcreteType = (Class|Struct) & ~(Interface|Abstract|Generic),
 		/// <summary>
-		/// Can be instantiated for SerializeReference fields
+		/// Can be instantiated for [SerializeReference] fields
 		/// </summary>
 		ReferenceSerializable = ~Attribute & (Class|Serializable|Newable),
+		/// <summary>
+		/// Include non-public and nested types
+		/// </summary>
+		AnyAccessor = NonPublic|Nested,
 		/// <summary>
 		/// Sensible defaults
 		/// </summary>
@@ -222,18 +226,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				labelFn = _Attribute.labelFn,
 			};
 		}
-
-		private const string _SWITCH_GUID = "e769e4d9f339626498a12b64168231ee";
-
-		private static readonly Rect _CLOSE_COORDS = new Rect(0.25f, 0, 0.25f, 0.25f);
-
-		// icon atlas
-		private static readonly Lazy<Texture2D> _TEX_ATLAS = new (() =>
-		{
-			var path = AssetDatabase.GUIDToAssetPath(_SWITCH_GUID);
-			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-		});
-
+		
 		private static bool DrawClearButton(Rect pos)
 		{
 			var pressed = GUI.Button(pos, GUIContent.none, GUIStyle.none);
@@ -242,7 +235,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			: Color.black * 0.5f;
 			var icoRect = pos.Resized(-pos.height * 0.2f);
 			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
-			DrawerGUI.DrawTex(_TEX_ATLAS.Value, icoRect, _CLOSE_COORDS, color);
+			PluginAtlas.DrawIcon(icoRect, EAtlasIcon.Close, color);
 			return pressed;
 		}
 

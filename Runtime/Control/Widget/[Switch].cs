@@ -106,17 +106,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private bool _isEnum;
 		private bool _isFlags;
 		private (string, int)[] _flagValues;
-		private static readonly Rect _SWITCH_0_COORDS = new Rect(0, 0, 0.25f, 0.125f);
-		private static readonly Rect _SWITCH_1_COORDS = new Rect(0, 0.125f, 0.25f, 0.125f);
 
-		// icon atlas
-		private static readonly Lazy<Texture2D> _TEX_ATLAS = new (() =>
-		{
-			var path = AssetDatabase.GUIDToAssetPath("e769e4d9f339626498a12b64168231ee");
-			return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-		});
-
-		
 		private void DrawSingle(in DrawContext ctx)
 		{
 			var prop = ctx.property;
@@ -141,14 +131,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				val = !val;
 			}
 
-			var coords = val ? _SWITCH_1_COORDS : _SWITCH_0_COORDS;
+			var ico = val ? EAtlasIcon.SwitchOn : EAtlasIcon.SwitchOff;
 
 			var color = EditorGUIUtility.isProSkin
 			? Color.white * 0.8f
 			: Color.black * 0.5f;
 			
-			DrawerGUI.DrawTex(_TEX_ATLAS.Value, icoRect, coords, color);
-			
+			PluginAtlas.DrawIcon(icoRect, ico, color);
 			var s = val ? EditorStyles.boldLabel : EditorStyles.label;
 			EditorGUI.LabelField(pos, label, s);
 			return val;

@@ -19,6 +19,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			public Type[] baseTypes;
 			public Func<Type, bool> typeFilter;
 			public Func<Assembly, bool> assemblyFilter;
+
+			// TODO: use lazily when nodes are renderer
 			public Func<Type, string> labelFn;
 		}
 
@@ -85,7 +87,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			Fade(_UNITY_SELECT_COLOR, 0.6f)
 			,Fade(_UNITY_SELECT_COLOR, 0.8f)
 		);
-		
+
 		private static readonly Color _HEADER_HOVER_COLOR
 		= PickSkin(Color.white * 0.25f, Fade(Color.white, 0.2f));
 
@@ -101,16 +103,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private static readonly Color _SEP_COLOR
 		= PickSkin(Fade(Color.white,0.05f), Color.black * 0.3f);
 		
-		private const string _ATLAS_GUID = "e769e4d9f339626498a12b64168231ee";
+		// private const string _ATLAS_GUID = "e769e4d9f339626498a12b64168231ee";
 		private const string _SEARCH_FIELD_NAME = "search_field";
 
-		private static readonly Lazy<Texture2D> _TEX_ATLAS =
-		new (() => AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(_ATLAS_GUID)));
 
-		private static readonly Rect _COORDS_ARROWL = new (0.5f, 0, 0.25f, 0.25f);
-		private static readonly Rect _COORDS_ARROWR = new (0.75f, 0, 0.25f, 0.25f);
-		private static readonly Rect _COORDS_CLOSE = new (0.25f, 0, 0.25f, 0.25f);
-	
 		private const float _SEP_WIDTH = 1f;
 
 		private const float _SEARCH_REFRESH_DELAY = 0.2f;
@@ -277,11 +273,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 
 			EditorGUI.DrawRect(sepRect, _SEP_COLOR);
-		}
-
-		private static void DrawIcon(in Rect pos, in Rect coords, Color color)
-		{
-			DrawerGUI.DrawTex(_TEX_ATLAS.Value, pos, coords, color);
 		}
 
 		internal class MenuNode : IComparable<MenuNode>
@@ -707,7 +698,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				var icoRect = pos.SliceLeft(pos.height);
 				icoRect = icoRect.Resized(-icoRect.height * 0.2f);
-				DrawIcon(icoRect, _COORDS_ARROWL, _ARROW_COLOR);
+				PluginAtlas.DrawIcon(icoRect, EAtlasIcon.ArrowLeft, _ARROW_COLOR);
 			}
 
 			if (hoverRect.Contains(Event.current.mousePosition))
@@ -719,7 +710,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			EditorGUI.DrawRect(sepRect, _SEP_COLOR);
 			return !isRoot && GUI.Button(hoverRect, string.Empty, GUIStyle.none);
 		}
-		
 
 		private static void DrawBreadcrumbs(Rect pos, MenuNode node)
 		{
@@ -736,30 +726,29 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static readonly Color _TYPE_ICO_COLOR =
 		PickSkin(Fade(Color.white, 0.75f), Fade(Color.black, 0.75f));
-
-		private static readonly Rect _COORDS_CLASS = new (0.25f, 0.5f, 0.125f, 0.125f);
-
-		private static readonly Dictionary<string, Rect> _TYPE_ICO_COORDS = new()
-		{
-			{ "Delegate", new (0, 0.25f, 0.125f, 0.125f) },
-			{ "Static", new (0.125f, 0.25f, 0.125f, 0.125f) },
-			{ "Primitive", new (0.25f, 0.25f, 0.125f, 0.125f) },
-			// row2
-			{ "Attribute", new (0, 0.375f, 0.125f, 0.125f) },
-			{ "Exception", new (0.125f, 0.375f, 0.125f, 0.125f) },
-			{ "Enum", new (0.25f, 0.375f, 0.125f, 0.125f) },
-			// row 3
-			{ "Interface", new (0, 0.5f, 0.125f, 0.125f) },
-			{ "Struct", new (0.125f, 0.5f, 0.125f, 0.125f) },
-			{ "Class", new (0.25f, 0.5f, 0.125f, 0.125f) },
-		};
 		
+
+		private static readonly Dictionary<string, EAtlasIcon> _TYPE_ICO_COORDS = new()
+		{
+			{ "Delegate", EAtlasIcon.Delegate },
+			{ "Static", EAtlasIcon.Static },
+			{ "Primitive", EAtlasIcon.Primitive },
+			// row2
+			{ "Attribute", EAtlasIcon.Attribute },
+			{ "Exception", EAtlasIcon.Exception },
+			{ "Enum", EAtlasIcon.Enum },
+			// row 3
+			{ "Interface", EAtlasIcon.Interface },
+			{ "Struct", EAtlasIcon.Struct },
+			{ "Class", EAtlasIcon.Class },
+		};
+
 		private static void DrawNodeIcon(Rect pos, string label)
 		{
 			pos = pos.Resized(-pos.height * 0.1f);
 			var c = _TYPE_ICO_COLOR;
-			var coords = _TYPE_ICO_COORDS.GetValueOrDefault(label, _COORDS_CLASS);
-			DrawIcon(pos, coords, c);
+			var icon = _TYPE_ICO_COORDS.GetValueOrDefault(label, EAtlasIcon.Class);
+			PluginAtlas.DrawIcon(pos, icon, c);
 		}
 
 		private static bool DrawItemRow(Rect pos, string label, bool leaf, bool active)
@@ -781,7 +770,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				var icoRect = pos.SliceRight(pos.height);
 				icoRect = icoRect.Resized(-icoRect.height * 0.2f);
-				DrawIcon(icoRect, _COORDS_ARROWR, _ARROW_COLOR);
+				PluginAtlas.DrawIcon(icoRect, EAtlasIcon.ArrowRight, _ARROW_COLOR);
 			}
 
 			var categoryNode = label.Length >= 2 && label[0] == '#' && label[1] == ' ';
@@ -796,7 +785,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				var catIcoRect = pos.SliceLeft(pos.height);
 				DrawNodeIcon(catIcoRect, dLabel);
-
 			}
 
 			var tColor = style.normal.textColor;
