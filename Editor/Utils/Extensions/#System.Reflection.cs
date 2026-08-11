@@ -130,6 +130,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return true;
 		}
 
+		public static Type GetInnermostType(this Type t)
+		{
+			while (t is { IsArray: true })
+			{
+				t = t.GetElementType();
+			}
+			return t;
+		}
+
 		public static bool IsNewable(this Type t)
 		{
 			return t.GetConstructor(Type.EmptyTypes) != null;
