@@ -13,7 +13,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	internal abstract class __ControlDrawer<T> : PropertyDrawer where T : __BaseControl
 	{
 		public const string DEFAULT_MSG = EConstants.Info.NOT_IMPLEMENTED;
-		public const float BUTTON_MARGIN = 2f;
 		public const float BUTTON_HEIGHT = 19f; // find later
 
 		public sealed override float GetPropertyHeight(SP property, GUIContent label)
@@ -26,48 +25,49 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		public sealed override void OnGUI(Rect pos, SP prop, GUIContent l)
 		{
-
 			DrawActions(ref pos, prop);
+			
+			EditorGUI.BeginProperty(pos, l, prop);
 
 			var tIndent = EditorGUI.indentLevel;
-			EditorGUI.indentLevel = fieldInfo.FieldType.IsArray ? 0 : EditorGUI.indentLevel;
+			EditorGUI. indentLevel= fieldInfo.FieldType.IsArray ? 0 : EditorGUI.indentLevel;
 
-			using (new EditorGUI.PropertyScope(pos, l, prop))
-			{
-				var indent = fieldInfo.FieldType.IsArray ? 0 : _extraIndent;
-				
-				using (new EditorGUI.IndentLevelScope(indent))
-				{
-					// label
-					OnLabel(ref pos, l);
-					string err = null;
-
-					if (!CanDraw(prop, ref err))
-					{
-						DrawerGUI.MutedInfo(pos, err);
-						return;
-					}
-					
-					pos = EditorGUI.IndentedRect(pos);
-					var ctx = new DrawContext
-					{
-						position = pos,
-						property = prop,
-						label = l,
-					};
-
-					if (HasIcon())
-					{
-						var cols = pos.CalcColumns(2.0, pos.height, 1f);
-						ctx.position = cols[1];
-						OnIcon(cols[0], ctx);
-					}
-					OnField(ctx);
-				}
-
-			}
+			var indent = fieldInfo.FieldType.IsArray ? 0 : _extraIndent;
 			
+			using (new EditorGUI.IndentLevelScope(indent))
+			{
+				// label
+				OnLabel(ref pos, l);
+				string err = null;
+
+				if (!CanDraw(prop, ref err))
+				{
+					DrawerGUI.MutedInfo(pos, err);
+					return;
+				}
+				
+				pos = EditorGUI.IndentedRect(pos);
+				var ctx = new DrawContext
+				{
+					position = pos,
+					property = prop,
+					label = l,
+				};
+
+				if (HasIcon())
+				{
+					var icoRect = pos.SliceLeft(pos.height);
+					pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing * 1.5f);
+					ctx.position = pos;
+					OnIcon(icoRect, ctx);
+				}
+				OnField(ctx);
+			}
+
+		
 			EditorGUI.indentLevel = tIndent;
+			
+			EditorGUI.EndProperty();
 			
 		}
 
@@ -180,7 +180,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			if(_actions != null)
 			{
 				_totalActionHeight = BUTTON_HEIGHT * _actions.Count;
-				_totalActionHeight += BUTTON_MARGIN;
+				_totalActionHeight += EditorGUIUtility.standardVerticalSpacing;
 			}
 			OnInit();
 		}
@@ -193,8 +193,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var i = IndexOfMod<FieldActionAttribute>();
 			if(i < 0) { return null; }
 			var r = new List<ActionInfo>();
-
-			//var methodOwner = fieldInfo.DeclaringType;
 
 			for (;i < _mods.Count; i++)
 			{
@@ -217,7 +215,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			if(_actions == null) { return; }
 
 			var brect = posx;
-			brect.height = _totalActionHeight - BUTTON_MARGIN;
+			brect.height = _totalActionHeight - EditorGUIUtility.standardVerticalSpacing;
 
 			posx.height -= _totalActionHeight;
 			posx.position += new Vector2(0f, _totalActionHeight);
@@ -227,8 +225,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var buttonRow = pos;
 			buttonRow.height = BUTTON_HEIGHT;
 			var startPos = buttonRow.position;
-
-			//var target = prop.serializedObject.targetObject;
 
 			for (var i = 0; i < _actions.Count; i++)
 			{

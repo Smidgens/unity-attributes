@@ -104,11 +104,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					i++;
 					var fProp = prop.serializedObject.FindProperty(prop.propertyPath + "." + field.Name);
 					var pHeight = EditorGUI.GetPropertyHeight(fProp);
-					var fRect = SliceTop(ref pos, pHeight);
+					var fRect = pos.SliceTop(pHeight);
 					EditorGUI.PropertyField(fRect, fProp);
 					if (i < _fields.Count - 1)
 					{
-						SliceTop(ref pos, EditorGUIUtility.standardVerticalSpacing);
+						pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 					}
 				}
 			}
@@ -143,7 +143,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (_fields == null)
 			{
-				_fields = FindInspectorFields<object>(prop.managedReferenceValue.GetType());
+				_fields = prop.managedReferenceValue.GetType().FindInspectorFields<object>();
 				_lastType = prop.managedReferenceValue.GetType();
 			}
 
@@ -259,74 +259,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			
 			return type.Name;
 		}
-		
-		// Find all fields that Unity would default render in the inspector
-		internal static IReadOnlyList<FieldInfo> FindInspectorFields<T>(Type owner)
-		{
-			// NOTE: doesn't work properly for unity components, flags might need to be different
 
-			var baseType = typeof(T);
-
-			List<FieldInfo> fields = new List<FieldInfo>();
-			LinkedList<Type> hierarchy = new LinkedList<Type>(); // linked for efficient prepend
-
-			// traverse parent hierarchy, stop at MonoBehaviour
-			Type currentType = owner;
-			while (currentType != baseType && currentType != null)
-			{
-				hierarchy.AddFirst(currentType);
-				currentType = currentType.BaseType;
-			}
-
-			BindingFlags fieldFlags = BindingFlags.NonPublic
-			| BindingFlags.Public
-			| BindingFlags.DeclaredOnly
-			| BindingFlags.Instance;
-
-			// append fields in
-			// same order as Unity would normally list them
-			foreach (Type htype in hierarchy)
-			{
-				foreach (FieldInfo field in htype.GetFields(fieldFlags))
-				{
-					if (!IsInspectorField(field)) { continue; }
-					fields.Add(field);
-				}
-			}
-			return fields;
-		}
-		
-		// can field be drawn by inspector
-		private static bool IsInspectorField(FieldInfo f)
-		{
-			// explicitly public but non-serialized
-			if (f.IsPublic && f.GetCustomAttribute<NonSerializedAttribute>() != null) { return false; }
-
-			// explicitly hidden
-			if (f.GetCustomAttribute<HideInInspector>() != null) { return false; }
-
-			// private, non serialized
-			if (!f.IsPublic && f.GetCustomAttribute<SerializeField>() == null) { return false; }
-
-			// at this point, either the field is public, or private and using SerializeField
-			return true;
-		}
-		
 		private static Rect SliceRow(ref Rect r)
 		{
-			var r2 = SliceTop(ref r, EditorGUIUtility.singleLineHeight);
-			SliceTop(ref r, EditorGUIUtility.standardVerticalSpacing);
+			var r2 = r.SliceTop(EditorGUIUtility.singleLineHeight);
+			r.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 			return r2;
 		}
 		
-		private static Rect SliceTop(ref Rect r, in float h)
-		{
-			var r2 = r;
-			r2.height = h;
-			r.height -= h;
-			r.position += new Vector2(0f, h);
-			return r2;
-		}
 		
 		
 
