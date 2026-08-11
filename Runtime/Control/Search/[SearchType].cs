@@ -23,7 +23,7 @@ namespace Smidgenomics.Unity.Attributes
 		/// <summary>
 		/// Include static classes
 		/// </summary>
-		StaticClass = 4,
+		Static = 4,
 		/// <summary>
 		/// Include abstract classes
 		/// </summary>
@@ -65,7 +65,7 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		Serializable = 4096,
 		/// <summary>
-		/// Include editor only assemblies
+		/// Include editor-only assembly types
 		/// </summary>
 		EditorAssembly = 8192,
 		/// <summary>
@@ -73,9 +73,29 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		Delegate = 16384,
 		/// <summary>
-		/// All & ~Interface & ~Abstract
+		/// System.Attribute
 		/// </summary>
-		ConcreteClass = All & ~Interface & ~Abstract,
+		Attribute = 32768,
+		/// <summary>
+		/// Value types only
+		/// </summary>
+		ValueType = Primitive|Enum|Struct,
+		/// <summary>
+		/// Skips irrelevant types such as ones marked Obsolete
+		/// </summary>
+		RuntimeRelevant = ~(EditorAssembly|Obsolete),
+		/// <summary>
+		/// Concrete type that can be instantiated
+		/// </summary>
+		ConcreteType = (Class|Struct) & ~(Interface|Abstract|Generic),
+		/// <summary>
+		/// Can be instantiated for SerializeReference fields
+		/// </summary>
+		ReferenceSerializable = ~Attribute & (Class|Serializable|Newable),
+		/// <summary>
+		/// Sensible defaults
+		/// </summary>
+		Default = All & RuntimeRelevant & ~Serializable & ~Newable,
 		/// <summary>
 		/// Include every type
 		/// </summary>
@@ -93,17 +113,9 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public sealed class SearchTypeAttribute : __BaseControl
 	{
-		private const ESearchType DEFAULT_FLAGS =
-		ESearchType.All
-		& ~ESearchType.Obsolete
-		& ~ESearchType.Serializable
-		& ~ESearchType.EditorAssembly
-		& ~ESearchType.Newable
-		& ~ESearchType.Generic;
-
 		public SearchTypeAttribute
 		(
-			ESearchType flags = DEFAULT_FLAGS,
+			ESearchType flags = ESearchType.Default,
 			Type baseType = null,
 			string typeFilter = null,
 			string assemblyFilter = null,
@@ -185,7 +197,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
+			var tIndent = EditorGUI.indentLevel;
+			EditorGUI.indentLevel = 0;
 			AssemblyTypePopup(ctx.position, ctx.property, GetConstraints);
+			EditorGUI.indentLevel = tIndent;
 		}
 
 		private static readonly Lazy<GUIStyle> _BTN_LABEL_STYLE = new(() =>

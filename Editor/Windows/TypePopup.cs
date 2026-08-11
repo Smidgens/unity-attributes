@@ -155,6 +155,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				_currentNode = _rootNode;
 			}
 
+			if (_rootNode.count < _MAX_FLAT_RESULTS)
+			{
+				_searchMode = true;
+			}
+
 			DrawNode(rect, _currentNode);
 			editorWindow.Repaint();
 		}
@@ -177,9 +182,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		// used to match types with enum flags
 		private static readonly (ESearchType, Func<Type, bool>)[] _FLAG_FILTERS =
 		{
-			(ESearchType.StaticClass, t => t.IsStaticClass()),
+			(ESearchType.Static, t => t.IsStaticClass()),
 			(ESearchType.Delegate, t => t.IsDelegate()),
-			(ESearchType.Interface, t => t.IsInterface),
+			(ESearchType.Interface, t => t.IsInterface && !t.IsClass),
 			(ESearchType.Abstract, t => t.IsAbstract && !t.IsInterface && !t.IsStaticClass()),
 			(ESearchType.Struct, t => t.IsStruct()),
 			(ESearchType.Enum, t => t.IsEnum),
@@ -197,7 +202,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			("# Exception", t => t.IsException()),
 			("# Attribute", t => t.IsAttribute()),
 			("# Delegate", t => t.IsDelegate()),
-			// ("# Static", t => t.IsStaticClass()),
+			("# Static", t => t.IsStaticClass()),
 			("# Class", t => t.IsClass),
 			("# Struct", t => t.IsStruct()),
 			("# Interface", t => t.IsInterface),
@@ -253,7 +258,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			EditorGUI.DrawRect(rect, _HEADER_COLOR * 0.6f);
 
-			var inner = rect.Resized(-_SEARCH_PAD*2f);
+			var inner = rect.Resized(-_SEARCH_PAD);
 
 			var oldVal = _filterString;
 
@@ -565,7 +570,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				return false;
 			}
-
+		
 			if (!opts.flags.HasFlag(ESearchType.Obsolete) && aType.IsObsolete())
 			{
 				return false;
@@ -635,21 +640,44 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var root = MenuNode.NewTree("Type");
 
-			foreach (var (assembly, aTypes) in GetAllAssemblyTypes())
+			// slight optimization, use unity's cache for specific base types
+			if (opts.baseTypes != null)
 			{
-				if (!FilterAssembly(assembly, opts))
+				foreach (var bt in opts.baseTypes)
 				{
-					continue;
+					foreach (var aType in TypeCache.GetTypesDerivedFrom(bt))
+					{
+						if (!FilterAssembly(aType.Assembly, opts))
+						{
+							continue;
+						}
+						if (!FilterType(aType, opts))
+						{
+							continue;
+						}
+						var nodePath = GetMenuPath(aType, opts.labelFn);
+						root.AddValue(nodePath, aType);
+					}
 				}
-
-				foreach (var aType in aTypes)
+			}
+			else
+			{
+				foreach (var (assembly, aTypes) in GetAllAssemblyTypes())
 				{
-					if (!FilterType(aType, opts))
+					if (!FilterAssembly(assembly, opts))
 					{
 						continue;
 					}
-					var nodePath = GetMenuPath(aType, opts.labelFn);
-					root.AddValue(nodePath, aType);
+
+					foreach (var aType in aTypes)
+					{
+						if (!FilterType(aType, opts))
+						{
+							continue;
+						}
+						var nodePath = GetMenuPath(aType, opts.labelFn);
+						root.AddValue(nodePath, aType);
+					}
 				}
 			}
 			root.BuildIndex();
@@ -919,6 +947,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			new (() => new GUIStyle(EditorStyles.miniLabel)
 			{
 				padding = new RectOffset(1,3,3,3),
+				fontSize = (int)(ItemLabel.fontSize * 1.1f),
 				fontStyle = FontStyle.Bold
 			});
 

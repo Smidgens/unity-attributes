@@ -37,16 +37,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return newRect;
 		}
 
-		public static Rect Resized(this Rect r, in float s, in Vector2 pivot)
-		{
-			// todo: use pivot
-			var c = r.center;
-			r.width += s;
-			r.height += s;
-			r.center = c;
-			return r;
-		}
-
 		public static Rect[] CalcColumns(this Rect pos, double pad, params float[] widths)
 		{
 			var r = new Rect[widths.Length];
@@ -64,8 +54,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			return r;
 		}
-
-		private static readonly Vector2 _PIVOT_CENTER = Vector2.one * 0.5f;
 
 		private static (float, float) GetSplitPadding(int n, float v, double p)
 		{
