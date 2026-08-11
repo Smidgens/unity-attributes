@@ -177,14 +177,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		// used to match types with enum flags
 		private static readonly (ESearchType, Func<Type, bool>)[] _FLAG_FILTERS =
 		{
-			(ESearchType.StaticClass, t => t.IsStatic()),
+			(ESearchType.StaticClass, t => t.IsStaticClass()),
+			(ESearchType.Delegate, t => t.IsDelegate()),
 			(ESearchType.Interface, t => t.IsInterface),
-			(ESearchType.Abstract, t => t.IsAbstract && !t.IsInterface && !t.IsStatic()),
+			(ESearchType.Abstract, t => t.IsAbstract && !t.IsInterface && !t.IsStaticClass()),
 			(ESearchType.Struct, t => t.IsStruct()),
 			(ESearchType.Enum, t => t.IsEnum),
 			(ESearchType.NonPublic, t => !t.IsVisible),
 			(ESearchType.Nested, t => t.IsNested),
-			(ESearchType.Class, t => t.IsClass && !t.IsStatic()),
+			(ESearchType.Class, t => t.IsClass && !t.IsStaticClass()),
 			(ESearchType.Primitive, t => t.IsPrimitive && !t.IsEnum),
 			(ESearchType.Generic, t => t.IsGenericTypeDefinition)
 		};
@@ -192,15 +193,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		// categorize types
 		private static readonly (string, Func<Type, bool>)[] _TYPE_CATEGORIES =
 		{
-			("# Exception", t => t.IsClass && typeof(Exception).IsAssignableFrom(t)),
-			("# Attribute", t => t.IsClass && typeof(Attribute).IsAssignableFrom(t)),
-			// ("# Delegate", t => t.IsClass && typeof(Delegate).IsAssignableFrom(t)),
-			("# Static", t => t.IsClass && t.IsStatic()),
+			("# Enum", t => t.IsEnum),
+			("# Exception", t => t.IsException()),
+			("# Attribute", t => t.IsAttribute()),
+			("# Delegate", t => t.IsDelegate()),
+			// ("# Static", t => t.IsStaticClass()),
 			("# Class", t => t.IsClass),
 			("# Struct", t => t.IsStruct()),
 			("# Interface", t => t.IsInterface),
 			("# Primitive", t => t.IsPrimitive),
-			("# Enum", t => t.IsEnum),
 		};
 
 		private TypeSearch(Type currentValue, MenuNode menuTree, Action<Type> setFn)
@@ -708,12 +709,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private static readonly Color _TYPE_ICO_COLOR =
 		PickSkin(Fade(Color.white, 0.75f), Fade(Color.black, 0.75f));
 
-		private static readonly Rect _COORDS_CLASS = new (0, 0.25f, 0.125f, 0.125f);
-		private static readonly Rect _COORDS_INTERFACE = new (0.125f, 0.25f, 0.125f, 0.125f);
+		private static readonly Rect _COORDS_CLASS = new (0.25f, 0.5f, 0.125f, 0.125f);
 
 		private static readonly Dictionary<string, Rect> _TYPE_ICO_COORDS = new()
 		{
-			{ "Class", new (0, 0.25f, 0.125f, 0.125f) },
+			{ "Delegate", new (0, 0.25f, 0.125f, 0.125f) },
 			{ "Static", new (0.125f, 0.25f, 0.125f, 0.125f) },
 			{ "Primitive", new (0.25f, 0.25f, 0.125f, 0.125f) },
 			// row2
@@ -721,9 +721,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{ "Exception", new (0.125f, 0.375f, 0.125f, 0.125f) },
 			{ "Enum", new (0.25f, 0.375f, 0.125f, 0.125f) },
 			// row 3
-			
 			{ "Interface", new (0, 0.5f, 0.125f, 0.125f) },
 			{ "Struct", new (0.125f, 0.5f, 0.125f, 0.125f) },
+			{ "Class", new (0.25f, 0.5f, 0.125f, 0.125f) },
 		};
 		
 		private static void DrawNodeIcon(Rect pos, string label)

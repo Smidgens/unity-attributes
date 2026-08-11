@@ -69,6 +69,10 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		EditorAssembly = 8192,
 		/// <summary>
+		/// Include delegate types
+		/// </summary>
+		Delegate = 16384,
+		/// <summary>
 		/// All & ~Interface & ~Abstract
 		/// </summary>
 		ConcreteClass = All & ~Interface & ~Abstract,
@@ -94,6 +98,7 @@ namespace Smidgenomics.Unity.Attributes
 		& ~ESearchType.Obsolete
 		& ~ESearchType.Serializable
 		& ~ESearchType.EditorAssembly
+		& ~ESearchType.Newable
 		& ~ESearchType.Generic;
 
 		public SearchTypeAttribute

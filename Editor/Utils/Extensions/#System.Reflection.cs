@@ -19,8 +19,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			: fi.FieldType;
 		}
 		public static bool IsArray(this FieldInfo fo) => fo.FieldType.IsArray;
-		public static bool IsStatic(this Type t) => t.IsAbstract && t.IsSealed;
+		public static bool IsStaticClass(this Type t) => t.IsClass && t.IsAbstract && t.IsSealed;
 		public static bool IsStruct(this Type t) => t.IsValueType && !t.IsPrimitive && !t.IsEnum;
+		public static bool IsDelegate(this Type t) => t.IsClass && typeof(Delegate).IsAssignableFrom(t);
+		public static bool IsAttribute(this Type t) => t.IsClass && typeof(Attribute).IsAssignableFrom(t);
+		public static bool IsException(this Type t) => t.IsClass && typeof(Exception).IsAssignableFrom(t);
 
 		// most common editor types
 		private static readonly Type[] _KNOWN_EDITOR_TYPES =
