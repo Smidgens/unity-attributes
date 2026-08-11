@@ -1,18 +1,7 @@
 // smidgens @ github
 
-/*
- * TODOS
- *	- move calculation and cache into drawer
- */
-
 namespace Smidgenomics.Unity.Attributes
 {
-	using System;
-	using System.Reflection;
-	using System.Linq;
-	using UnityEngine;
-	using System.Collections.Generic;
-
 	/// <summary>
 	/// Draw struct/class fields on one line
 	/// </summary>
@@ -45,16 +34,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			List<(FieldInfo, float)> fields = new();
 
-			var norm = 0f;
-
 			foreach (var f in type.FindInspectorFields<object>())
 			{
 				var wAttr = f.GetCustomAttribute<InlineWidthAttribute>();
 				var w = wAttr?.width ?? 0f;
-				if (w < 1f)
-				{
-					norm += w;
-				}
 
 				if (Mathf.Approximately(w, 0f))
 				{
@@ -62,19 +45,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 
 				fields.Add((f, w));
-			}
-
-			if (norm > 1f)
-			{
-				for (int i = 0; i < fields.Count; i++)
-				{
-					if (fields[i].Item2 >= 1f)
-					{
-						var val = fields[i];
-						val.Item2 = fields[i].Item2 / norm;
-						fields[i] = val;
-					}
-				}
 			}
 			_fields = fields;
 			_currentWidths = new float[_fields.Count];
@@ -103,9 +73,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			EditorGUI.indentLevel = 0;
 
 			var pos = ctx.position;
-		
 			var usableWidth = pos.width - Mathf.Max(0f, _fields.Count - 1) * _PAD;
-			
 			var remainingWidth = usableWidth;
 
 			for(int i = 0; i < _currentWidths.Length; i++)
@@ -114,7 +82,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var fWidth = width > 1f ? width : width * usableWidth;
 				_currentWidths[i] = fWidth;
 				remainingWidth -= fWidth;
-				i++;
 			}
 
 			var flexWidth = _flexFields > 0 ? remainingWidth / _flexFields : 0f;
@@ -124,7 +91,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var w = Mathf.Approximately(_currentWidths[i], 0f)
 				? flexWidth
 				: _currentWidths[i];
-				
+
 				var fRect = pos.SliceLeft(w);
 				var field = _fields[i].Item1;
 				
