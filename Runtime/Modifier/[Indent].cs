@@ -7,7 +7,11 @@ namespace Smidgenomics.Unity.Attributes
 	[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 	public sealed class IndentAttribute : __BaseModifier
 	{
-		internal byte Indent { get; } = 1;
-		public IndentAttribute(byte indent = 1) => Indent = indent;
+		internal byte Indent { get; }
+
+		public IndentAttribute(byte indent = 1)
+		{
+			Indent = indent;
+		}
 	}
 }

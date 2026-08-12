@@ -26,6 +26,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		Enum,
 		Interface,
 		Struct,
+		Link,
+		Comment,
+		Folder,
+		File,
 	}
 
 	[System.Serializable]
@@ -63,6 +67,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				EAtlasIcon.Interface => new Rect(0, 0.5f, 0.125f, 0.125f),
 				EAtlasIcon.Struct => new Rect(0.125f, 0.5f, 0.125f, 0.125f),
 				EAtlasIcon.Class => new Rect(0.25f, 0.5f, 0.125f, 0.125f),
+				EAtlasIcon.Link => new Rect(0.5f, 0.25f, 0.25f, 0.25f),
+				EAtlasIcon.Comment => new Rect(0.75f, 0.25f, 0.25f, 0.25f),
+				EAtlasIcon.Folder => new Rect(0.5f, 0.5f, 0.25f, 0.25f),
+				EAtlasIcon.File => new Rect(0.75f, 0.5f, 0.25f, 0.25f),
 				_ => default
 			};
 		}

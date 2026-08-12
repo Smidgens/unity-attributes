@@ -2,18 +2,25 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
-	using System;
+	using UnityEngine;
 
-	[AttributeUsage(AttributeTargets.Field)]
 	public sealed class BoxLinkAttribute : __BaseDecorator
 	{
 		public BoxLinkAttribute(string text, string url)
 		{
-			order = -0;
+			// order = -0;
 			URL = url ?? string.Empty;
-			base.Text = text;
+			this.text = text;
 		}
+
+		public BoxLinkAttribute(string url) : this(url,url)
+		{
+		}
+
 		internal string URL { get; }
+		internal string text { get; }
+		internal Color color { get; } = Color.white;
+		internal Color backgroundColor  { get; } = Color.white;
 	}
 }
 
@@ -28,60 +35,54 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(BoxLinkAttribute))]
 	internal sealed class _BoxLinkAttribute : __DecoratorDrawer<BoxLinkAttribute>
 	{
-		public static class CFG
-		{
-			public const int FONT_SIZE = 11;
-			public const FontStyle FONT_STYLE = FontStyle.Normal;
-		}
-
-		protected override (byte, byte, byte, byte) GetPadding()
-		{
-			(byte, byte, byte, byte) p = (5, 5, 2, 2);
-			p.Item1 = 20;
-			return p;
-		}
-
-		protected override void OnBackground(in Rect pos)
-		{
-			EditorGUI.DrawRect(pos, Color.white * 0.5f);
-			EditorGUI.DrawRect(pos, _style.normal.textColor * 0.4f);
-			var leftBorder = pos;
-			leftBorder.width = 3f;
-			EditorGUI.DrawRect(leftBorder, _style.normal.textColor);
-		}
-
 		protected override float GetHeight(in float w)
 		{
-			return _style.CalcHeight(_label, w);
+			var h = _style.CalcHeight(_label, w - ICO_W);
+			return Mathf.Max(h, ICO_W);
 		}
 
-		protected override void OnContent(in Rect pos)
+		protected override void OnContent(in Rect p)
 		{
+			var pos = p;
+
+			var tCOlor = GUI.backgroundColor;
+			GUI.backgroundColor = _style.normal.textColor * 0.7f;
+			GUI.Box(pos, GUIContent.none, EditorStyles.helpBox);
+			GUI.backgroundColor = tCOlor;
+
+			var icoRect = pos.SliceLeft(ICO_W);
+			icoRect.height = icoRect.width;
+			icoRect = icoRect.Resized(-pos.height * 0.2f);
+
+			PluginAtlas.DrawIcon(icoRect, EAtlasIcon.Link, _style.normal.textColor);
+
 			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
-			if (GUI.Button(pos, "", GUIStyle.none))
+			if (GUI.Button(pos, string.Empty, GUIStyle.none))
 			{
 				Application.OpenURL(_Attribute.URL);
 			}
-			DrawText(pos, _label, _style);
+			DrawText(pos, _label, _style, _Attribute.color);
 		}
 
 		protected override void OnInit()
 		{
 			_style = CreateStyle();
-			_label = new GUIContent(_Attribute.Text, _Attribute.URL);
+			_label = new GUIContent(_Attribute.text, _Attribute.URL);
 		}
 
-		private GUIContent _label = null;
-		private GUIStyle _style = null;
+		private GUIContent _label;
+		private GUIStyle _style;
+		
+		private static readonly float ICO_W = EditorGUIUtility.singleLineHeight * 1.5f;
 
 		private static GUIStyle CreateStyle()
 		{
-			var s = new GUIStyle(EditorStyles.linkLabel);
-			s.fontSize = CFG.FONT_SIZE;
-			s.fontStyle = CFG.FONT_STYLE;
-			s.padding = new RectOffset();
-			s.margin = new RectOffset();
-			s.contentOffset = default;
+			var s = new GUIStyle(EditorStyles.linkLabel)
+			{
+				fontSize = EditorStyles.miniLabel.fontSize,
+				alignment = TextAnchor.MiddleLeft,
+				padding = new RectOffset(2,4,2,2)
+			};
 			return s;
 		}
 

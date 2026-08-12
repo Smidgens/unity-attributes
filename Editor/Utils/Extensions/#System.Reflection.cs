@@ -54,6 +54,35 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			"JetBrains",
 			"UnityEditor"
 		};
+		
+		public static Func<T, RT> GetStaticMethodDelegate<T, RT>(this Type type, string name)
+		{
+			if (type == null)
+			{
+				return null;
+			}
+
+			var methodFlags = BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static;
+
+			var method = type.GetMethod(name, methodFlags);
+
+			if (method == null)
+			{
+				return null;
+			}
+
+			if (method.ReturnType != typeof(RT))
+			{
+				return null;
+			}
+			var pms = method.GetParameters();
+
+			if (pms.Length != 1 || pms[0].ParameterType != typeof(T))
+			{
+				return null;
+			}
+			return (Func<T, RT>)method.CreateDelegate(typeof(Func<T, RT>));
+		}
 
 		public static bool IsEditorType(this Type t)
 		{

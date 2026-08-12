@@ -3,21 +3,26 @@
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
+	using UnityEngine;
 
 	[AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
 	public sealed class BoxCommentAttribute : __BaseDecorator
 	{
-		public BoxCommentAttribute(
+		public BoxCommentAttribute
+		(
 			string text,
-			string textColor = null,
+			string color = null,
 			string bgColor = null
 		)
 		{
-			order = -1;
-			base.Text = text ?? string.Empty;
-			base.TextColor = Parse(textColor, base.TextColor);
-			BackgroundColor = Parse(bgColor, BackgroundColor);
+			this.text = text ?? string.Empty;
+			this.color = Parse(color, this.color);
+			backgroundColor = Parse(bgColor, backgroundColor);
 		}
+
+		internal string text { get; }
+		internal Color color { get; } = Color.white;
+		internal Color backgroundColor  { get; } = Color.white;
 	}
 }
 
@@ -31,56 +36,45 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(BoxCommentAttribute))]
 	internal sealed class _BoxCommentAttribute : __DecoratorDrawer<BoxCommentAttribute>
 	{
-		public static class CFG
-		{
-			public const int FONT_SIZE = 12;
-			public const FontStyle FONT_STYLE = FontStyle.Normal;
-		}
-
 		protected override float GetHeight(in float w)
 		{
-			return _style.CalcHeight(_label, w) + 0f;
+			var h = _style.CalcHeight(_label, w - ICO_W);
+			return Mathf.Max(h, ICO_W);
 		}
 
-		protected override (byte, byte, byte, byte) GetPadding()
-		{
-			var d = base.GetPadding();
-			d.Item1 = 15;
-			return d;
-		}
+		private static readonly float ICO_W = EditorGUIUtility.singleLineHeight * 1.5f;
 
 		protected override void OnInit()
 		{
 			_style = CreateStyle();
-			_label = new GUIContent(_Attribute.Text);
+			_label = new GUIContent(_Attribute.text);
 		}
 
-		protected override void OnBackground(in Rect pos)
+		protected override void OnContent(in Rect p)
 		{
-			var c = _Attribute.BackgroundColor * _Attribute.BoxOpacity;
-			var leftBorder = pos;
-			leftBorder.width = 3f;
-			EditorGUI.DrawRect(leftBorder, _Attribute.BackgroundColor);
-			EditorGUI.DrawRect(pos, c);
+			var pos = p;
+			var tCOlor = GUI.backgroundColor;
+			GUI.backgroundColor = _style.normal.textColor * 0.7f;
+			GUI.Box(pos, GUIContent.none, EditorStyles.helpBox);
+			GUI.backgroundColor = tCOlor;
+			var icoRect = pos.SliceLeft(ICO_W);
+			icoRect.height = icoRect.width;
+			icoRect = icoRect.Resized(-pos.height * 0.2f);
+			PluginAtlas.DrawIcon(icoRect, EAtlasIcon.Comment, _style.normal.textColor);
+			DrawText(pos, _label, _style, _Attribute.color);
 		}
 
-		protected override void OnContent(in Rect pos)
-		{
-			DrawText(pos, _label, _style, _Attribute.TextColor);
-		}
-
-		private GUIContent _label = null;
-		private GUIStyle _style = null;
+		private GUIContent _label;
+		private GUIStyle _style;
 
 		private static GUIStyle CreateStyle()
 		{
-			var s = new GUIStyle(EditorStyles.wordWrappedLabel);
-			s.fontSize = CFG.FONT_SIZE;
-			s.fontStyle = CFG.FONT_STYLE;
-			s.padding = new RectOffset();
-			s.margin = new RectOffset();
-			s.contentOffset = default;
-			return s;
+			return new GUIStyle(EditorStyles.wordWrappedLabel)
+			{
+				fontSize = EditorStyles.miniLabel.fontSize,
+				alignment = TextAnchor.MiddleLeft,
+				padding = new RectOffset(2,4,4,4)
+			};
 		}
 
 	}

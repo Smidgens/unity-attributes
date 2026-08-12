@@ -7,55 +7,53 @@ namespace Smidgenomics.Unity.Attributes
 
 	public sealed class StaticActionAttribute : __BaseDecorator
 	{
-		public bool onlyPlayMode;
-
 		public StaticActionAttribute
 		(
-			string methodName,
-			Type declaringType,
-			params object[] args
-		) : this(methodName, methodName, declaringType, args) { }
-
-		public StaticActionAttribute
-		(
-			string label,
-			string methodName,
-			Type declaringType,
-			params object[] args
+			string method,
+			Type type,
+			string label = "",
+			bool playMode = false
 		)
 		{
-			order = 2;
-
-			Label = label;
-			_methodName = methodName;
-			_declaringType = declaringType;
-			Args = args;
-			_argTypes = new Type[args.Length];
-			for(var i = 0; i < args.Length; i++)
-			{
-				_argTypes[i] = args[i].GetType();
-			}
+			this.playMode = playMode;
+			this.label = label;
+			methodName = method;
+			_declaringType = type;
+		
 		}
 
-		internal readonly object[] Args = null;
-		internal readonly string Label = null;
+		internal string label { get; }
+		internal bool playMode { get; }
 
-		internal MethodInfo GetMethod()
+		internal Action GetAction()
 		{
-			if (!_method.Item2)
+			if (!_action.Item2)
 			{
 				var m =
-				_declaringType.GetMethod(_methodName, _FLAGS, null, _argTypes, null);
+				_declaringType.GetMethod(methodName, _FLAGS, null, Array.Empty<Type>(), null);
 
-				_method = (m, true);
+				if (m == null)
+				{
+					return null;
+				}
+
+				if (m.GetParameters().Length != 0)
+				{
+					return null;
+				}
+
+				if(m.ReturnType != typeof(void))
+				{
+					return null;
+				}
+				_action = ((Action)m.CreateDelegate(typeof(Action)), true);
 			}
-			return _method.Item1;
+			return _action.Item1;
 		}
 
-		private readonly Type _declaringType = null;
-		private readonly string _methodName = null;
-		private readonly Type[] _argTypes = null;
-		private (MethodInfo, bool) _method = default; // lazy cache
+		private (Action, bool) _action;
+		private readonly Type _declaringType;
+		internal string methodName { get; }
 
 		private const BindingFlags _FLAGS =
 		BindingFlags.Public
@@ -78,40 +76,29 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override void OnInit()
 		{
-			_label = new GUIContent(_Attribute.Label);
-			_method = _Attribute.GetMethod();
+			var l = !string.IsNullOrEmpty(_Attribute.label)
+			? _Attribute.label
+			: _Attribute.methodName.ToSentenceCase();
+			_label = new GUIContent(l);
 		}
-
-		protected override (byte, byte) GetMargin()
-		{
-			return (0,0);
-		}
-
-		protected override (byte, byte, byte, byte) GetPadding()
-		{
-			return (0, 0, 0, 0);
-		}
-
-		protected override float GetHeight(in float w) => 19f;
 
 		protected override void OnContent(in Rect pos)
 		{
 			var te = GUI.enabled;
-
-			var disabled =
-				_method == null
-				|| (!Application.isPlaying && _Attribute.onlyPlayMode);
+			var fn = _Attribute.GetAction();
+			var disabled = fn == null || (!Application.isPlaying && _Attribute.playMode);
 
 			GUI.enabled = !disabled;
+
 			if(GUI.Button(pos, _label))
 			{
-				_method.Invoke(null, _Attribute.Args);
+				fn?.Invoke();
 			}
 			GUI.enabled = te;
 		}
 
-		private GUIContent _label = null;
-		private MethodInfo _method = null;
+		private GUIContent _label;
+		private MethodInfo _method;
 	}
 }
 

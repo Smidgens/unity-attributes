@@ -2,15 +2,31 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
+	using UnityEngine;
+
 	public sealed class BoxHeaderAttribute : __BaseDecorator
 	{
-		public BoxHeaderAttribute(string text, string textColor = null, string bgColor = null)
+		public BoxHeaderAttribute
+		(
+			string text,
+			string textColor = null,
+			string bgColor = null,
+			TextAnchor alignment = TextAnchor.MiddleLeft,
+			FontStyle fontStyle = FontStyle.Bold
+		)
 		{
-			order = -2;
-			Text = text ?? string.Empty;
-			TextColor = Parse(textColor, TextColor);
-			BackgroundColor = Parse(bgColor, BackgroundColor);
+			this.text = text ?? string.Empty;
+			color = Parse(textColor, color);
+			backgroundColor = Parse(bgColor, backgroundColor);
+			this.alignment = alignment;
+			this.fontStyle = fontStyle;
 		}
+		
+		internal string text { get; }
+		internal TextAnchor alignment { get; }
+		internal FontStyle fontStyle { get; }
+		internal Color color { get; } = Color.white;
+		internal Color backgroundColor  { get; } = Color.white;
 	}
 }
 
@@ -24,16 +40,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(BoxHeaderAttribute))]
 	internal sealed class _BoxHeaderAttribute : __DecoratorDrawer<BoxHeaderAttribute>
 	{
-		public static class CFG
-		{
-			public const int FONT_SIZE = 13;
-			public const FontStyle FONT_STYLE = FontStyle.Bold;
-		}
-
 		protected override void OnInit()
 		{
 			_style = CreateStyle();
-			_label = new GUIContent(_Attribute.Text);
+			_label = new GUIContent(_Attribute.text);
 		}
 
 		protected override float GetHeight(in float w)
@@ -41,28 +51,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return _style.CalcHeight(_label, w) + 0f;
 		}
 
-		protected override void OnBackground(in Rect pos)
-		{
-			EditorGUI.DrawRect(pos, Color.white);
-			EditorGUI.DrawRect(pos, Color.black * 0.8f);
-		}
-
 		protected override void OnContent(in Rect pos)
 		{
+			GUI.Box(pos, GUIContent.none);
+			_style.alignment = _Attribute.alignment;
+			_style.fontStyle = _Attribute.fontStyle;
 			DrawText(pos, _label, _style, Color.white);
 		}
 
-		private GUIContent _label = null;
-		private GUIStyle _style = null;
+		private GUIContent _label;
+		private GUIStyle _style;
 
 		private static GUIStyle CreateStyle()
 		{
-			var s = new GUIStyle(EditorStyles.whiteLargeLabel);
-			s.fontSize = CFG.FONT_SIZE;
-			s.fontStyle = CFG.FONT_STYLE;
-			s.alignment = TextAnchor.MiddleCenter;
-			s.wordWrap = true;
-			return s;
+			return new GUIStyle(EditorStyles.largeLabel)
+			{
+				alignment = TextAnchor.MiddleCenter,
+				padding = new RectOffset(7,7,7,7),
+				wordWrap = true
+			};
 		}
 
 	}
