@@ -43,7 +43,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			? $"{currentValue}: {currentName}"
 			: "<none>";
 
-			if (GUI.Button(pos, btnLabel, EditorStyles.popup))
+			if (DrawerGUI.PopupButton(pos, btnLabel))
 			{
 				var m = new GenericMenu();
 				foreach (var layerIndex in Enumerable.Range(0, 31))

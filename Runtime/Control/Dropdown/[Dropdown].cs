@@ -165,12 +165,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return Color.clear;
 		}
 		
-		private static void DrawAssetThumbnail(in Rect pos, UnityEngine.Object o)
+		private static void DrawAssetThumbnail(Rect pos, UnityEngine.Object o)
 		{
 			if (!o)
 			{
 				return;
 			}
+
+			var c = pos.center;
+			var tex = AssetPreview.GetMiniThumbnail(o);
+			var ratio = (float)tex.height / tex.width;
+			pos.height *= ratio;
+			pos.center = c;
 
 			GUI.DrawTexture(pos, AssetPreview.GetMiniThumbnail(o));
 
