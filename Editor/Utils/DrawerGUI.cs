@@ -13,6 +13,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 	internal static class DrawerGUI
 	{
+		public static void DrawTex(in Texture2D tex, in Rect area)
+		{
+			DrawTex(tex, area, new Rect(0,0,1,1), Color.white);
+		}
+
 		public static void DrawTex(in Texture2D tex, in Rect area, in Rect coords, Color color)
 		{
 			if (!tex)
