@@ -64,12 +64,22 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 
 	[CustomPropertyDrawer(typeof(SliderAttribute))]
-	internal sealed class _SliderAttribute : __ControlDrawer<SliderAttribute>
+	[CustomPropertyDrawer(typeof(Slider01Attribute))]
+	internal sealed class _SliderAttribute : __ControlDrawer<__BaseControl>
 	{
 		protected override void OnField(in DrawContext ctx)
 		{
-			var a = _Attribute;
-			DrawerGUI.Slider(ctx.position, ctx.property, a.Min, a.Max, a.Step, a.Precision);
+			if (_Attribute is Slider01Attribute)
+			{
+				var a01 = _Attribute as Slider01Attribute;
+				DrawerGUI.Slider(ctx.position, ctx.property, 0f, 1f, a01.Step, a01.Precision);
+			}
+			else
+			{
+				var a = _Attribute as SliderAttribute;
+				DrawerGUI.Slider(ctx.position, ctx.property, a.Min, a.Max, a.Step, a.Precision);
+			}
+			
 		}
 	}
 }
