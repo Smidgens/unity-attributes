@@ -8,42 +8,10 @@ namespace Smidgenomics.Unity.Attributes
 	using UnityEngine;
 
 	/// <summary>
-	/// Draw bool fields as tabs
+	/// Draw bool or enum fields as tabs
 	/// </summary>
 	public sealed class TabsAttribute : __BaseControl
 	{
-		public TabsAttribute() { }
-
-		internal string[] Fields { get; private set; } = { };
-		internal Type Type { get; private set; } = null;
-
-		internal void Init(Type t)
-		{
-			Fields = FindSerializedFields(t);
-			Type = t;
-		}
-
-		private const BindingFlags _BFLAGS =
-		BindingFlags.Instance
-		| BindingFlags.Public
-		| BindingFlags.NonPublic;
-
-		private static string[] FindSerializedFields(Type t)
-		{
-			return t.GetFields(_BFLAGS)
-			.Where(x =>
-			{
-				if (x.IsNotSerialized) { return false; }
-				if (x.FieldType != typeof(bool)) { return false; }
-				if (x.GetCustomAttribute<HideInInspector>() != null)
-				{
-					return false;
-				}
-				return true;
-			})
-			.Select(x => x.Name)
-			.ToArray();
-		}
 	}
 }
 
@@ -55,10 +23,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 	using System.Reflection;
 	using System;
+	using System.Collections.Generic;
 
 	[CustomPropertyDrawer(typeof(TabsAttribute))]
 	internal class _TabsAttribute : __ControlDrawer<TabsAttribute>
 	{
+		protected override EFieldType GetValidTypes()
+		{
+			return EFieldType.Bool | EFieldType.Enum;
+		}
+
 		protected override float GetHeight(SerializedProperty property, GUIContent label)
 		{
 			return base.GetHeight(property, label);
@@ -66,39 +40,29 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
-			if (_isFlags) { DrawFlags(ctx); }
-			else { DrawDefault(ctx); }
+			if (_isEnum)
+			{
+				DrawEnum(ctx);
+			}
+			else
+			{
+				DrawDefault(ctx);
+			}
 		}
 		private void DrawDefault(in DrawContext ctx)
 		{
-			if (_Attribute.Type == null)
+			var prop = ctx.property;
+			var pos = ctx.position;
+
+			if (TabButton(pos.SliceLeft(pos.width * 0.5f), prop.boolValue, "True"))
 			{
-				_Attribute.Init(fieldInfo.GetItemType());
+				prop.boolValue = true;
+			}
+			if (TabButton(pos, !prop.boolValue, "False"))
+			{
+				prop.boolValue = false;
 			}
 
-			var fields = _Attribute.Fields;
-
-			if (fields.Length == 0)
-			{
-				GUI.Box(ctx.position, "");
-				return;
-			}
-
-			Rect col = ctx.position;
-			col.width = ctx.position.width / fields.Length;
-			var spos = ctx.position.position;
-
-			for (var i = 0; i < fields.Length; i++)
-			{
-				col.position = spos + new Vector2(i * col.width, 0);
-				var tProp = ctx.property.FindPropertyRelative(fields[i]);
-				if (tProp == null || tProp.propertyType != SerializedPropertyType.Boolean)
-				{
-					EditorGUI.DrawRect(col, Color.red * 0.2f);
-					continue;
-				}
-				tProp.boolValue = DrawTabButton(col, tProp.boolValue, tProp.displayName);
-			}
 		}
 
 		private static bool TabButton(in Rect pos, in bool v, in string l)
@@ -109,22 +73,34 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected override void OnInit()
 		{
 			var t = fieldInfo.GetItemType();
-			_isFlags =
-			t.IsEnum
-			&& t.GetCustomAttribute<FlagsAttribute>() != null;
+			_isEnum = t.IsEnum;
+			var isFlags = t.IsDefined(typeof(FlagsAttribute));
 
-			if (!_isFlags) { return; }
+			if (_isEnum)
+			{
+				var vals = (int[])Enum.GetValues(t);
+				var labels = Enum.GetNames(t);
+				List<(string, int)> fValues = new();
 
-			_flagValues = (int[])Enum.GetValues(t);
-			var n = _flagValues.Length;
-			if (_flagValues[0] == 0) { n--; }
-			if (_flagValues[_flagValues.Length - 1] == -1) { n--; }
-			_fcount = n;
+				for (var i = 0; i < vals.Length; i++)
+				{
+					if (isFlags && vals[i] == 0)
+					{
+						continue;
+					}
+
+					if (isFlags && !Mathf.IsPowerOfTwo(vals[i]))
+					{
+						continue;
+					}
+					fValues.Add((labels[i].ToSentenceCase(), vals[i]));
+				}
+				_flagValues = fValues.ToArray();
+			}
 		}
 
-		private bool _isFlags = false;
-		private int _fcount = 0;
-		private int[] _flagValues = null;
+		private bool _isEnum;
+		private (string, int)[] _flagValues;
 		
 		private static bool DrawTabButton(in Rect pos, bool value, in string label)
 		{
@@ -138,61 +114,64 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			EditorGUI.LabelField(pos, label, _ToggleTabStyle.Value);
 			return value;
 		}
-		
+
 		private static readonly Color[] _TOGGLE_COLORS =
 		{
-			Color.black * 0.1f, // false
-			Color.white * 0.5f, // true
+			Color.black * 0.1f,
+			Color.white * 0.5f,
 		};
 		
 		private static readonly Lazy<GUIStyle> _ToggleTabStyle = new (() =>
 		{
-			var s = new GUIStyle
+			return new GUIStyle(EditorStyles.miniLabel)
 			{
 				alignment = TextAnchor.MiddleCenter,
-				normal =
-				{
-					textColor = Color.white
-				},
-				fontStyle = FontStyle.Bold,
-				fontSize = 10
+				fontSize = (int)(EditorStyles.miniLabel.fontSize * 0.95f)
 			};
-			return s;
 		});
 
-		private void DrawFlags(in DrawContext ctx)
+		private void DrawEnum(in DrawContext ctx)
 		{
-			if (!fieldInfo.GetItemType().IsEnum) { return; }
-			if (_fcount == 0) { return; }
-
-			var maxWidth =
-			ctx.position.width;
-
-			var evalue = ctx.property.intValue;
-			var values = _flagValues;
-			var dnames = ctx.property.enumDisplayNames;
-			var frow = ctx.position;
-			frow.width = maxWidth / _fcount;
-
-			var coffset = maxWidth / _fcount;
-
-			for (var i = 0; i < _fcount; i++)
+			if (!fieldInfo.GetItemType().IsEnum)
 			{
-				var ox = coffset * i;
-				var r = frow;
-				r.position += new Vector2(ox, 0);
-				var l = dnames[i + 1];
-				var v = values[i + 1];
-				var active = (evalue & v) != 0;
+				return;
+			}
+			
+			var evalue = ctx.property.intValue;
+			
+			var pos = ctx.position;
 
-				var nv = TabButton(r, active, l);
+			var tabWidth = ctx.position.width / _flagValues.Length;
+
+			var isFLags = fieldInfo.FieldType.GetInnermostType().IsDefined(typeof(FlagsAttribute));
+
+			foreach (var (label, value) in _flagValues)
+			{
+				var col = pos.SliceLeft(tabWidth);
+				var active = isFLags
+				? (evalue & value) != 0
+				: ctx.property.intValue == value;
+				var nv = TabButton(col, active, label);
 				if (nv != active)
 				{
-					if (!nv) { evalue &= ~v; }
-					else { evalue |= v; }
+					if (isFLags)
+					{
+						if (!nv)
+						{
+							evalue &= ~value;
+						}
+						else
+						{
+							evalue |= value;
+						}
+						ctx.property.intValue = evalue;
+					}
+					else
+					{
+						ctx.property.intValue = value;
+					}
 				}
 			}
-			ctx.property.intValue = evalue;
 		}
 	}
 }
