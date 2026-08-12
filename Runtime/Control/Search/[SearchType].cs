@@ -271,8 +271,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			? pos.SliceRight(pos.height)
 			: default;
 
-			
-
 			var brect = pos;
 			
 			_dummyLabel.text = t == null ? label : string.Empty;

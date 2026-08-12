@@ -145,7 +145,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			
 			if (focused)
 			{
-				color = EditorStyles.linkLabel.normal.textColor;
+				color = EditorStyles.label.focused.textColor;
 				// ugly hack to get enter key to work like usual when focused
 				if (Event.current != null && Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
 				{

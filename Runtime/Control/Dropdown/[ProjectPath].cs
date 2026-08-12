@@ -88,7 +88,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static readonly Color _ICON_COLOR = EditorGUIUtility.isProSkin
 		? Color.white * 0.8f
-		: Color.black * 0.8f;
+		: Color.black * 0.65f;
 
 		private static void DrawPopup(Rect pos, SerializedProperty prop, ProjectPathAttribute a)
 		{

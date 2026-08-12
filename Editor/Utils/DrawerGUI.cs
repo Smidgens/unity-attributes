@@ -44,6 +44,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			GUI.color = tc;
 		}
 
+		// returns value depending on what skin editor is using
+		public static T PickSkin<T>(in T dark, in T light)
+		{
+			return EditorGUIUtility.isProSkin ? dark : light;
+		}
+
 		private static readonly GUIContent _dummyLabel = new();
 		
 		public static bool PopupButton(in Rect pos, in string label)

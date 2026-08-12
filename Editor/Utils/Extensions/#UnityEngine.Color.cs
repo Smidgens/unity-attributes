@@ -11,6 +11,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	/// </summary>
 	internal static class Color_
 	{
+		public static Color Fade(this Color c, float a)
+		{
+			c.a = a;
+			return c;
+		}
+		
 		public static string ToPrettyString(this in Color c)
 		{
 			return $"({c.r},{c.g},{c.b},{c.a})";

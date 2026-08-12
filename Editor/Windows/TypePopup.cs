@@ -725,7 +725,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 
 		private static readonly Color _TYPE_ICO_COLOR =
-		PickSkin(Fade(Color.white, 0.75f), Fade(Color.black, 0.75f));
+		PickSkin(Fade(Color.white, 0.75f), Fade(Color.white, 0.75f));
 		
 
 		private static readonly Dictionary<string, EAtlasIcon> _TYPE_ICO_COORDS = new()
