@@ -11,17 +11,21 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public sealed class SwitchAttribute : __BaseControl
 	{
-		internal string[] Labels { get; } = { string.Empty, string.Empty };
+		internal string label0 { get; }
+		internal string label1 { get; }
 
 		public SwitchAttribute() { }
 
 		public SwitchAttribute(string l0, string l1)
 		{
-			Labels = new [] { l0, l1 };
+			label0 = l0;
+			label1 = l1;
 		}
 
-		public SwitchAttribute(string label)
-		: this(label, label) { }
+		public SwitchAttribute(string label) : this(label, label)
+		{
+		
+		}
 	}
 }
 
@@ -31,6 +35,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using System;
 	using System.Collections.Generic;
+	using System.Linq;
 	using System.Reflection;
 	using UnityEditor;
 	using UnityEngine;
@@ -51,10 +56,31 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected override void OnInit()
 		{
 			var t = fieldInfo.GetItemType();
-			_isEnum = t.IsEnum;
-			_isBool = fieldInfo.FieldType == typeof(bool);
-			_isFlags = t.IsEnum && t.GetCustomAttribute<FlagsAttribute>() != null;
 
+			_isBool = fieldInfo.FieldType == typeof(bool);
+			_isFlags = t.IsEnum && t.IsDefined(typeof(FlagsAttribute));
+
+			if (fieldInfo.FieldType.GetInnermostType() == typeof(LayerMask))
+			{
+				_isFlags = true;
+				List<(string, int)> lValues = new();
+				
+				foreach (var layerIndex in Enumerable.Range(0, 31))
+				{
+					var lName = LayerMask.LayerToName(layerIndex);
+					if (string.IsNullOrEmpty(lName))
+					{
+						continue;
+					}
+
+					lValues.Add((lName, 1 << layerIndex));
+				}
+
+				_flagValues = lValues.ToArray();
+
+				return;
+			}
+			
 			if (!_isFlags)
 			{
 				return;
@@ -78,40 +104,28 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
-			if (_isEnum)
+			if (_isFlags)
 			{
-				if (_isFlags)
-				{
-					DrawFlags(ctx);
-				}
-				else
-				{
-					DrawerGUI.MutedInfo(ctx.position, "Enum should be flags");
-				}
+				DrawFlags(ctx);
+			}
+			else if(_isBool)
+			{
+				DrawSingle(ctx);
 			}
 			else
 			{
-				if (_isBool)
-				{
-					DrawSingle(ctx);
-				}
-				else
-				{
-					DrawerGUI.MutedInfo(ctx.position, "Should be bool or enum");
-				}
+				DrawerGUI.MutedInfo(ctx.position, "Field should be enum/bool");
 			}
 		}
 
 		private bool _isBool;
-		private bool _isEnum;
 		private bool _isFlags;
 		private (string, int)[] _flagValues;
 
 		private void DrawSingle(in DrawContext ctx)
 		{
 			var prop = ctx.property;
-			var labels = _Attribute.Labels;
-			prop.boolValue = DrawSwitch(ctx.position, prop.boolValue, labels[0], labels[1]);
+			prop.boolValue = DrawSwitch(ctx.position, prop.boolValue, _Attribute.label0, _Attribute.label1);
 		}
 
 		private static bool PointerButton(in Rect pos)
@@ -124,7 +138,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var tIndent = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = 0;
-			
 			var label = val ? l1 : l0;
 
 			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
@@ -133,13 +146,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				GUIUtility.keyboardControl = id;
 				val = !val;
 			}
-			var icoRect = pos.SliceLeft(pos.height * 2);
 
-			var ico = val ? EAtlasIcon.SwitchOn : EAtlasIcon.SwitchOff;
-
-			var color = EditorGUIUtility.isProSkin
-			? Color.white * 0.8f
-			: Color.black * 0.5f;
+			var color = DrawerGUI.PickSkin(Color.white * 0.8f, Color.black * 0.5f);
 
 			var focused = id == GUIUtility.keyboardControl;
 			
@@ -153,6 +161,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 			}
 
+			var icoRect = pos.SliceLeft(pos.height * 2);
+			var ico = val ? EAtlasIcon.SwitchOn : EAtlasIcon.SwitchOff;
 			PluginAtlas.DrawIcon(icoRect, ico, color);
 			var s = val ? EditorStyles.boldLabel : EditorStyles.label;
 
@@ -174,18 +184,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private void DrawFlags(in DrawContext ctx)
 		{
-			if (!fieldInfo.GetItemType().IsEnum)
-			{
-				return;
-			}
-
 			var pos = ctx.position;
 			var evalue = ctx.property.intValue;
 
 			foreach (var (name, value) in _flagValues)
 			{
 				var row = pos.SliceTop(EditorGUIUtility.singleLineHeight);
-
 				var active = (evalue & value) != 0;
 				var nv = DrawSwitch(row, active, name, name);
 				if (nv != active)

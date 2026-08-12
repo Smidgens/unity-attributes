@@ -9,7 +9,7 @@ namespace Smidgenomics.Unity.Attributes
 	[AttributeUsage(AttributeTargets.Field)]
 	public abstract class __BaseControl : __Base
 	{
-		public bool buttons = true;
+		internal bool buttons { get; } = true;
 	}
 
 	internal struct ModCache<T> where T : __BaseModifier

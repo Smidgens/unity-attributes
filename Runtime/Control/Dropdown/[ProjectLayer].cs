@@ -40,8 +40,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			string currentName = LayerMask.LayerToName(currentValue);
 
 			var btnLabel = !string.IsNullOrEmpty(currentName)
-				? $"{currentValue}: {currentName}"
-				: "<none>";
+			? $"{currentValue}: {currentName}"
+			: "<none>";
 
 			if (GUI.Button(pos, btnLabel, EditorStyles.popup))
 			{
@@ -61,7 +61,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 						prop.intValue = v;
 						prop.serializedObject.ApplyModifiedProperties();
 					});
-
 				}
 				m.DropDown(pos);
 			}

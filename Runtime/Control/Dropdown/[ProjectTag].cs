@@ -34,6 +34,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_STRING);
 				return;
 			}
+			
 			var isEmpty = string.IsNullOrEmpty(prop.stringValue);
 
 			var label = isEmpty

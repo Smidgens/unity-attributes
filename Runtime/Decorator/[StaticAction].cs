@@ -12,16 +12,19 @@ namespace Smidgenomics.Unity.Attributes
 			string method,
 			Type type,
 			string label = "",
-			bool playMode = false
+			bool playMode = false,
+			string prefixLabel = ""
 		)
 		{
 			this.playMode = playMode;
 			this.label = label;
 			methodName = method;
 			_declaringType = type;
-		
+			this.prefixLabel = prefixLabel;
+
 		}
 
+		internal string prefixLabel { get; }
 		internal string label { get; }
 		internal bool playMode { get; }
 
@@ -82,18 +85,40 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			_label = new GUIContent(l);
 		}
 
-		protected override void OnContent(in Rect pos)
+		protected override void OnContent(in Rect p)
 		{
+			var pos = p;
 			var te = GUI.enabled;
 			var fn = _Attribute.GetAction();
 			var disabled = fn == null || (!Application.isPlaying && _Attribute.playMode);
 
+			if (!string.IsNullOrEmpty(_Attribute.prefixLabel))
+			{
+				pos = EditorGUI.PrefixLabel(pos, new GUIContent(_Attribute.prefixLabel));
+			}
+
 			GUI.enabled = !disabled;
 
-			if(GUI.Button(pos, _label))
+			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
+
+			if(GUI.Button(pos, _label, EditorStyles.miniButton))
 			{
 				fn?.Invoke();
+				GUIUtility.keyboardControl = id;
 			}
+
+			if (GUIUtility.keyboardControl == id)
+			{
+				EditorGUI.DrawRect(pos, EditorStyles.label.focused.textColor.Fade(0.2f));
+				
+				if (Event.current != null && Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
+				{
+					fn?.Invoke();
+				}
+				
+			}
+			
+			
 			GUI.enabled = te;
 		}
 
