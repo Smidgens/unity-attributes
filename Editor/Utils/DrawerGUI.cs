@@ -81,6 +81,43 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			GUI.Box(pos, GUIContent.none);
 			EditorGUI.LabelField(pos, msg, EditorStyles.centeredGreyMiniLabel);
 		}
+
+		public static void DragDrop(Rect area, Action<UnityEngine.Object[]> onDrop, Action onMouseUp)
+		{
+			Event ev = Event.current;
+	
+			if (!area.Contains(ev.mousePosition))
+			{
+				return;
+			}
+
+			if (DragAndDrop.objectReferences.Length == 0)
+			{
+				return;
+			}
+			
+			var hoverColor = PickSkin(Color.white.Fade(0.1f), Color.black.Fade(0.1f));
+			
+			EditorGUI.DrawRect(area, hoverColor);
+			
+			if (onMouseUp != null && ev.type == EventType.MouseUp)
+			{
+				onMouseUp.Invoke();
+			}
+			if (onDrop != null)
+			{
+				if (ev.type is EventType.DragUpdated or EventType.DragPerform)
+				{
+					DragAndDrop.visualMode = DragAndDropVisualMode.Copy;
+					if (ev.type == EventType.DragPerform)
+					{
+						DragAndDrop.AcceptDrag();
+						onDrop?.Invoke(DragAndDrop.objectReferences);
+					}
+					Event.current.Use();
+				}
+			}
+		}
 	}
 }
 
