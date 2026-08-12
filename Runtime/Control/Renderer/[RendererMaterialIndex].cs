@@ -8,14 +8,14 @@ namespace Smidgenomics.Unity.Attributes
 	public sealed class RendererMaterialIndexAttribute : __BaseControl
 	{
 		/// <summary>
-		/// Name of renderer field
-		/// </summary>
-		public string RendererFieldPath { get; }
-
-		/// <summary>
 		/// Init with field of renderer
 		/// </summary>
-		public RendererMaterialIndexAttribute(string field) => RendererFieldPath = field;
+		public RendererMaterialIndexAttribute(string field)
+		{
+			RendererFieldPath = field;
+		}
+		
+		internal string RendererFieldPath { get; }
 	}
 }
 

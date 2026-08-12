@@ -130,28 +130,29 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var currentValStr = GetCurrentValueLabel(ctx.property, attr.GetOptionType());
 			var pos = ctx.position;
 
-			DrawValuePrefix(ref pos, ctx.property);
+			var cPreview = pos.SliceLeft(pos.height);
 			
 			if (DrawerGUI.PopupButton(pos, currentValStr))
 			{
 				GetMenu(ctx.property, currentValStr, attr)
 				.DropDown(ctx.position);
 			}
+			
+			DrawValuePrefix(cPreview, ctx.property);
+			
 		}
 
 		private Type _FieldType => fieldInfo.FieldType.GetInnermostType();
 
-		private void DrawValuePrefix(ref Rect pos, SerializedProperty prop)
+		private void DrawValuePrefix(Rect pos, SerializedProperty prop)
 		{
 			if (_FieldType == typeof(Color))
 			{
-				var cPreview = pos.SliceLeft(pos.height).Resized(-pos.height * 0.2f);
-				EditorGUI.DrawRect(cPreview, prop.colorValue);
+				EditorGUI.DrawRect(pos.Resized(-pos.height * 0.2f), prop.colorValue);
 			}
 			else if (typeof(UnityEngine.Object).IsAssignableFrom(_FieldType))
 			{
-				var aPreview = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);;
-				DrawAssetThumbnail(aPreview, prop.objectReferenceValue);
+				DrawAssetThumbnail(pos.Resized(-pos.height * 0.1f), prop.objectReferenceValue);
 			}
 		}
 

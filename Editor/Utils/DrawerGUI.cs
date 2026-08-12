@@ -44,9 +44,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			GUI.color = tc;
 		}
 
+		private static readonly GUIContent _dummyLabel = new();
+		
 		public static bool PopupButton(in Rect pos, in string label)
 		{
-			return GUI.Button(pos, label, EditorStyles.popup);
+			_dummyLabel.text = label;
+			return EditorGUI.DropdownButton(pos, _dummyLabel, FocusType.Keyboard);
 		}
 
 		public static void Slider(

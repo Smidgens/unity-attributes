@@ -63,29 +63,32 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (!_Attribute.hideLabel)
 			{
-				EditorGUI.indentLevel++;
 				var labelRect = pos.SliceTop(EditorGUIUtility.singleLineHeight);
 				var label = !string.IsNullOrEmpty(_customLabel.text) ? _customLabel : ctx.label;
-				EditorGUI.HandlePrefixLabel(ctx.position, labelRect, label);
+				EditorGUI.LabelField(labelRect, label);
 				pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
+				EditorGUI.indentLevel++;
 			}
 
+			var indent = _Attribute.hideLabel ? 0 : 1;
+
+			EditorGUI.indentLevel += indent;
 			foreach (var f in _fields)
 			{
 				var p = ctx.property.FindPropertyRelative(f.Name);
 				var h = EditorGUI.GetPropertyHeight(p);
 				var fRect = pos.SliceTop(h);
 
-				
 				fRect =	EditorGUI.PrefixLabel(fRect, new GUIContent(p.displayName));
 				
-				EditorGUI.indentLevel--;
+				
 				EditorGUI.PropertyField(fRect, p, GUIContent.none);
-				EditorGUI.indentLevel++;
-				
-				
+			
+
 				pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 			}
+
+			EditorGUI.indentLevel -= indent;
 
 			EditorGUI.indentLevel = tIndent;
 

@@ -75,7 +75,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				btnLabel = new GUIContent(prop.stringValue);
 			}
 
-			if(GUI.Button(pos, btnLabel, EditorStyles.popup))
+			if(EditorGUI.DropdownButton(pos, btnLabel, FocusType.Keyboard))
 			{
 				var m = GetParameterMenu
 				(
@@ -130,7 +130,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			return m;
 		}
-		
+
 		private const BindingFlags _BFLAGS_INSTANCE_PROP =
 		BindingFlags.Instance
 		| BindingFlags.GetProperty
@@ -147,8 +147,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static readonly object[] _paramArray = new object[1];
 		
-		private static readonly GUIContent _POPUP_DEFAULT = new GUIContent("<none>");
-		private static readonly GUIContent _POPUP_EMPTY = new GUIContent("No options");
+		private static readonly GUIContent _POPUP_DEFAULT = new ("<none>");
+		private static readonly GUIContent _POPUP_EMPTY = new ("No options");
 
 		private static (GUIContent, string, int) GetAnimatorParameterOption(Object animatorRef, int index)
 		{

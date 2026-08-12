@@ -164,7 +164,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			string defaultLabel = (attribute as InstancedReferenceAttribute)!.emptyValueLabel;
 			string label = currentType != null ? GetTypeDisplayName(currentType) : defaultLabel;
 
-			if (!GUI.Button(pos, label, EditorStyles.popup))
+			if (!EditorGUI.DropdownButton(pos, new GUIContent(label), FocusType.Keyboard))
 			{
 				return;
 			}

@@ -111,6 +111,8 @@ namespace Smidgenomics.Unity.Attributes
 {
 	using System;
 	using System.Reflection;
+	using Editor;
+	using UnityEngine;
 
 	/// <summary>
 	/// System.Type.AssemblyQualifiedName
@@ -148,40 +150,17 @@ namespace Smidgenomics.Unity.Attributes
 			{
 				return null;
 			}
-			var segments = path.Trim().Split(";");
 
-			if (segments.Length != 2)
+			int i = path.IndexOf(';');
+
+			if (i < 0)
 			{
 				return null;
 			}
 
-			var type = Type.GetType(segments[1]);
-
-			if (type == null)
-			{
-				return null;
-			}
-
-			var methodFlags = BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static;
-
-			var method = type.GetMethod(segments[0], methodFlags);
-
-			if (method == null)
-			{
-				return null;
-			}
-
-			if (method.ReturnType != typeof(RT))
-			{
-				return null;
-			}
-			var pms = method.GetParameters();
-
-			if (pms.Length != 1 || pms[0].ParameterType != typeof(T))
-			{
-				return null;
-			}
-			return (Func<T, RT>)method.CreateDelegate(typeof(Func<T, RT>));
+			var typeName = path.Substring(i + 1);
+			var methodName = path.Substring(0,i);
+			return Type.GetType(typeName)?.GetStaticMethodDelegate<T, RT>(methodName);
 		}
 	}
 }
@@ -243,8 +222,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private const string _MISSING_LABEL = "<type missing>";
 
 		private static GUIStyle _defaultLabelStyle;
-
-		private static readonly GUIContent _dummyLabel = new GUIContent();
+		private static readonly GUIContent _dummyLabel = new ();
 		
 		private static string GetTypeLabel(Type t, float width)
 		{
@@ -289,25 +267,17 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var missingType = !string.IsNullOrEmpty(prop.stringValue) && t == null;
 
-			if (!string.IsNullOrEmpty(prop.stringValue))
-			{
-				if (DrawClearButton(pos.SliceRight(pos.height)))
-				{
-					prop.stringValue = string.Empty;
-					prop.serializedObject.ApplyModifiedProperties();
-				}
-			}
+			var clearRect = !string.IsNullOrEmpty(prop.stringValue)
+			? pos.SliceRight(pos.height)
+			: default;
+
+			
 
 			var brect = pos;
 			
-			GUI.Box(brect, GUIContent.none, EditorStyles.helpBox);
-
-			EditorGUIUtility.AddCursorRect(brect, MouseCursor.Link);
-
 			_dummyLabel.text = t == null ? label : string.Empty;
 			_dummyLabel.tooltip = prop.stringValue;
-
-			var shouldOpenPopup = GUI.Button(brect, _dummyLabel, EditorStyles.popup);
+			var shouldOpenPopup = EditorGUI.DropdownButton(brect, _dummyLabel, FocusType.Keyboard);
 
 			if (missingType)
 			{
@@ -317,6 +287,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			if(t != null)
 			{
 				EditorGUI.LabelField(brect, label, _BTN_LABEL_STYLE.Value);
+			}
+
+			if (!string.IsNullOrEmpty(prop.stringValue))
+			{
+				if (DrawClearButton(clearRect))
+				{
+					prop.stringValue = string.Empty;
+					prop.serializedObject.ApplyModifiedProperties();
+				}
 			}
 
 			EditorGUI.indentLevel = tIndent;
