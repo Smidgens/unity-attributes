@@ -5,7 +5,7 @@ namespace Smidgenomics.Unity.Attributes
 	/// <summary>
 	/// Dropdown of project tags
 	/// </summary>
-	public sealed class TagAttribute : __BaseControl { }
+	public sealed class ProjectTagAttribute : __BaseControl { }
 }
 
 #if UNITY_EDITOR
@@ -17,8 +17,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEngine;
 	using UnityEditorInternal;
 
-	[CustomPropertyDrawer(typeof(TagAttribute))]
-	internal sealed class _TagAttribute : __ControlDrawer<TagAttribute>
+	[CustomPropertyDrawer(typeof(ProjectTagAttribute))]
+	internal sealed class _ProjectTagAttribute : __ControlDrawer<ProjectTagAttribute>
 	{
 		protected override EFieldType GetValidTypes() => EFieldType.String;
 

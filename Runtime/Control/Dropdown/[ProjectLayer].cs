@@ -5,7 +5,7 @@ namespace Smidgenomics.Unity.Attributes
 	/// <summary>
 	/// Dropdown of layers
 	/// </summary>
-	public sealed class LayerAttribute : __BaseControl { }
+	public sealed class ProjectLayerAttribute : __BaseControl { }
 }
 
 #if UNITY_EDITOR
@@ -16,8 +16,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 	using UnityEngine;
 
-	[CustomPropertyDrawer(typeof(LayerAttribute))]
-	internal sealed class _LayerAttribute : __ControlDrawer<LayerAttribute>
+	[CustomPropertyDrawer(typeof(ProjectLayerAttribute))]
+	internal sealed class _ProjectLayerAttribute : __ControlDrawer<ProjectLayerAttribute>
 	{
 		protected override EFieldType GetValidTypes() => EFieldType.Int;
 

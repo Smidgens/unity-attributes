@@ -5,7 +5,7 @@ namespace Smidgenomics.Unity.Attributes
 	/// <summary>
 	/// Dropdown of sorting layers
 	/// </summary>
-	public sealed class SortLayerAttribute : __BaseControl { }
+	public sealed class ProjectSortLayerAttribute : __BaseControl { }
 }
 
 #if UNITY_EDITOR
@@ -15,8 +15,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 	using UnityEngine;
 
-	[CustomPropertyDrawer(typeof(SortLayerAttribute))]
-	internal sealed class _SortLayerAttribute : __ControlDrawer<SortLayerAttribute>
+	[CustomPropertyDrawer(typeof(ProjectSortLayerAttribute))]
+	internal sealed class _ProjectSortLayerAttribute : __ControlDrawer<ProjectSortLayerAttribute>
 	{
 		protected override EFieldType GetValidTypes() => EFieldType.Int;
 
