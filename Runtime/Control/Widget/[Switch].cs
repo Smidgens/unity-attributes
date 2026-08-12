@@ -122,26 +122,55 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static bool DrawSwitch(Rect pos, bool val, in string l0, in string l1)
 		{
+			var tIndent = EditorGUI.indentLevel;
+			EditorGUI.indentLevel = 0;
+			
 			var label = val ? l1 : l0;
 
-			var icoRect = pos.SliceLeft(pos.height * 2);
-
-			if (PointerButton(icoRect))
+			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
+			if (PointerButton(pos))
 			{
+				GUIUtility.keyboardControl = id;
 				val = !val;
 			}
+			var icoRect = pos.SliceLeft(pos.height * 2);
 
 			var ico = val ? EAtlasIcon.SwitchOn : EAtlasIcon.SwitchOff;
 
 			var color = EditorGUIUtility.isProSkin
 			? Color.white * 0.8f
 			: Color.black * 0.5f;
+
+			var focused = id == GUIUtility.keyboardControl;
 			
+			if (focused)
+			{
+				color = EditorStyles.linkLabel.normal.textColor;
+				// ugly hack to get enter key to work like usual when focused
+				if (Event.current != null && Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
+				{
+					val = !val;
+				}
+			}
+
 			PluginAtlas.DrawIcon(icoRect, ico, color);
 			var s = val ? EditorStyles.boldLabel : EditorStyles.label;
-			EditorGUI.LabelField(pos, label, s);
+
+			var tColor = s.normal.textColor;
+
+			if (focused)
+			{
+				s.normal.textColor = color;
+			}
+
+			GUI.Label(pos, label, s);
+
+			s.normal.textColor = tColor;
+
+			EditorGUI.indentLevel = tIndent;
 			return val;
 		}
+		
 
 		private void DrawFlags(in DrawContext ctx)
 		{
