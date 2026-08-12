@@ -15,6 +15,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public static bool IsString(this SP p) => p.propertyType == SerializedPropertyType.String;
 		public static bool IsFloat(this SP p) => p.propertyType == SerializedPropertyType.Float;
 		public static bool IsInt(this SP p) => p.propertyType == SerializedPropertyType.Integer;
+
+		public static bool IsNumeric(this SP p)
+		{
+			return p.IsInt() || p.IsFloat();
+		}
 		public static bool IsBool(this SP p) => p.propertyType == SerializedPropertyType.Boolean;
 		public static bool IsColor(this SP p) => p.propertyType == SerializedPropertyType.Color;
 

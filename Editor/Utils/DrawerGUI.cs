@@ -19,7 +19,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				return;
 			}
-			
+
 			var tc = GUI.color;
 			GUI.color = color;
 
@@ -49,52 +49,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public static bool PopupButton(in Rect pos, in string label)
 		{
 			_dummyLabel.text = label;
-			return EditorGUI.DropdownButton(pos, _dummyLabel, FocusType.Keyboard);
+			return PopupButton(pos, _dummyLabel);
 		}
-
-		public static void Slider(
-			in Rect pos,
-			SP prop,
-			in float min,
-			in float max,
-			in float step = -1f,
-			in int precision = -1)
+		
+		public static bool PopupButton(in Rect pos, in GUIContent label)
 		{
-			var validType =
-			prop.propertyType is SerializedPropertyType.Integer or SerializedPropertyType.Float;
-
-			if (!validType)
-			{
-				MutedInfo(pos, "Field is not numeric");
-				return;
-			}
-
-			using (var check = new EditorGUI.ChangeCheckScope())
-			{
-				var val = prop.IsFloat() ? prop.floatValue : prop.intValue;
-
-				float valueNew = EditorGUI.Slider(pos, val, min, max);
-				if (check.changed)
-				{
-					if (precision >= 1) { valueNew = valueNew.Round(precision); }
-					if(step > 0f)
-					{
-						valueNew = ((int)(valueNew / step)) * step;
-					}
-					valueNew = Mathf.Clamp(valueNew, min, max);
-
-					if (prop.IsFloat())
-					{
-						prop.floatValue = valueNew;
-					}
-					else
-					{
-						prop.intValue = (int)valueNew;
-					}
-				}
-			}
+			return EditorGUI.DropdownButton(pos, label, FocusType.Keyboard);
 		}
-
 		public static void PrefixLabel(ref Rect pos, GUIContent l, FieldInfo fo)
 		{
 			if (l == GUIContent.none || fo.IsArray())

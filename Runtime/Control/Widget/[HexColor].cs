@@ -33,13 +33,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_STRING);
 				return;
 			}
-			using(var check = new EditorGUI.ChangeCheckScope())
+
+			EditorGUI.BeginChangeCheck();
+			var newColor = EditorGUI.ColorField(pos, HexToColor(prop.stringValue));
+			if (EditorGUI.EndChangeCheck())
 			{
-				var newColor = EditorGUI.ColorField(pos, HexToColor(prop.stringValue));
-				if(check.changed)
-				{
-					prop.stringValue = newColor.ToHexString();
-				}
+				prop.stringValue = newColor.ToHexString();
 			}
 		}
 
