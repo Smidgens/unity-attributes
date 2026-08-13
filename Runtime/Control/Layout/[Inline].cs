@@ -37,10 +37,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private void InitFields(Type type)
 		{
 			List<(FieldInfo, float)> fields = new();
-
+			
+			// loop through 
 			foreach (var f in type.FindInspectorFields<object>())
 			{
 				var wAttr = f.GetCustomAttribute<InlineWidthAttribute>();
+
+				if (wAttr == null)
+				{
+					wAttr = GetFieldOverride(f.Name);
+				}
 				var w = wAttr?.width ?? 0f;
 
 				if (Mathf.Approximately(w, 0f))
@@ -54,7 +60,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			_currentWidths = new float[_fields.Count];
 		}
 
-		private static readonly float _PAD = EditorGUIUtility.standardVerticalSpacing * 1.5f;
+		private static readonly float _PAD = EditorGUIUtility.standardVerticalSpacing;
 
 		protected override float GetHeight(SP prop, GUIContent label)
 		{
@@ -71,8 +77,33 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return max;
 		}
 
+		private Dictionary<string, InlineWidthAttribute> _outerFieldOverrides = null;
+
+		private InlineWidthAttribute GetFieldOverride(string name)
+		{
+			if (_outerFieldOverrides == null)
+			{
+				_outerFieldOverrides = new();
+
+				foreach (var attr in fieldInfo.GetCustomAttributes<InlineWidthAttribute>())
+				{
+					if (!string.IsNullOrEmpty(attr.fieldName))
+					{
+						_outerFieldOverrides[attr.fieldName] = attr;
+					}
+				}
+			}
+			return _outerFieldOverrides.GetValueOrDefault(name, null);
+		}
+
 		protected override void OnField(in DrawContext ctx)
 		{
+			if (_currentWidths.Length == 0)
+			{
+				DrawerGUI.MutedInfo(ctx.position, "No fields", MessageType.Warning);
+				return;
+			}
+
 			var ti = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = 0;
 
@@ -98,7 +129,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				var fRect = pos.SliceLeft(w);
 				var field = _fields[i].Item1;
-				
+
 				var prop = ctx.property.FindPropertyRelative(field.Name);
 
 				var height = EditorGUI.GetPropertyHeight(prop, GUIContent.none);

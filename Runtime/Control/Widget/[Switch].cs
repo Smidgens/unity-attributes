@@ -134,8 +134,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static bool DrawSwitch(Rect pos, bool val, in string l0, in string l1)
 		{
-			var tIndent = EditorGUI.indentLevel;
-			EditorGUI.indentLevel = 0;
+			// EditorGUI.indentLevel = 0;
 			var label = val ? l1 : l0;
 
 			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
@@ -175,7 +174,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			s.normal.textColor = tColor;
 
-			EditorGUI.indentLevel = tIndent;
+			// EditorGUI.indentLevel = tIndent;
 			return val;
 		}
 		

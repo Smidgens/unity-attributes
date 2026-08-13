@@ -79,34 +79,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var isArray = fieldInfo.FieldType.IsArray || prop.propertyPath.EndsWith($"].{prop.name}");
 
-			if (isArray && prop.propertyType != SerializedPropertyType.ManagedReference)
+			if (prop.propertyType != SerializedPropertyType.ManagedReference)
 			{
-				EditorGUI.LabelField(pos, "Invalid type", EditorStyles.miniLabel);
-				return;
+				if (!isArray)
+				{
+					pos = EditorGUI.PrefixLabel(pos, l);
+					DrawerGUI.MutedInfo(pos, "Invalid type");
+					return;
+				}
 			}
-
-			if (!isArray && prop.propertyType != SerializedPropertyType.ManagedReference)
-			{
-				pos = EditorGUI.PrefixLabel(pos, l);
-				EditorGUI.LabelField(pos, "Invalid type", EditorStyles.miniLabel);
-				return;
-			}
-
-			if (isArray)
-			{
-				// horrible...
-				var indentSize = 5f;
-				pos.position -= new Vector2(indentSize, 0f);
-				pos.size += new Vector2(indentSize, 0f);
-			}
-
-			if (isArray)
-			{
-				prop.isExpanded = true;
-			}
-
-			var tIndent = EditorGUI.indentLevel;
-			EditorGUI.indentLevel = isArray ? 0 : EditorGUI.indentLevel;
 
 			var typeRect = pos.SliceTop(EditorGUIUtility.singleLineHeight);
 			pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
@@ -119,16 +100,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			SelectorDropdown(typeRect, prop);
 			if (prop.managedReferenceValue == null)
 			{
-				EditorGUI.indentLevel = tIndent;
 				return;
 			}
 
-			var extraIndent = isArray ? 0 : 1;
-			
-			EditorGUI.indentLevel += extraIndent;
-
 			if (_fields != null)
 			{
+				if (!isArray)
+				{
+					DrawerGUI.IndentRect(ref pos, 1);
+				}
+
 				var i = -1;
 				foreach (var field in _fields)
 				{
@@ -142,9 +123,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 						pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 					}
 				}
-			}
 
-			EditorGUI.indentLevel = tIndent;
+			}
 		}
 
 		private Type _lastType;
@@ -152,14 +132,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
 		{
-			var isArray = fieldInfo.FieldType.IsArray || prop.propertyPath.EndsWith($"].{prop.name}");
-
 			var totalHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-
-			if (isArray)
-			{
-				// totalHeight += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-			}
 
 			if (_lastType != prop.managedReferenceValue?.GetType())
 			{

@@ -7,12 +7,12 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public sealed class ExpandAttribute : __BaseControl
 	{
-		public ExpandAttribute(bool hideLabel = false) : base(true)
+		public ExpandAttribute(bool innerOnly = false) : base(true)
 		{
-			this.hideLabel = hideLabel;
+			this.innerOnly = innerOnly;
 		}
 
-		internal bool hideLabel { get; }
+		internal bool innerOnly { get; }
 	}
 }
 
@@ -35,10 +35,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
 		{
-			
-			var total = Mathf.Max(0f, EditorGUIUtility.standardVerticalSpacing * (_fields.Count - 1));;
+			var total = Mathf.Max(0f, EditorGUIUtility.standardVerticalSpacing * (_fields.Count - 1));
 
-			if (!_Attribute.hideLabel)
+			var showLabel = !_Attribute.innerOnly && GetCustomLabel() != null;
+			
+			if (showLabel)
 			{
 				total += EditorGUIUtility.standardVerticalSpacing;
 				total += EditorGUIUtility.singleLineHeight;
@@ -57,20 +58,26 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected override void OnField(in DrawContext ctx)
 		{
 			var tIndent = EditorGUI.indentLevel;
-			
+
 			var pos = ctx.position;
 
-			if (!_Attribute.hideLabel)
+			var customLabel = GetCustomLabel();
+
+			var showLabel = !_Attribute.innerOnly && customLabel != null;
+			
+			if (showLabel)
 			{
 				var labelRect = pos.SliceTop(EditorGUIUtility.singleLineHeight);
-				var label = !string.IsNullOrEmpty(_customLabel.text) ? _customLabel : ctx.label;
+				var label = ctx.label;
+
+				if (customLabel != string.Empty)
+				{
+					label.text = customLabel;
+				}
 				EditorGUI.LabelField(labelRect, label);
 				pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
-				EditorGUI.indentLevel++;
 			}
-
-			var indent = _Attribute.hideLabel ? 0 : 1;
-
+			var indent = showLabel ? 1 : 0;
 			EditorGUI.indentLevel += indent;
 			foreach (var f in _fields)
 			{
@@ -81,18 +88,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				EditorGUI.PropertyField(fRect, p, GUIContent.none);
 				pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 			}
-
 			EditorGUI.indentLevel -= indent;
 			EditorGUI.indentLevel = tIndent;
 		}
 
 		protected override void OnInit()
 		{
-			_customLabel = new GUIContent(GetCustomLabel());
 			_fields = fieldInfo.FieldType.GetInnermostType().FindInspectorFields<object>();
 		}
 
-		private GUIContent _customLabel;
 		private IReadOnlyList<FieldInfo> _fields;
 
 

@@ -3,27 +3,6 @@
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
-
-	/// <summary>
-	/// Set size of specific inlined field
-	/// </summary>
-	[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-	public sealed class FieldSizeAttribute : __BaseModifier
-	{
-		public FieldSizeAttribute(string name, float size)
-		{
-			Name = name;
-			Size = size;
-		}
-		internal string Name { get; }
-		internal float Size { get; } = -1f;
-	}
-}
-
-
-namespace Smidgenomics.Unity.Attributes
-{
-	using System;
 	using UnityEngine;
 
 	/// <summary>
@@ -36,6 +15,15 @@ namespace Smidgenomics.Unity.Attributes
 		{
 			width = Mathf.Max(w, 0f);
 		}
+
+		/// <summary>
+		/// Specify width of inner field
+		/// </summary>
+		public InlineWidthAttribute(string field, float w) : this(w)
+		{
+			this.fieldName = field;
+		}
 		internal float width { get; }
+		internal string fieldName { get; }
 	}
 }

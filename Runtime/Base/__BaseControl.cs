@@ -49,37 +49,29 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public sealed override void OnGUI(Rect pos, SerializedProperty prop, GUIContent l)
 		{
 			DrawActions(ref pos, prop);
-			
+
 			EditorGUI.BeginProperty(pos, l, prop);
 
-			var tIndent = EditorGUI.indentLevel;
-			EditorGUI. indentLevel= fieldInfo.FieldType.IsArray ? 0 : EditorGUI.indentLevel;
+			// label
+			OnLabel(ref pos, l);
 
-			var indent = fieldInfo.FieldType.IsArray ? 0 : _extraIndent;
-			
-			using (new EditorGUI.IndentLevelScope(indent))
+			if (!CanDraw(prop, out var err))
 			{
-				// label
-				OnLabel(ref pos, l);
-
-				if (!CanDraw(prop, out var err))
-				{
-					DrawerGUI.MutedInfo(pos, err, MessageType.Error);
-					return;
-				}
-				
-				pos = EditorGUI.IndentedRect(pos);
-				var ctx = new DrawContext
-				{
-					position = pos,
-					property = prop,
-					label = l,
-				};
-				OnField(ctx);
+				DrawerGUI.MutedInfo(pos, err, MessageType.Warning);
+				return;
 			}
-		
-			EditorGUI.indentLevel = tIndent;
 			
+			DrawerGUI.IndentRect(ref pos, _extraIndent);
+
+			pos = EditorGUI.IndentedRect(pos);
+			var ctx = new DrawContext
+			{
+				position = pos,
+				property = prop,
+				label = l,
+			};
+			OnField(ctx);
+
 			EditorGUI.EndProperty();
 			
 		}
@@ -131,15 +123,17 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected virtual void OnLabel(ref Rect pos, GUIContent l)
 		{
-			var (cprefix, hasPrefix) = _customLabel;
+			var customLabel = GetCustomLabel();
 
-			if (hasPrefix)
+			if (customLabel == null)
 			{
-				if (cprefix == null)
-				{
-					return;
-				}
-				l.text = cprefix;
+				return;
+			}
+			if (customLabel != string.Empty)
+			{
+				l.text = customLabel;
+				// DrawerGUI.PrefixLabel(ref pos, l, fieldInfo);
+				// return;
 			}
 			DrawerGUI.PrefixLabel(ref pos, l, fieldInfo);
 		}
@@ -152,13 +146,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected virtual EFieldType GetValidTypes() => EFieldType.Any;
 		protected virtual void OnInit() { }
 
-
-		protected string GetCustomLabel() => _customLabel.Item1;
+		protected string GetCustomLabel() => _customLabel;
 
 		private bool _init;
 		private List<ActionInfo> _actions;
 		private byte _extraIndent;
-		private (string, bool) _customLabel;
+		private string _customLabel = string.Empty;
 
 		private struct ActionInfo
 		{
@@ -185,16 +178,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			_init = true;
 
-			var indent = GetMod<IndentAttribute>();
-			if (indent != null)
-			{
-				_extraIndent = indent.Indent;
-			}
+			var options = GetMod<FieldOptionsAttribute>();
 
-			var prefix = GetMod<FieldNameAttribute>();
-			if (prefix != null)
+			if (options != null)
 			{
-				_customLabel = (prefix.Label, true);
+				_extraIndent = options.indent;
+				_customLabel = options.label;
 			}
 
 			_actions = GetFieldActions();
@@ -293,7 +282,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					continue;
 				}
 
-				var target = a.attribute.flags.HasFlag(EFieldAction.DeclaringType)
+				var target = a.attribute.flags.HasFlag(EFieldAction.OuterObject)
 				? prop.serializedObject.targetObject
 				: fieldInfo.GetValue(prop.serializedObject.targetObject);
 

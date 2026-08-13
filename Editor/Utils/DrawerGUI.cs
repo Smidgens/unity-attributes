@@ -11,6 +11,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 	internal static class DrawerGUI
 	{
+		public const float INDENT_W = 15f;
+
 		public static void DrawTex(in Texture2D tex, in Rect area)
 		{
 			DrawTex(tex, area, new Rect(0,0,1,1), Color.white);
@@ -60,6 +62,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			_dummyLabel.text = label;
 			return PopupButton(pos, _dummyLabel);
 		}
+
+		public static void IndentRect(ref Rect r, int indentLevel)
+		{
+			r.SliceLeft(INDENT_W * indentLevel);
+		}
 		
 		public static bool PopupButton(in Rect pos, in GUIContent label)
 		{
@@ -67,7 +74,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 		public static void PrefixLabel(ref Rect pos, GUIContent l, FieldInfo fo)
 		{
-			if (l == GUIContent.none || fo.IsArray())
+			if (l == null || l == GUIContent.none || fo.IsArray())
 			{
 				return;
 			}
@@ -92,7 +99,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			GUI.Box(pos, GUIContent.none, EditorStyles.helpBox);
 			EditorGUI.DrawRect(pos, bgColor);
-			EditorGUI.LabelField(pos, msg, EditorStyles.centeredGreyMiniLabel);
+			GUI.Label(pos, msg, EditorStyles.centeredGreyMiniLabel);
 		}
 
 		public static void DragDrop(Rect area, Action<UnityEngine.Object[]> onDrop, Action onMouseUp)

@@ -13,9 +13,9 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		PlayMode = 1,
 		/// <summary>
-		/// Call method on outer type
+		/// Call method on owning object (script etc.)
 		/// </summary>
-		DeclaringType = 2,
+		OuterObject = 2,
 		/// <summary>
 		/// Sensible defaults
 		/// </summary>
@@ -46,7 +46,7 @@ namespace Smidgenomics.Unity.Attributes
 		internal MethodInfo GetMethod(FieldInfo field)
 		{
 			var type = field.FieldType.GetInnermostType();
-			if (flags.HasFlag(EFieldAction.DeclaringType))
+			if (flags.HasFlag(EFieldAction.OuterObject))
 			{
 				type = field.DeclaringType;
 			}
