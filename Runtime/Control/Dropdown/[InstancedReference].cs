@@ -3,21 +3,52 @@
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
-	using UnityEngine;
+	using System.ComponentModel;
+	using System.Reflection;
+	using Editor;
 
 	// 
 	[AttributeUsage(AttributeTargets.Field)]
 	public sealed class InstancedReferenceAttribute : __BaseControl
 	{
-		/// <summary>
-		/// Assembly string reference to static function: System.Type->String
-		/// </summary>
-		public bool labelFn { get; set; }
+		private static readonly Type[] _labelFnArgs =
+		{
+			typeof(Type)
+		};
 
-		/// <summary>
-		/// Display label for null values
-		/// </summary>
-		public string emptyValueLabel { get; set; } = "(none)";
+		public InstancedReferenceAttribute
+		(
+			string emptyLabel = EConstants.Label.POPUP_DEFAULT,
+			string labelFn = null
+		) : base(true)
+		{
+			this.labelFn = GetByDisplayName;
+			var m = ReflectionUtils.ParseStaticMethodString(labelFn, typeof(string), _labelFnArgs);
+			if (m != null)
+			{
+				this.labelFn = (Func<Type, string>)m.CreateDelegate(typeof(Func<Type, string>), null);
+			}
+			this.emptyLabel = emptyLabel;
+		}
+
+		// display value for null/empty string
+		internal string emptyLabel { get; }
+
+		internal Func<Type, string> labelFn { get; }
+		
+		private static string GetByDisplayName(Type type)
+		{
+			if (type == null)
+			{
+				return "";
+			}
+
+			var attr = type.GetCustomAttribute<DisplayNameAttribute>();
+
+			return attr != null
+			? attr.DisplayName
+			: type.Name;
+		}
 	}
 }
 
@@ -76,9 +107,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var tIndent = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = isArray ? 0 : EditorGUI.indentLevel;
-			// EditorGUI.indentLevel = isArray ? 0 : EditorGUI.indentLevel;
-		
-			var typeRect = SliceRow(ref pos);
+
+			var typeRect = pos.SliceTop(EditorGUIUtility.singleLineHeight);
+			pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 
 			if(l != GUIContent.none && !isArray)
 			{
@@ -161,12 +192,19 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private void SelectorDropdown(Rect pos, SerializedProperty prop)
 		{
 			Type currentType = prop.managedReferenceValue?.GetType();
-			string defaultLabel = (attribute as InstancedReferenceAttribute)!.emptyValueLabel;
-			string label = currentType != null ? GetTypeDisplayName(currentType) : defaultLabel;
+			string defaultLabel = (attribute as InstancedReferenceAttribute)!.emptyLabel;
+
+			// string label = currentType != null ? GetTypeDisplayName(currentType) : defaultLabel;
+			string label = currentType != null ? _Attribute.labelFn.Invoke(currentType) : defaultLabel;
 
 			if (!EditorGUI.DropdownButton(pos, new GUIContent(label), FocusType.Keyboard))
 			{
 				return;
+			}
+
+			if (prop.IsArrayElement())
+			{
+				defaultLabel = null;
 			}
 			var m = CreateTypeMenu(GetFieldType(), o =>
 			{
@@ -182,9 +220,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					prop.serializedObject.ApplyModifiedProperties();
 					return;
 				}
-				
+
 				prop.managedReferenceValue = Activator.CreateInstance(newType);
 				prop.serializedObject.ApplyModifiedProperties();
+
+				EditorApplication.delayCall += () =>
+				{
+					prop.serializedObject.Update();
+				};
+
 			}, defaultLabel);
 			m.DropDown(pos);
 		}
@@ -196,7 +240,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			: fieldInfo.FieldType.GetElementType();
 		}
 
-		private static GenericMenu CreateTypeMenu(Type baseType, GenericMenu.MenuFunction2 fn, string defaultLabel = "(none)")
+		private GenericMenu CreateTypeMenu(Type baseType, GenericMenu.MenuFunction2 fn, string defaultLabel = EConstants.Label.POPUP_DEFAULT)
 		{
 			var menu = new GenericMenu();
 
@@ -204,8 +248,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			Assembly currentAssembly = null;
 
-			menu.AddItem(new GUIContent(defaultLabel), false, fn, null);
-			menu.AddSeparator("");
+			if (defaultLabel != null)
+			{
+				menu.AddItem(new GUIContent(defaultLabel), false, fn, null);
+				menu.AddSeparator("");
+			}
 
 			foreach (var type in types)
 			{
@@ -222,8 +269,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					currentAssembly = type.Assembly;
 					menu.AddDisabledItem(new GUIContent(currentAssembly.GetName().Name));
 				}
-
-				var dname = new GUIContent(GetTypeDisplayName(type));
+				// var dname = new GUIContent(GetTypeDisplayName(type));
+				var dname = new GUIContent(_Attribute.labelFn.Invoke(type));
 				menu.AddItem(dname, false, fn,  type);
 			}
 			return menu;
@@ -242,32 +289,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			return outTypes;
 		}
-
-		private static string GetTypeDisplayName(Type type)
-		{
-			if (type == null)
-			{
-				return "";
-			}
-
-			var attr = type.GetCustomAttribute<DisplayNameAttribute>();
-
-			if (attr != null)
-			{
-				return attr.DisplayName;
-			}
-			
-			return type.Name;
-		}
-
-		private static Rect SliceRow(ref Rect r)
-		{
-			var r2 = r.SliceTop(EditorGUIUtility.singleLineHeight);
-			r.SliceTop(EditorGUIUtility.standardVerticalSpacing);
-			return r2;
-		}
-		
-		
 		
 
 	}

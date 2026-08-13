@@ -35,6 +35,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return p.type == refName;
 		}
 
+		public static bool IsArrayElement(this SerializedProperty p)
+		{
+			return p.propertyPath.EndsWith(']');
+		}
+
 		public static EFieldType GetTypeFlags(this SP prop)
 		{
 			var pt = prop.propertyType;

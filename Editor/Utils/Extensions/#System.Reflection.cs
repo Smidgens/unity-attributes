@@ -15,10 +15,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		public static Type GetItemType(this FieldInfo fi)
 		{
-			return fi.IsArray()
-			? fi.FieldType.GetElementType()
-			: fi.FieldType;
+			return fi.FieldType.GetInnermostType();
 		}
+
+		public static Type GetInnermostType(this Type t)
+		{
+			while (t is { IsArray: true })
+			{
+				t = t.GetElementType();
+			}
+			return t;
+		}
+		
 		public static bool IsArray(this FieldInfo fo) => fo.FieldType.IsArray;
 		public static bool IsStaticClass(this Type t) => t.IsClass && t.IsAbstract && t.IsSealed;
 		public static bool IsStruct(this Type t) => t.IsValueType && !t.IsPrimitive && !t.IsEnum;
@@ -159,16 +167,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			return true;
 		}
-
-		public static Type GetInnermostType(this Type t)
-		{
-			while (t is { IsArray: true })
-			{
-				t = t.GetElementType();
-			}
-			return t;
-		}
-
+		
 		public static bool IsNewable(this Type t)
 		{
 			return t.GetConstructor(Type.EmptyTypes) != null;

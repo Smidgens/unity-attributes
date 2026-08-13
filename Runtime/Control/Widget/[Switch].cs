@@ -14,15 +14,13 @@ namespace Smidgenomics.Unity.Attributes
 		internal string label0 { get; }
 		internal string label1 { get; }
 
-		public SwitchAttribute() { }
-
 		public SwitchAttribute(string l0, string l1)
 		{
 			label0 = l0;
 			label1 = l1;
 		}
 
-		public SwitchAttribute(string label) : this(label, label)
+		public SwitchAttribute(string label = "") : this(label, label)
 		{
 		
 		}

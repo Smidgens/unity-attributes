@@ -4,41 +4,61 @@ namespace Smidgenomics.Unity.Attributes
 {
 	using System.Reflection;
 	using System;
-	using System.Linq;
+	using Editor;
 
+	public enum EFieldAction
+	{
+		/// <summary>
+		/// Play mode only
+		/// </summary>
+		PlayMode = 1,
+		/// <summary>
+		/// Call method on outer type
+		/// </summary>
+		DeclaringType = 2,
+		/// <summary>
+		/// Sensible defaults
+		/// </summary>
+		Default = PlayMode
+	}
+
+	/// <summary>
+	/// Displays action above specific field
+	/// </summary>
 	[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 	public sealed class FieldActionAttribute : __BaseModifier
 	{
-		public bool onlyPlayMode = false;
-		public bool callRoot = false;
-
-		public FieldActionAttribute(string label, string methodName, params object[] args)
+		public FieldActionAttribute
+		(
+			string methodName,
+			EFieldAction flags = EFieldAction.Default,
+			string label = null
+		)
 		{
-			Label = label;
-			Args = args;
 			_methodName = methodName;
-			_argTypes = args.Select(x => x.GetType()).ToArray();
+			this.label = label;
+			this.flags = flags;
 		}
 
-		public FieldActionAttribute(string methodName, params object[] args)
-			: this(methodName, methodName, args)
-		{ }
-
-		internal readonly string Label = null;
-		internal readonly object[] Args = null;
+		internal string label { get; }
+		internal EFieldAction flags { get; }
 
 		internal MethodInfo GetMethod(FieldInfo field)
 		{
-			var type = field.FieldType;
-			if (callRoot)
+			var type = field.FieldType.GetInnermostType();
+			if (flags.HasFlag(EFieldAction.DeclaringType))
 			{
 				type = field.DeclaringType;
 			}
-			return type.GetMethod(_methodName, _FLAGS, null, _argTypes, null);
+			var m = (type!).GetMethod(_methodName, _FLAGS, null, Array.Empty<Type>(), null);
+			if (m == null || m.ReturnType != typeof(void))
+			{
+				return null;
+			}
+			return m;
 		}
 
-		private readonly string _methodName = string.Empty;
-		private readonly Type[] _argTypes = null;
+		private string _methodName { get; }
 
 		private const BindingFlags _FLAGS =
 		BindingFlags.Public

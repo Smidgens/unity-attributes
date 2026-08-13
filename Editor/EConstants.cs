@@ -10,7 +10,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		// common labels
 		public static class Label
 		{
-			public const string POPUP_DEFAULT = "<none>";
+			public const string POPUP_DEFAULT = "(none)";
 		}
 
 		public static class Info

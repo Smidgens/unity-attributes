@@ -7,6 +7,10 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public sealed class InlineAttribute : __BaseControl
 	{
+		public InlineAttribute() : base(true)
+		{
+			
+		}
 	}
 }
 

@@ -16,8 +16,8 @@ namespace Smidgenomics.Unity.Attributes
 		)
 		{
 			this.text = text ?? string.Empty;
-			this.color = Parse(color, this.color);
-			backgroundColor = Parse(bgColor, backgroundColor);
+			this.color = ParseColor(color, this.color);
+			backgroundColor = ParseColor(bgColor, backgroundColor);
 		}
 
 		internal string text { get; }

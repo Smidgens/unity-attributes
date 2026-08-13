@@ -5,7 +5,12 @@ namespace Smidgenomics.Unity.Attributes
 	/// <summary>
 	/// Default control
 	/// </summary>
-	public sealed class DefaultDrawerAttribute : __BaseControl { }
+	public sealed class DefaultDrawerAttribute : __BaseControl
+	{
+		public DefaultDrawerAttribute() : base(true)
+		{
+		}
+	}
 }
 
 #if UNITY_EDITOR

@@ -2,13 +2,28 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
+	/// <summary>
+	/// Types for [AnimatorParameter]
+	/// </summary>
+	[System.Flags]
+	public enum EAnimatorParameter
+	{
+		Bool = 1,
+		Float = 2,
+		Int = 4,
+		Trigger = 8,
+		All = ~0
+	}
+
 	public sealed class AnimatorParameterAttribute : __BaseControl
 	{
-		internal string AnimatorField { get; }
+		internal string field { get; }
+		internal EAnimatorParameter types { get; }
 
-		public AnimatorParameterAttribute(string animatorRefField)
+		public AnimatorParameterAttribute(string animatorRefField, EAnimatorParameter types = EAnimatorParameter.All)
 		{
-			AnimatorField = animatorRefField;
+			field = animatorRefField;
+			this.types = types;
 		}
 	}
 }
@@ -27,10 +42,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override void OnField(in DrawContext ctx)
 		{
-			ParameterPopup(ctx.position, ctx.property, _Attribute.AnimatorField);
+			ParameterPopup(ctx.position, ctx.property, _Attribute.field);
 		}
 
-		public static void ParameterPopup(in Rect pos, SerializedProperty prop, in string animatorFieldPath)
+		public void ParameterPopup(in Rect pos, SerializedProperty prop, in string animatorFieldPath)
 		{
 			if (_TYPE_ANIM == null)
 			{
@@ -80,6 +95,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var m = GetParameterMenu
 				(
 					animatorProp.objectReferenceValue,
+					_Attribute.types,
 					prop,
 					(name, index) =>
 					{
@@ -101,7 +117,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private static readonly Type _TYPE_ANIM = Type.GetType("UnityEngine.Animator, UnityEngine.AnimationModule");
 		private static readonly Type _TYPE_ANIM_PARAM = Type.GetType("UnityEngine.AnimatorControllerParameter, UnityEngine.AnimationModule");
 
-		private static GenericMenu GetParameterMenu(Object animatorRef, SerializedProperty prop, System.Action<string, int> setFn)
+		private static GenericMenu GetParameterMenu(Object animatorRef, EAnimatorParameter types, SerializedProperty prop, System.Action<string, int> setFn)
 		{
 			bool isInt = prop.propertyType == SerializedPropertyType.Integer;
 			bool isDefault = isInt
@@ -121,11 +137,32 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			for(var i = 0; i < pCount; i++)
 			{
-				var (label, name, index) = GetAnimatorParameterOption(animatorRef, i);
+				var (label, name, index, type) = GetAnimatorParameterOption(animatorRef, i);
+
+				if (type[0] == 'F' && !types.HasFlag(EAnimatorParameter.Float))
+				{
+					continue;
+				}
+				
+				if (type[0] == 'B' && !types.HasFlag(EAnimatorParameter.Bool))
+				{
+					continue;
+				}
+
+				if (type[0] == 'I' && !types.HasFlag(EAnimatorParameter.Int))
+				{
+					continue;
+				}
+	
+				if (type[0] == 'T' && !types.HasFlag(EAnimatorParameter.Trigger))
+				{
+					continue;
+				}
 
 				var oActive = isInt
 				? prop.intValue == index
 				: prop.stringValue == name;
+				
 				m.AddItem(new GUIContent(label), oActive, () => setFn.Invoke(name, index));
 			}
 			return m;
@@ -150,7 +187,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private static readonly GUIContent _POPUP_DEFAULT = new ("<none>");
 		private static readonly GUIContent _POPUP_EMPTY = new ("No options");
 
-		private static (GUIContent, string, int) GetAnimatorParameterOption(Object animatorRef, int index)
+		private static (GUIContent, string, int, string) GetAnimatorParameterOption(Object animatorRef, int index)
 		{
 			if (!animatorRef || animatorRef.GetType() != _TYPE_ANIM)
 			{
@@ -168,13 +205,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var param = (_paramGetterFn!).Invoke(animatorRef, _paramArray);
 			if (param == null)
 			{
-				return (_POPUP_DEFAULT, string.Empty, -1);
+				return (_POPUP_DEFAULT, string.Empty, -1, string.Empty);
 			}
 
 			var pType = (_paramTypeProp!).GetValue(param);
 			var pName = (_paramNameProp!).GetValue(param);
 			
-			return (new GUIContent($"{pType}/{pName}"), pName.ToString(), index);
+			return (new GUIContent($"{pType}/{pName}"), pName.ToString(), index, pType.ToString());
 		}
 		
 		

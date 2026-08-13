@@ -7,7 +7,7 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public sealed class ExpandAttribute : __BaseControl
 	{
-		public ExpandAttribute(bool hideLabel = false)
+		public ExpandAttribute(bool hideLabel = false) : base(true)
 		{
 			this.hideLabel = hideLabel;
 		}
@@ -29,7 +29,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 	using UnityEngine;
 	using System.Collections.Generic;
-	using UnityObject = UnityEngine.Object;
 
 	[CustomPropertyDrawer(typeof(ExpandAttribute))]
 	internal sealed class _ExpandAttribute : __ControlDrawer<ExpandAttribute>
@@ -78,20 +77,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var p = ctx.property.FindPropertyRelative(f.Name);
 				var h = EditorGUI.GetPropertyHeight(p);
 				var fRect = pos.SliceTop(h);
-
 				fRect =	EditorGUI.PrefixLabel(fRect, new GUIContent(p.displayName));
-				
-				
 				EditorGUI.PropertyField(fRect, p, GUIContent.none);
-			
-
 				pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 			}
 
 			EditorGUI.indentLevel -= indent;
-
 			EditorGUI.indentLevel = tIndent;
-
 		}
 
 		protected override void OnInit()

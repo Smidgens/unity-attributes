@@ -8,9 +8,10 @@ namespace Smidgenomics.Unity.Attributes
 	[Conditional("UNITY_EDITOR")]
 	public abstract class __Base : PropertyAttribute
 	{
-		
-
-
+		protected __Base(bool collection = false) : base(collection)
+		{
+			
+		}
 	}
 
 }

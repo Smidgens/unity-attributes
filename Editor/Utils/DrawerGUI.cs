@@ -8,8 +8,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 	using System;
 	using System.Reflection;
-	using UnityObject = UnityEngine.Object;
-	using SP = UnityEditor.SerializedProperty;
 
 	internal static class DrawerGUI
 	{
@@ -76,9 +74,24 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			pos = EditorGUI.PrefixLabel(pos, l);
 		}
 
-		public static void MutedInfo(in Rect pos, in string msg)
+		public static void MutedInfo(in Rect pos, string msg, MessageType type = MessageType.Error)
 		{
-			GUI.Box(pos, GUIContent.none);
+			var bgColor = Color.clear;
+			
+			if (type == MessageType.Error)
+			{
+				bgColor = Color.red * 0.2f;
+			}
+			else if (type == MessageType.Warning)
+			{
+				bgColor = Color.yellow * 0.2f;
+			}
+			else if (type == MessageType.Info)
+			{
+				bgColor = Color.cyan * 0.2f;
+			}
+			GUI.Box(pos, GUIContent.none, EditorStyles.helpBox);
+			EditorGUI.DrawRect(pos, bgColor);
 			EditorGUI.LabelField(pos, msg, EditorStyles.centeredGreyMiniLabel);
 		}
 
@@ -95,9 +108,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				return;
 			}
-			
+
 			var hoverColor = PickSkin(Color.white.Fade(0.1f), Color.black.Fade(0.1f));
-			
+
 			EditorGUI.DrawRect(area, hoverColor);
 			
 			if (onMouseUp != null && ev.type == EventType.MouseUp)

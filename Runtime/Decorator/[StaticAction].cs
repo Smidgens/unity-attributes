@@ -5,63 +5,55 @@ namespace Smidgenomics.Unity.Attributes
 	using System;
 	using System.Reflection;
 
+	public enum EStaticAction
+	{
+		/// <summary>
+		/// Play mode only
+		/// </summary>
+		PlayMode = 1,
+		/// <summary>
+		/// Sensible defaults
+		/// </summary>
+		Default = PlayMode,
+	}
+
 	public sealed class StaticActionAttribute : __BaseDecorator
 	{
 		public StaticActionAttribute
 		(
-			string method,
-			Type type,
+			string methodPath,
+			EStaticAction flags = EStaticAction.Default,
 			string label = "",
-			bool playMode = false,
 			string prefixLabel = ""
 		)
 		{
-			this.playMode = playMode;
+			this.flags = flags;
 			this.label = label;
-			methodName = method;
-			_declaringType = type;
 			this.prefixLabel = prefixLabel;
-
+			_method = ReflectionUtils.ParseStaticMethodString(methodPath);
 		}
 
 		internal string prefixLabel { get; }
 		internal string label { get; }
-		internal bool playMode { get; }
+		internal EStaticAction flags { get; }
 
-		internal Action GetAction()
+		internal (Action, MethodInfo) GetAction()
 		{
 			if (!_action.Item2)
 			{
-				var m =
-				_declaringType.GetMethod(methodName, _FLAGS, null, Array.Empty<Type>(), null);
-
+				var m = _method;
 				if (m == null)
 				{
-					return null;
+					_action = ((null, null), true);
+					return _action.Item1;
 				}
-
-				if (m.GetParameters().Length != 0)
-				{
-					return null;
-				}
-
-				if(m.ReturnType != typeof(void))
-				{
-					return null;
-				}
-				_action = ((Action)m.CreateDelegate(typeof(Action)), true);
+				_action = (((Action)m.CreateDelegate(typeof(Action)), m), true);
 			}
 			return _action.Item1;
 		}
 
-		private (Action, bool) _action;
-		private readonly Type _declaringType;
-		internal string methodName { get; }
-
-		private const BindingFlags _FLAGS =
-		BindingFlags.Public
-		| BindingFlags.NonPublic
-		| BindingFlags.Static;
+		private readonly MethodInfo _method;
+		private ((Action, MethodInfo), bool) _action;
 
 	}
 }
@@ -70,6 +62,7 @@ namespace Smidgenomics.Unity.Attributes
 
 namespace Smidgenomics.Unity.Attributes.Editor
 {
+	using System;
 	using UnityEngine;
 	using UnityEditor;
 	using System.Reflection;
@@ -79,29 +72,59 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override void OnInit()
 		{
-			var l = !string.IsNullOrEmpty(_Attribute.label)
-			? _Attribute.label
-			: _Attribute.methodName.ToSentenceCase();
-			_label = new GUIContent(l);
+			_label = GUIContent.none;
+
+			var (fn, method) = _Attribute.GetAction();
+
+			if (fn != null)
+			{
+				var l = !string.IsNullOrEmpty(_Attribute.label)
+				? _Attribute.label
+				: method.Name.ToSentenceCase();
+				_label = new GUIContent(l);
+			}
+		}
+		
+		private static readonly Lazy<GUIStyle> _BTN_STYLE = new(() =>
+		{
+			return new GUIStyle(EditorStyles.miniButton)
+			{
+				fontSize = (int)(EditorStyles.miniButton.fontSize * 0.9f)
+			};
+		});
+
+		private static readonly Lazy<float> _BTN_HEIGHT = new (() =>
+		{
+			return _BTN_STYLE.Value.CalcHeight(GUIContent.none, 100);
+		});
+
+		protected override float GetHeight(in float w)
+		{
+			return _BTN_HEIGHT.Value;
 		}
 
 		protected override void OnContent(in Rect p)
 		{
 			var pos = p;
 			var te = GUI.enabled;
-			var fn = _Attribute.GetAction();
-			var disabled = fn == null || (!Application.isPlaying && _Attribute.playMode);
+			var (fn, method) = _Attribute.GetAction();
+
+			if (fn == null)
+			{
+				DrawerGUI.MutedInfo(p, "Not found");
+				return;
+			}
 
 			if (!string.IsNullOrEmpty(_Attribute.prefixLabel))
 			{
 				pos = EditorGUI.PrefixLabel(pos, new GUIContent(_Attribute.prefixLabel));
 			}
 
-			GUI.enabled = !disabled;
+			GUI.enabled = !(!Application.isPlaying && _Attribute.flags.HasFlag(EStaticAction.PlayMode));
 
 			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
 
-			if(GUI.Button(pos, _label, EditorStyles.miniButton))
+			if(GUI.Button(pos, _label, _BTN_STYLE.Value))
 			{
 				fn?.Invoke();
 				GUIUtility.keyboardControl = id;
@@ -115,9 +138,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					fn?.Invoke();
 				}
-				
 			}
-			
 			
 			GUI.enabled = te;
 		}
