@@ -9,6 +9,10 @@ namespace Smidgenomics.Unity.Attributes
 	[Conditional("UNITY_EDITOR")]
 	public sealed class EventFoldoutAttribute : __BaseControl
 	{
+		public EventFoldoutAttribute() : base(false)
+		{
+			
+		}
 	}
 }
 
@@ -19,12 +23,23 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System;
 	using UnityEditor;
 	using UnityEngine;
+	using UnityEngine.Events;
 
 	[CustomPropertyDrawer(typeof(EventFoldoutAttribute))]
 	internal sealed class _EventFoldoutAttribute : __ControlDrawer<EventFoldoutAttribute>
 	{
+		protected override void OnInit()
+		{
+			_isEvent = typeof(UnityEvent).IsAssignableFrom(fieldInfo.FieldType.GetInnermostType());
+		}
+
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
 		{
+			if (!_isEvent)
+			{
+				return EditorGUIUtility.singleLineHeight;
+			}
+
 			var h = _FOLDOUT_STYLE.Value.CalcHeight(GUIContent.none, 100);
 			if (prop.isExpanded)
 			{
@@ -38,6 +53,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
+			if (!_isEvent)
+			{
+				DrawerGUI.MutedInfo(ctx.position, "Field should be event");
+				return;
+			}
+			
 			var property = ctx.property;
 			var position = ctx.position;
 
@@ -74,10 +95,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnLabel(ref Rect pos, GUIContent l)
 		{
-			
+			if (!_isEvent)
+			{
+				base.OnLabel(ref pos, l);
+			}
 		}
 
 		private const float _PAD = 5f;
+		private bool _isEvent;
 
 		private static readonly Lazy<GUIStyle> _FOLDOUT_STYLE = new(() => new GUIStyle(EditorStyles.foldout)
 		{
