@@ -30,7 +30,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override void OnInit()
 		{
-			_isEvent = typeof(UnityEvent).IsAssignableFrom(fieldInfo.FieldType.GetInnermostType());
+			_isEvent = typeof(UnityEventBase).IsAssignableFrom(fieldInfo.FieldType.GetInnermostType());
 		}
 
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
