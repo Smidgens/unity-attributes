@@ -53,7 +53,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return total;
 		}
 
-		protected override void OnLabel(ref Rect pos, GUIContent l) { }
+		protected override void OnLabel(ref Rect pos, SerializedProperty prop, GUIContent l) { }
 
 		protected override void OnField(in DrawContext ctx)
 		{

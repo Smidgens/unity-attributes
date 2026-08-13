@@ -66,7 +66,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(InstancedReferenceAttribute))]
 	internal sealed class _InstancedReferenceAttribute : __ControlDrawer<InstancedReferenceAttribute>
 	{
-		protected override void OnLabel(ref Rect pos, GUIContent l)
+		protected override void OnLabel(ref Rect pos, SerializedProperty prop, GUIContent l)
 		{
 			// base.OnLabel(ref pos, l);
 		}

@@ -93,11 +93,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 		}
 
-		protected override void OnLabel(ref Rect pos, GUIContent l)
+		protected override void OnLabel(ref Rect pos, SerializedProperty prop, GUIContent l)
 		{
 			if (!_isEvent)
 			{
-				base.OnLabel(ref pos, l);
+				base.OnLabel(ref pos, prop, l);
 			}
 		}
 

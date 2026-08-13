@@ -53,7 +53,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			EditorGUI.BeginProperty(pos, l, prop);
 
 			// label
-			OnLabel(ref pos, l);
+			OnLabel(ref pos, prop, l);
 
 			if (!CanDraw(prop, out var err))
 			{
@@ -77,6 +77,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 
 		protected T _Attribute => attribute as T;
+
+		protected int _ExtraIndent => _extraIndent;
 
 		private static readonly Lazy<GUIStyle> _BTN_STYLE = new(() =>
 		{
@@ -121,7 +123,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return result;
 		}
 
-		protected virtual void OnLabel(ref Rect pos, GUIContent l)
+		protected virtual void OnLabel(ref Rect pos, SerializedProperty prop, GUIContent l)
 		{
 			var customLabel = GetCustomLabel();
 
@@ -248,7 +250,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private void DrawActions(ref Rect posx, SerializedProperty prop)
 		{
-			if (_actions.Count == 0)
+			if (_actions ==  null || _actions.Count == 0)
 			{
 				return;
 			}

@@ -35,11 +35,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 
 			EditorGUI.BeginChangeCheck();
+
 			var newColor = EditorGUI.ColorField(pos, HexToColor(prop.stringValue));
 			if (EditorGUI.EndChangeCheck())
 			{
 				prop.stringValue = newColor.ToHexString();
 			}
+
+			if (!GUI.enabled)
+			{
+				EditorGUI.DrawRect(pos, Color.black * 0.4f);
+			}
+
 		}
 
 		private static Color HexToColor(in string hex)
