@@ -39,8 +39,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				return EditorGUIUtility.singleLineHeight;
 			}
-
-			var h = _FOLDOUT_STYLE.Value.CalcHeight(GUIContent.none, 100);
+			var h = DrawerStyles.FoldoutHeight;
 			if (prop.isExpanded)
 			{
 				h += EditorGUIUtility.standardVerticalSpacing;
@@ -69,9 +68,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				ctx.label.text = customLabel;
 			}
 
-			var count = property.FindPropertyRelative("m_PersistentCalls.m_Calls").arraySize;
-			
-			var foldoutHeight = _FOLDOUT_STYLE.Value.CalcHeight(GUIContent.none, 100);
+			var count = property.GetEventListenerCount();
+
+			var foldoutHeight = DrawerStyles.FoldoutHeight;
 			
 			GUI.Box(position, GUIContent.none);
 			GUI.Box(position, GUIContent.none, EditorStyles.helpBox);
@@ -80,19 +79,22 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var foldoutRect = position.SliceTop(foldoutHeight);
 
 			EditorGUI.indentLevel++;
-			property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, ctx.label, true);
+			property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, ctx.label, true, DrawerStyles.Foldout);
 			EditorGUI.indentLevel--;
-			
-			GUI.Label(foldoutRect, count.ToString(), _RIGHT_LABEL_STYLE.Value);
+
+			var tAlignment = DrawerStyles.LabelSM.alignment;
+			DrawerStyles.LabelSM.alignment = TextAnchor.MiddleRight;
+			GUI.Label(foldoutRect, count.ToString(), DrawerStyles.LabelSM);
+			DrawerStyles.LabelSM.alignment = tAlignment;
 
 			if (property.isExpanded)
 			{
 				position.SliceTop(_PAD);
-				DrawerGUI.IndentRect(ref position, 1);
+				position.SliceLeft(DrawerGUI.INDENT_W * 0.5f);
 				EditorGUI.PropertyField(position, property, GUIContent.none);
 			}
 		}
-
+		
 		protected override void OnLabel(ref Rect pos, SerializedProperty prop, GUIContent l)
 		{
 			if (!_isEvent)
@@ -103,16 +105,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private const float _PAD = 5f;
 		private bool _isEvent;
-
-		private static readonly Lazy<GUIStyle> _FOLDOUT_STYLE = new(() => new GUIStyle(EditorStyles.foldout)
-		{
-
-		});
-
-		private static readonly Lazy<GUIStyle> _RIGHT_LABEL_STYLE = new(() => new GUIStyle(EditorStyles.miniLabel)
-		{
-			alignment = TextAnchor.MiddleRight
-		});
 	}
 }
 

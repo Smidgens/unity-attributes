@@ -34,6 +34,7 @@ namespace Smidgenomics.Unity.Attributes
 
 namespace Smidgenomics.Unity.Attributes.Editor
 {
+	using System;
 	using UnityEngine;
 	using UnityEditor;
 
@@ -42,35 +43,29 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override void OnInit()
 		{
-			_style = CreateStyle();
-			_label = new GUIContent(_Attribute.text);
+			_label.text = _Attribute.text;
 		}
 
 		protected override float GetHeight(in float w)
 		{
-			return _style.CalcHeight(_label, w) + 0f;
+			return DrawerStyles.LabelHeightLG;
 		}
 
 		protected override void OnContent(in Rect pos)
 		{
 			GUI.Box(pos, GUIContent.none);
-			_style.alignment = _Attribute.alignment;
-			_style.fontStyle = _Attribute.fontStyle;
-			DrawText(pos, _label, _style, Color.white);
+
+			var s = DrawerStyles.LabelLG;
+			var tAlignment = s.alignment;
+			var tStyle = s.fontStyle;
+			s.alignment = _Attribute.alignment;
+			s.fontStyle = _Attribute.fontStyle;
+			DrawText(pos, _label, s, Color.white);
+			s.alignment = tAlignment;
+			s.fontStyle = tStyle;
 		}
 
-		private GUIContent _label;
-		private GUIStyle _style;
-
-		private static GUIStyle CreateStyle()
-		{
-			return new GUIStyle(EditorStyles.largeLabel)
-			{
-				alignment = TextAnchor.MiddleCenter,
-				padding = new RectOffset(7,7,7,7),
-				wordWrap = true
-			};
-		}
+		private readonly GUIContent _label = new ();
 
 	}
 }

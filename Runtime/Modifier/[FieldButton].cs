@@ -6,47 +6,40 @@ namespace Smidgenomics.Unity.Attributes
 	using System;
 	using Editor;
 
-	public enum EFieldAction
-	{
-		/// <summary>
-		/// Play mode only
-		/// </summary>
-		PlayMode = 1,
-		/// <summary>
-		/// Call method on owning object (script etc.)
-		/// </summary>
-		OuterObject = 2,
-		/// <summary>
-		/// Sensible defaults
-		/// </summary>
-		Default = PlayMode
-	}
-
 	/// <summary>
 	/// Displays action above specific field
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-	public sealed class FieldActionAttribute : __BaseModifier
+	public sealed class FieldButtonAttribute : __BaseModifier
 	{
-		public FieldActionAttribute
+		internal const char OUTER_TOKEN = '~';
+
+		public FieldButtonAttribute
 		(
 			string methodName,
-			EFieldAction flags = EFieldAction.Default,
+			EFieldUsable flags = EFieldUsable.Always,
 			string label = null
 		)
 		{
+			if (methodName.Length >= 2 && methodName.StartsWith(OUTER_TOKEN))
+			{
+				useOuter = true;
+				methodName = methodName.Substring(1);
+			}
+
 			_methodName = methodName;
 			this.label = label;
 			this.flags = flags;
 		}
 
 		internal string label { get; }
-		internal EFieldAction flags { get; }
+		internal EFieldUsable flags { get; }
+		internal bool useOuter { get; }
 
 		internal MethodInfo GetMethod(FieldInfo field)
 		{
 			var type = field.FieldType.GetInnermostType();
-			if (flags.HasFlag(EFieldAction.OuterObject))
+			if (useOuter)
 			{
 				type = field.DeclaringType;
 			}

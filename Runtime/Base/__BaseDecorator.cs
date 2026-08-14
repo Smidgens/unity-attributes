@@ -39,12 +39,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				OnInit();
 				_init = true;
 			}
-			return GetHeight(Screen.width);
+
+			return GetHeight(Screen.width) + _MARGIN;
 		}
+
+		protected static readonly float _MARGIN = EditorGUIUtility.standardVerticalSpacing * 0.5f;
 
 		public sealed override void OnGUI(Rect pos)
 		{
-			// pos.height -= _MARGIN;
+			pos.SliceTop(_MARGIN);
+			pos.height -= _MARGIN;
 			OnContent(pos);
 		}
 
@@ -52,10 +56,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected virtual float GetHeight(in float w) => EditorGUIUtility.singleLineHeight;
 		protected virtual void OnContent(in Rect pos) { }
 
-		protected void DrawText(in Rect pos, GUIContent l, GUIStyle s, in Color c)
+		protected void DrawText(in Rect pos, GUIContent l, GUIStyle s, in Color tintColor)
 		{
 			var tc = GUI.contentColor;
-			GUI.contentColor = c;
+			GUI.contentColor = tintColor;
 			EditorGUI.LabelField(pos, l, s);
 			GUI.contentColor = tc;
 		}

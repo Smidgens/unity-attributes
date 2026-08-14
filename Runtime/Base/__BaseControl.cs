@@ -9,7 +9,7 @@ namespace Smidgenomics.Unity.Attributes
 	{
 		protected __BaseControl(){}
 
-		protected __BaseControl(bool showActions)
+		protected __BaseControl(bool showActions, bool collection = false) : base(collection)
 		{
 			this.showActions = showActions;
 		}
@@ -39,7 +39,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			if(_actions.Count > 0)
 			{
 				var aRows = (_actions.Count / 2) + (_actions.Count % 2);
-				h += _BTN_HEIGHT.Value * aRows;
+				h += DrawerStyles.ButtonHeightSM * aRows;
 				h += EditorGUIUtility.standardVerticalSpacing;
 			}
 
@@ -52,6 +52,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			EditorGUI.BeginProperty(pos, l, prop);
 
+			var tEnabled = GUI.enabled;
+			GUI.enabled &= IsFieldEditable();
+
 			// label
 			OnLabel(ref pos, prop, l);
 
@@ -61,7 +64,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return;
 			}
 			
-			DrawerGUI.IndentRect(ref pos, _extraIndent);
+			DrawerGUI.IndentRect(ref pos, _ExtraIndent);
 
 			pos = EditorGUI.IndentedRect(pos);
 			var ctx = new DrawContext
@@ -70,28 +73,42 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				property = prop,
 				label = l,
 			};
+
 			OnField(ctx);
+			GUI.enabled = tEnabled;
 
 			EditorGUI.EndProperty();
 			
 		}
 
+		private bool IsFieldEditable()
+		{
+			if (_EditFlags == EFieldUsable.Always)
+			{
+				return true;
+			}
+
+			if (Application.isPlaying && _EditFlags.HasFlag(EFieldUsable.Play))
+			{
+				return true;
+			}
+
+			if (!Application.isPlaying && _EditFlags.HasFlag(EFieldUsable.Editor))
+			{
+				return true;
+			}
+			return false;
+		}
+
 		protected T _Attribute => attribute as T;
 
-		protected int _ExtraIndent => _extraIndent;
+		protected int _ExtraIndent { get; private set; }
 
-		private static readonly Lazy<GUIStyle> _BTN_STYLE = new(() =>
-		{
-			return new GUIStyle(EditorStyles.miniButton)
-			{
-				fontSize = (int)(EditorStyles.miniButton.fontSize * 0.9f)
-			};
-		});
+		// absolute type of field
+		protected Type _FieldType => fieldInfo.FieldType.GetInnermostType();
 
-		private static readonly Lazy<float> _BTN_HEIGHT = new (() =>
-		{
-			return _BTN_STYLE.Value.CalcHeight(GUIContent.none, 100);
-		});
+		protected EFieldUsable _EditFlags { get; private set; } = EFieldUsable.Always;
+
 
 		protected struct DrawContext
 		{
@@ -105,6 +122,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return base.GetPropertyHeight(prop, label);
 		}
 
+		private static readonly List<ActionInfo> _EMPTY_ACTIONS = new();
+
+		private bool _init;
+		private List<ActionInfo> _actions;
+		private string _customLabel = string.Empty;
+		
 		private bool CanDraw(SerializedProperty prop, out string err)
 		{
 			var types = GetValidTypes();
@@ -117,7 +140,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				result &= validTypes;
 				if (!validTypes)
 				{
-					err = "Unsupported field type";
+					err = PluginConstants.Msg.INVALID_TYPE;
 				}
 			}
 			return result;
@@ -134,30 +157,22 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			if (customLabel != string.Empty)
 			{
 				l.text = customLabel;
-				// DrawerGUI.PrefixLabel(ref pos, l, fieldInfo);
-				// return;
 			}
 			DrawerGUI.PrefixLabel(ref pos, l, fieldInfo);
 		}
 
 		protected virtual void OnField(in DrawContext ctx)
 		{
-			DrawerGUI.MutedInfo(ctx.position, EConstants.Info.NOT_IMPLEMENTED);
+			DrawerGUI.MutedInfo(ctx.position, PluginConstants.Msg.NOT_IMPLEMENTED);
 		}
 
 		protected virtual EFieldType GetValidTypes() => EFieldType.Any;
 		protected virtual void OnInit() { }
-
 		protected string GetCustomLabel() => _customLabel;
-
-		private bool _init;
-		private List<ActionInfo> _actions;
-		private byte _extraIndent;
-		private string _customLabel = string.Empty;
 
 		private struct ActionInfo
 		{
-			public FieldActionAttribute attribute;
+			public FieldButtonAttribute attribute;
 			public string label;
 			public MethodInfo method;
 
@@ -184,8 +199,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (options != null)
 			{
-				_extraIndent = options.indent;
+				_ExtraIndent = options.indent;
 				_customLabel = options.label;
+				_EditFlags = options.useFlags;
 			}
 
 			_actions = GetFieldActions();
@@ -193,17 +209,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			OnInit();
 		}
 
-		private IEnumerable<MT> GetMods<MT>() where MT : __BaseModifier
+		protected IEnumerable<MT> GetMods<MT>() where MT : __BaseModifier
 		{
 			return fieldInfo.GetCustomAttributes<MT>();
 		}
 
-		private MT GetMod<MT>() where MT : __BaseModifier
+		protected MT GetMod<MT>() where MT : __BaseModifier
 		{
 			return fieldInfo.GetCustomAttribute<MT>();
 		}
-
-		private static readonly List<ActionInfo> _EMPTY_ACTIONS = new();
 
 		private List<ActionInfo> GetFieldActions()
 		{
@@ -220,14 +234,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return _EMPTY_ACTIONS;
 			}
 
-			if (!fieldInfo.IsDefined(typeof(FieldActionAttribute)))
+			if (!fieldInfo.IsDefined(typeof(FieldButtonAttribute)))
 			{
 				return _EMPTY_ACTIONS;
 			}
 			
 			var r = new List<ActionInfo>();
 
-			foreach (var attr in GetMods<FieldActionAttribute>())
+			foreach (var attr in GetMods<FieldButtonAttribute>())
 			{
 				var method = attr.GetMethod(fieldInfo);
 
@@ -266,7 +280,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				if (left)
 				{
-					rowRect = posx.SliceTop(_BTN_HEIGHT.Value);
+					rowRect = posx.SliceTop(DrawerStyles.ButtonHeightSM);
 					btnRect = i < _actions.Count - 1
 					? rowRect.SliceLeft(rowRect.width * 0.5f)
 					: rowRect;
@@ -280,22 +294,20 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				if (a.method == null)
 				{
-					DrawerGUI.MutedInfo(btnRect, "Not found");
+					DrawerGUI.MutedInfo(btnRect, PluginConstants.Msg.NOT_FOUND);
 					continue;
 				}
 
-				var target = a.attribute.flags.HasFlag(EFieldAction.OuterObject)
+				var target = a.attribute.useOuter
 				? prop.serializedObject.targetObject
 				: fieldInfo.GetValue(prop.serializedObject.targetObject);
 
-				bool enabled =
-				target != null
-				&& !(!Application.isPlaying && a.attribute.flags.HasFlag(EFieldAction.PlayMode));
+				bool enabled = target != null && a.attribute.flags.GetUseState();
 				
 				var te = GUI.enabled;
 				GUI.enabled = enabled;
 				
-				if (GUI.Button(btnRect, a.label, _BTN_STYLE.Value))
+				if (GUI.Button(btnRect, a.label, DrawerStyles.ButtonSM))
 				{
 					a.Invoke(target);
 				}

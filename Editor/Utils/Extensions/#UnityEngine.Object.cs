@@ -5,6 +5,7 @@
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEditor;
+	using UnityEngine;
 	using UnityObject = UnityEngine.Object;
 
 	internal static class UnityObject_
@@ -17,6 +18,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			if (!a) { return null; }
 			var path = AssetDatabase.GetAssetPath(a);
 			return !string.IsNullOrEmpty(path) ? AssetDatabase.AssetPathToGUID(path) : null;
+		}
+
+		// check if object ref is actually null
+		public static bool IsMissing(this UnityObject ob)
+		{
+			return ((object)ob) != null && !ob;
 		}
 	}
 }

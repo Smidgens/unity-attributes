@@ -54,7 +54,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		
 		private void BuildScenePopup(in Rect pos, SerializedProperty prop)
 		{
-			var label = EConstants.Label.POPUP_DEFAULT;
+			var label = PluginConstants.Label.POPUP_UNSET;
 
 			var currentValue = GetSceneValue(prop);
 
@@ -84,7 +84,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					allowDuplicateNames = true
 				};
-				m.AddItem(new GUIContent(EConstants.Label.POPUP_DEFAULT), isUnset, () =>
+				m.AddItem(new GUIContent(PluginConstants.Label.POPUP_UNSET), isUnset, () =>
 				{
 					if (prop.IsInt())
 					{

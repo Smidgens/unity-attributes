@@ -29,7 +29,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			if (!prop.IsInt())
 			{
-				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_INT);
+				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_NON_INT);
 				return;
 			}
 

@@ -31,7 +31,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(RendererMaterialIndexAttribute))]
 	internal sealed class _RendererMaterialIndexAttribute : PropertyDrawer
 	{
-		public const string EMPTY_LABEL = EConstants.Label.POPUP_DEFAULT;
+		public const string EMPTY_LABEL = PluginConstants.Label.POPUP_UNSET;
 		public const string NO_RENDERER_MSG = "no renderer";
 		public const string NO_MATERIALS_MSG = "no material slots";
 		public const string NULL_LABEL = "(null)";

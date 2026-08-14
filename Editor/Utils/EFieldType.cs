@@ -12,12 +12,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		None = 0,
 		Int = 1,
-		String = 2,
-		Float = 4,
-		Bool = 8,
-		Object = 16,
-		Color = 32,
-		Enum = 64,
+		Float = 2,
+		Bool = 4,
+		Enum = 8,
+		String = 16,
+		Object = 32, // UnityEngine.Object
+		Color = 64,
+		Primitive = Int|Float|Bool|Enum,
 		Any = ~0
 	}
 }

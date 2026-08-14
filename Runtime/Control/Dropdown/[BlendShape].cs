@@ -38,7 +38,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var rendererProp = prop.serializedObject.FindProperty(rendererField);
 			if (rendererProp == null)
 			{
-				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_INVALID);
+				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_INVALID);
 				return;
 			}
 
@@ -84,7 +84,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				shape.Item2 = prop.stringValue;
 			}
 
-			var label = EConstants.Label.POPUP_DEFAULT;
+			var label = PluginConstants.Label.POPUP_UNSET;
 
 			if(shape.Item2.Length > 0)
 			{
@@ -97,7 +97,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				var isUnset = shape.Item1 < -1;
 
-				m.AddItem(new GUIContent(EConstants.Label.POPUP_DEFAULT), isUnset, () =>
+				m.AddItem(new GUIContent(PluginConstants.Label.POPUP_UNSET), isUnset, () =>
 				{
 					if (prop.IsInt()) { prop.intValue = -1; }
 					else if (prop.IsString()) { prop.stringValue = ""; }

@@ -75,7 +75,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			// type != string
 			if (!prop.IsString())
 			{
-				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_STRING);
+				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_NON_STRING);
 				return;
 			}
 
@@ -84,7 +84,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			DrawPopup(pos, prop, attr);
 		}
 		
-		public const string _EMPTY_LABEL = EConstants.Label.POPUP_DEFAULT;
+		public const string _EMPTY_LABEL = PluginConstants.Label.POPUP_UNSET;
 
 		private static readonly Color _ICON_COLOR = EditorGUIUtility.isProSkin
 		? Color.white * 0.8f

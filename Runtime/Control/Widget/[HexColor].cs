@@ -30,7 +30,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			// valid type?
 			if (prop.propertyType != SerializedPropertyType.String)
 			{
-				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_STRING);
+				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_NON_STRING);
 				return;
 			}
 

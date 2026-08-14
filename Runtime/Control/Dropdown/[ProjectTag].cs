@@ -31,14 +31,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			if (!prop.IsString())
 			{
-				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_STRING);
+				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_NON_STRING);
 				return;
 			}
 			
 			var isEmpty = string.IsNullOrEmpty(prop.stringValue);
 
 			var label = isEmpty
-				? EConstants.Label.POPUP_DEFAULT
+				? PluginConstants.Label.POPUP_UNSET
 				: prop.stringValue;
 
 			if (DrawerGUI.PopupButton(pos, label))
@@ -57,7 +57,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					m.AddItem(new GUIContent(l), prop.stringValue == v, () => setFn.Invoke(v));
 				};
 
-				optionFn.Invoke(EConstants.Label.POPUP_DEFAULT, "");
+				optionFn.Invoke(PluginConstants.Label.POPUP_UNSET, "");
 
 				m.AddSeparator("");
 

@@ -31,7 +31,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			// invalid type
 			if (prop.propertyType != SerializedPropertyType.Integer)
 			{
-				DrawerGUI.MutedInfo(pos, EConstants.Info.FIELD_NON_INT);
+				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_NON_INT);
 				return;
 			}
 

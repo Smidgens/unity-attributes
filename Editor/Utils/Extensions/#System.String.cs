@@ -15,6 +15,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			return Regex.Replace(str, "([A-Z]{1,2}|[0-9]+)", " $1").TrimStart();
 		}
+
+		public static bool IsGUID(this string str)
+		{
+			return
+			!string.IsNullOrEmpty(str)
+			&& Regex.IsMatch(str, "^([a-f]|[0-9]){32}$");
+		}
 	}
 }
 

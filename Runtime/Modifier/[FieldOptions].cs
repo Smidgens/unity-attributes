@@ -13,13 +13,16 @@ namespace Smidgenomics.Unity.Attributes
 		public FieldOptionsAttribute
 		(
 			string label = "",
-			byte indent = 0
+			byte indent = 0,
+			EFieldUsable useFlags = EFieldUsable.Always
 		)
 		{
 			this.label = label;
 			this.indent = indent;
+			this.useFlags = useFlags;
 		}
 
+		internal EFieldUsable useFlags { get; }
 		internal byte indent { get; }
 		internal string label { get; }
 	}

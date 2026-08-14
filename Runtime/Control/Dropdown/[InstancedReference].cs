@@ -18,7 +18,7 @@ namespace Smidgenomics.Unity.Attributes
 
 		public InstancedReferenceAttribute
 		(
-			string emptyLabel = EConstants.Label.POPUP_DEFAULT,
+			string emptyLabel = PluginConstants.Label.POPUP_UNSET,
 			string labelFn = null
 		) : base(true)
 		{
@@ -213,7 +213,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			: fieldInfo.FieldType.GetElementType();
 		}
 
-		private GenericMenu CreateTypeMenu(Type baseType, GenericMenu.MenuFunction2 fn, string defaultLabel = EConstants.Label.POPUP_DEFAULT)
+		private GenericMenu CreateTypeMenu(Type baseType, GenericMenu.MenuFunction2 fn, string defaultLabel = PluginConstants.Label.POPUP_UNSET)
 		{
 			var menu = new GenericMenu();
 

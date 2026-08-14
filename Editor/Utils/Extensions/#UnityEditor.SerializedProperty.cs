@@ -4,7 +4,9 @@
 
 namespace Smidgenomics.Unity.Attributes.Editor
 {
+	using System.Reflection;
 	using UnityEditor;
+	using UnityEngine;
 	using SP = UnityEditor.SerializedProperty;
 
 	/// <summary>
@@ -15,6 +17,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public static bool IsString(this SP p) => p.propertyType == SerializedPropertyType.String;
 		public static bool IsFloat(this SP p) => p.propertyType == SerializedPropertyType.Float;
 		public static bool IsInt(this SP p) => p.propertyType == SerializedPropertyType.Integer;
+		public static bool IsEnum(this SP p) => p.propertyType == SerializedPropertyType.Enum;
 
 		public static bool IsNumeric(this SP p)
 		{
@@ -26,6 +29,50 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public static bool IsRefType<T>(this SP p)
 		{
 			return p.IsRefType(typeof(T).Name);
+		}
+		
+		private static PropertyInfo _refStringProp;
+		
+		public static bool HasMissingReference(this SerializedProperty sp)
+		{
+			
+			if (_refStringProp == null)
+			{
+				_refStringProp = typeof(SerializedProperty)
+				.GetProperty("objectReferenceStringValue", BindingFlags.NonPublic | BindingFlags.Instance);
+			}
+
+			if (_refStringProp == null)
+			{
+#if SM_DEV
+				Debug.Log("SP: Missing ref check broken");
+#endif
+				return false;
+			}
+			
+			var result = (string)_refStringProp.GetValue(sp, null);
+			return result != null && result.StartsWith("Miss");
+		}
+
+		// get sibling of given prop
+		public static SerializedProperty GetSibling(this SerializedProperty prop, string name)
+		{
+			// array item
+			if (prop.propertyPath.EndsWith(']'))
+			{
+				return null;
+			}
+			var fieldName = prop.name;
+			var basePath = prop.propertyPath.Substring(0, prop.propertyPath.Length - fieldName.Length);
+			var togglePath = $"{basePath}{name}";
+			return prop.serializedObject.FindProperty(togglePath);
+		}
+
+		// get listener count for UnityEvent property
+		public static int GetEventListenerCount(this SP p)
+		{
+			var l = p.FindPropertyRelative("m_PersistentCalls.m_Calls");
+			return l?.arraySize ?? 0;
 		}
 
 		public static bool IsRefType(this SP p, string typeName)
