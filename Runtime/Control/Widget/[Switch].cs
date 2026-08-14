@@ -146,6 +146,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var color = DrawerGUI.PickSkin(Color.white * 0.8f, Color.black * 0.5f);
 
+			if (!GUI.enabled)
+			{
+				color *= 0.8f;
+			}
+
 			var focused = id == GUIUtility.keyboardControl;
 			
 			if (focused)
