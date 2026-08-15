@@ -46,23 +46,23 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var pos = p;
 
-			var tCOlor = GUI.backgroundColor;
-			GUI.backgroundColor = DrawerStyles.LabelLink.normal.textColor * 0.7f;
 			GUI.Box(pos, GUIContent.none, EditorStyles.helpBox);
-			GUI.backgroundColor = tCOlor;
-
 			var icoRect = pos.SliceLeft(ICO_W);
 			icoRect.height = icoRect.width;
-			icoRect = icoRect.Resized(-pos.height * 0.2f);
+			icoRect = icoRect.Resized(-pos.height * 0.25f);
 
 			PluginAtlas.DrawIcon(icoRect, EAtlasIcon.Link, DrawerStyles.LabelLink.normal.textColor);
 
-			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
-			if (GUI.Button(pos, string.Empty, GUIStyle.none))
+			var lSize = DrawerStyles.LabelLink.CalcSize(_label);
+
+			var linkRect = new Rect(pos.position, lSize);
+			
+			EditorGUIUtility.AddCursorRect(linkRect, MouseCursor.Link);
+			if (GUI.Button(linkRect, string.Empty, GUIStyle.none))
 			{
 				Application.OpenURL(_Attribute.URL);
 			}
-			DrawText(pos, _label, DrawerStyles.LabelLink, Color.white);
+			GUI.Label(pos, _label, DrawerStyles.LabelLink);
 		}
 
 		protected override void OnInit()

@@ -33,9 +33,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		
 		private static PropertyInfo _refStringProp;
 		
+		public static int CountMissingArrayItemRefs(this SerializedProperty sp)
+		{
+			if (!sp.isArray)
+			{
+				return 0;
+			}
+			int count = 0;
+			for (int i = 0; i < sp.arraySize; i++)
+			{
+				if (sp.GetArrayElementAtIndex(i).HasMissingReference())
+				{
+					count++;
+				}
+			}
+			return count;
+		}
+		
 		public static bool HasMissingReference(this SerializedProperty sp)
 		{
-			
 			if (_refStringProp == null)
 			{
 				_refStringProp = typeof(SerializedProperty)
@@ -49,7 +65,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 #endif
 				return false;
 			}
-			
+			// Note: this is pretty shit, but a simple "is literally null" check
+			// on the object reference field doesn't seem to cut it
 			var result = (string)_refStringProp.GetValue(sp, null);
 			return result != null && result.StartsWith("Miss");
 		}

@@ -35,7 +35,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
 		{
-			var total = Mathf.Max(0f, EditorGUIUtility.standardVerticalSpacing * (_fields.Count - 1));
+			var total = EditorGUIUtility.standardVerticalSpacing * Mathf.Max(0f, (_fields.Count - 1));
 
 			var showLabel = !_Attribute.innerOnly && GetCustomLabel() != null;
 			
@@ -84,8 +84,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var p = ctx.property.FindPropertyRelative(f.Name);
 				var h = EditorGUI.GetPropertyHeight(p);
 				var fRect = pos.SliceTop(h);
-				fRect =	EditorGUI.PrefixLabel(fRect, new GUIContent(p.displayName));
-				EditorGUI.PropertyField(fRect, p, GUIContent.none);
+				
+				// fRect =	EditorGUI.PrefixLabel(fRect, new GUIContent(p.displayName));
+				EditorGUI.PropertyField(fRect, p);
+				// EditorGUI.PropertyField(fRect, p, GUIContent.none);
+				
 				pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 			}
 			EditorGUI.indentLevel -= indent;

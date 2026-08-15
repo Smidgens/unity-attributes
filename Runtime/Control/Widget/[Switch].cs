@@ -102,6 +102,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
+			// var tIndent = EditorGUI.indentLevel;
+			// EditorGUI.indentLevel = 0;
+			
 			if (_isFlags)
 			{
 				DrawFlags(ctx);
@@ -114,6 +117,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				DrawerGUI.MutedInfo(ctx.position, "Field should be enum/bool");
 			}
+			// EditorGUI.indentLevel = tIndent;
 		}
 
 		private bool _isBool;
@@ -136,6 +140,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			// EditorGUI.indentLevel = 0;
 			var label = val ? l1 : l0;
+
+			
 
 			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
 			if (PointerButton(pos))
@@ -178,6 +184,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			GUI.Label(pos, label, s);
 
 			s.normal.textColor = tColor;
+
+			
 
 			// EditorGUI.indentLevel = tIndent;
 			return val;

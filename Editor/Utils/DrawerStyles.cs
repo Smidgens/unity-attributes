@@ -31,6 +31,7 @@ namespace Smidgenomics.Unity.Attributes
 		public static GUIStyle Foldout => _FOLDOUT.Value;
 		public static GUIStyle FoldoutLG => _FOLDOUT_LG.Value;
 		public static GUIStyle ParagraphSM => _PARAGRAPH_SM.Value;
+		public static GUIStyle ParagraphBoldSM => _PARAGRAPH_SM_BOLD.Value;
 
 		// 
 		public static GUIStyle LabelSM => _LABEL_SM.Value;
@@ -75,11 +76,16 @@ namespace Smidgenomics.Unity.Attributes
 			padding = new RectOffset(2,2,2,2)
 		});
 		
+		private static readonly Lazy<GUIStyle> _PARAGRAPH_SM_BOLD = new(() => new GUIStyle(_PARAGRAPH_SM.Value)
+		{
+			fontStyle = FontStyle.Bold
+		});
+		
 		private static readonly Lazy<GUIStyle> _LABEL_LINK = new(() => new GUIStyle(EditorStyles.linkLabel)
 		{
 			fontSize = EditorStyles.miniLabel.fontSize,
 			alignment = TextAnchor.MiddleLeft,
-			padding = new RectOffset(2,4,2,2)
+			padding = new RectOffset(2,2,2,2)
 		});
 
 		private static readonly Lazy<float> _LABEL_LINK_H = new (() => _LABEL_LINK.Value.CalcHeight(GUIContent.none, 50));

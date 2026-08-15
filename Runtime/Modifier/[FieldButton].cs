@@ -5,6 +5,7 @@ namespace Smidgenomics.Unity.Attributes
 	using System.Reflection;
 	using System;
 	using Editor;
+	using UnityEngine;
 
 	/// <summary>
 	/// Displays action above specific field
@@ -13,21 +14,28 @@ namespace Smidgenomics.Unity.Attributes
 	public sealed class FieldButtonAttribute : __BaseModifier
 	{
 		internal const char OUTER_TOKEN = '~';
+		internal const float MIN_W = 0.1f;
 
 		public FieldButtonAttribute
 		(
-			string methodName,
+			string method,
 			EFieldUsable flags = EFieldUsable.Always,
-			string label = null
+			string label = null,
+			float width = 0.5f
 		)
 		{
-			if (methodName.Length >= 2 && methodName.StartsWith(OUTER_TOKEN))
+			if (method.Length >= 2 && method.StartsWith(OUTER_TOKEN))
 			{
 				useOuter = true;
-				methodName = methodName.Substring(1);
+				method = method.Substring(1);
+			}
+			else if (method.Contains(';'))
+			{
+				staticMethod = ReflectionUtils.ParseStaticMethodString(method);
 			}
 
-			_methodName = methodName;
+			this.width = Mathf.Clamp(width, MIN_W, 1f);
+			this.method = method;
 			this.label = label;
 			this.flags = flags;
 		}
@@ -35,15 +43,22 @@ namespace Smidgenomics.Unity.Attributes
 		internal string label { get; }
 		internal EFieldUsable flags { get; }
 		internal bool useOuter { get; }
+		internal MethodInfo staticMethod { get; }
+		internal float width { get; } // button width (0-1)
 
 		internal MethodInfo GetMethod(FieldInfo field)
 		{
+			if (staticMethod != null)
+			{
+				return staticMethod;
+			}
+
 			var type = field.FieldType.GetInnermostType();
 			if (useOuter)
 			{
 				type = field.DeclaringType;
 			}
-			var m = (type!).GetMethod(_methodName, _FLAGS, null, Array.Empty<Type>(), null);
+			var m = (type!).GetMethod(method, _INST_FLAGS, null, Array.Empty<Type>(), null);
 			if (m == null || m.ReturnType != typeof(void))
 			{
 				return null;
@@ -51,9 +66,9 @@ namespace Smidgenomics.Unity.Attributes
 			return m;
 		}
 
-		private string _methodName { get; }
+		private string method { get; }
 
-		private const BindingFlags _FLAGS =
+		private const BindingFlags _INST_FLAGS =
 		BindingFlags.Public
 		| BindingFlags.NonPublic
 		| BindingFlags.Instance;

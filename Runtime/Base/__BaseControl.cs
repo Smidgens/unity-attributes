@@ -38,11 +38,31 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			
 			if(_actions.Count > 0)
 			{
-				var aRows = (_actions.Count / 2) + (_actions.Count % 2);
-				h += DrawerStyles.ButtonHeightSM * aRows;
+				h += GetButtonAreaHeight();
 				h += EditorGUIUtility.standardVerticalSpacing;
 			}
 
+			return h;
+		}
+
+		private float GetButtonAreaHeight()
+		{
+			var h = 0f;
+			var rows = 1;
+			var cWidth = 0f;
+
+			foreach (var a in _actions)
+			{
+				if (cWidth + a.attribute.width > 1.0001f)
+				{
+					rows++;
+					cWidth = 0f;
+				}
+				cWidth += a.attribute.width;
+			}
+
+			h += DrawerStyles.ButtonHeightSM * rows;
+			h += EditorGUIUtility.standardVerticalSpacing;
 			return h;
 		}
 
@@ -64,9 +84,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return;
 			}
 			
-			DrawerGUI.IndentRect(ref pos, _ExtraIndent);
-
-			pos = EditorGUI.IndentedRect(pos);
 			var ctx = new DrawContext
 			{
 				position = pos,
@@ -182,7 +199,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					return;
 				}
-				method.Invoke(target, null);
+
+				if (method.IsStatic)
+				{
+					method.Invoke(null, null);
+				}
+				else
+				{
+					method.Invoke(target, null);
+				}
 			}
 		}
 
@@ -226,7 +251,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return _EMPTY_ACTIONS;
 			}
 
-			var elType = fieldInfo.FieldType.GetInnermostType();
+			var elType = _FieldType;
 
 			// 
 			if (elType.IsPrimitive && !elType.IsStruct())
@@ -269,28 +294,19 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return;
 			}
 
-			Rect rowRect = default;
-			var left = true;
-
-			var i = -1;
+			Rect rowRect = posx.SliceTop(DrawerStyles.ButtonHeightSM);
+			var cWidth = 0f;
 			foreach (var a in _actions)
 			{
-				i++;
-				Rect btnRect;
+				var w = a.attribute.width;
 
-				if (left)
+				if (cWidth + w > 1.0001f)
 				{
 					rowRect = posx.SliceTop(DrawerStyles.ButtonHeightSM);
-					btnRect = i < _actions.Count - 1
-					? rowRect.SliceLeft(rowRect.width * 0.5f)
-					: rowRect;
+					cWidth = 0f;
 				}
-				else
-				{
-					btnRect = rowRect;
-				}
-
-				left = !left;
+				cWidth += w;
+				var btnRect = rowRect.SliceLeft(w * posx.width);
 
 				if (a.method == null)
 				{

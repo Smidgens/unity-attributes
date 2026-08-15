@@ -13,12 +13,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		public const float INDENT_W = 15f;
 
-		public static void DrawTex(in Texture2D tex, in Rect area)
+		public static void DrawTex(Texture tex, in Rect area)
 		{
 			DrawTex(tex, area, new Rect(0,0,1,1), Color.white);
 		}
 
-		public static void DrawTex(in Texture2D tex, in Rect area, in Rect coords, Color color)
+		public static void DrawTex(Texture tex, in Rect area, in Rect coords, Color color)
 		{
 			if (!tex)
 			{
@@ -102,7 +102,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			GUI.Label(pos, msg, EditorStyles.centeredGreyMiniLabel);
 		}
 
-		public static void DragDrop(Rect area, Action<UnityEngine.Object[]> onDrop, Action onMouseUp)
+		public static void DragDrop<T>(Rect area, T arg, Action<T, UnityEngine.Object[]> onDrop, Action onMouseUp)
 		{
 			Event ev = Event.current;
 	
@@ -132,7 +132,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					if (ev.type == EventType.DragPerform)
 					{
 						DragAndDrop.AcceptDrag();
-						onDrop?.Invoke(DragAndDrop.objectReferences);
+						onDrop?.Invoke(arg, DragAndDrop.objectReferences);
 					}
 					Event.current.Use();
 				}

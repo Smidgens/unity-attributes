@@ -5,14 +5,6 @@ namespace Smidgenomics.Unity.Attributes
 	using System;
 	using UnityEngine;
 
-	public enum ECommentType
-	{
-		Generic,
-		Info,
-		Warning,
-		Error
-	}
-
 	/// <summary>
 	/// Draws comment paragraph with customizable colors and background
 	/// </summary>
@@ -21,19 +13,12 @@ namespace Smidgenomics.Unity.Attributes
 	{
 		public CommentAttribute
 		(
-			string text,
-			ECommentType type = ECommentType.Generic,
-			string color = null,
-			string bgColor = null
+			string text
 		)
 		{
 			this.text = text ?? string.Empty;
-			this.color = ParseColor(color, this.color);
-			backgroundColor = ParseColor(bgColor, backgroundColor);
-			this.commentType = type;
 		}
 
-		internal ECommentType commentType { get; }
 		internal string text { get; }
 		internal Color color { get; } = Color.white;
 		internal Color backgroundColor  { get; } = Color.white;
@@ -53,12 +38,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected override float GetHeight(in float w)
 		{
 			var s = DrawerStyles.ParagraphSM;
-			var h = s.CalcHeight(_label, w - ICO_W);
-			return Mathf.Max(h, ICO_W);
+			var h = s.CalcHeight(_label, w - _ICO_W);
+			return Mathf.Max(h, _ICO_W);
 		}
 
-		private static readonly float ICO_W = EditorGUIUtility.singleLineHeight * 1.5f;
-
+		private static readonly float _ICO_W = EditorGUIUtility.singleLineHeight * 1.5f;
+		private static readonly float _ICON_OPACITY = DrawerGUI.PickSkin(1f, 0.75f);
+		
 		protected override void OnInit()
 		{
 			_label = new GUIContent(_Attribute.text);
@@ -68,42 +54,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var s = DrawerStyles.ParagraphSM;
 			var pos = p;
-			var tCOlor = GUI.backgroundColor;
-			GUI.backgroundColor = s.normal.textColor * 0.7f;
+
+			var box = p;
+			box.width -= 2f;
+			box.center = p.center;
+
 			GUI.Box(pos, GUIContent.none, EditorStyles.helpBox);
-			GUI.backgroundColor = tCOlor;
-
-			var tintColor = GetTintColor(_Attribute.commentType);
-			EditorGUI.DrawRect(pos, tintColor * 0.2f);
-
-			var icoRect = pos.SliceLeft(ICO_W);
+			var icoRect = pos.SliceLeft(_ICO_W);
 			icoRect.height = icoRect.width;
-			icoRect = icoRect.Resized(-pos.height * 0.2f);
-
-			PluginAtlas.DrawIcon(icoRect, GetIcon(_Attribute.commentType), s.normal.textColor);
-			DrawText(pos, _label, s, _Attribute.color);
-		}
-
-		private static Color GetTintColor(ECommentType t)
-		{
-			return t switch
-			{
-				ECommentType.Info => Color.cyan,
-				ECommentType.Warning => Color.yellow,
-				ECommentType.Error => Color.red,
-				_ => Color.clear
-			};
-		}
-
-		private static EAtlasIcon GetIcon(ECommentType t)
-		{
-			return t switch
-			{
-				ECommentType.Info => EAtlasIcon.Info,
-				ECommentType.Warning => EAtlasIcon.Warning,
-				ECommentType.Error => EAtlasIcon.Error,
-				_ => EAtlasIcon.Comment,
-			};
+			icoRect = icoRect.Resized(-pos.height * 0.3f);
+			var icoColor = s.normal.textColor.Fade(_ICON_OPACITY);
+			PluginAtlas.DrawIcon(icoRect, EAtlasIcon.Comment, icoColor);
+			GUI.Label(pos, _label, s);
 		}
 		
 		private GUIContent _label;

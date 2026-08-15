@@ -52,6 +52,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				_label = new GUIContent(l);
 			}
 		}
+		
+		protected override (float, float) GetVerticalMargins()
+		{
+			return default;
+		}
 
 		protected override float GetHeight(in float w)
 		{

@@ -94,7 +94,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				var m = GetParameterMenu
 				(
-					animatorProp.objectReferenceValue,
+					animatorProp,
 					_Attribute.types,
 					prop,
 					(name, index) =>
@@ -117,8 +117,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private static readonly Type _TYPE_ANIM = Type.GetType("UnityEngine.Animator, UnityEngine.AnimationModule");
 		private static readonly Type _TYPE_ANIM_PARAM = Type.GetType("UnityEngine.AnimatorControllerParameter, UnityEngine.AnimationModule");
 
-		private static GenericMenu GetParameterMenu(Object animatorRef, EAnimatorParameter types, SerializedProperty prop, System.Action<string, int> setFn)
+		private static GenericMenu GetParameterMenu(SerializedProperty animatorProp, EAnimatorParameter types, SerializedProperty prop, System.Action<string, int> setFn)
 		{
+			Object animatorRef = animatorProp.objectReferenceValue;
 			bool isInt = prop.propertyType == SerializedPropertyType.Integer;
 			bool isDefault = isInt
 			? prop.intValue < 0
@@ -184,8 +185,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static readonly object[] _paramArray = new object[1];
 		
-		private static readonly GUIContent _POPUP_DEFAULT = new ("<none>");
-		private static readonly GUIContent _POPUP_EMPTY = new ("No options");
+		private static readonly GUIContent _POPUP_DEFAULT = new (PluginConstants.Label.POPUP_UNSET);
+		private static readonly GUIContent _POPUP_EMPTY = new (PluginConstants.Label.POPUP_EMPTY);
 
 		private static (GUIContent, string, int, string) GetAnimatorParameterOption(Object animatorRef, int index)
 		{

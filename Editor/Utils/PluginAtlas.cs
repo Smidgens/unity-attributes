@@ -76,10 +76,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				EAtlasIcon.Class => new Rect(0.25f, 0.5f, 0.125f, 0.125f),
 				EAtlasIcon.Link => new Rect(0.5f, 0.25f, 0.25f, 0.25f),
 				//
-				EAtlasIcon.Comment => new Rect(0.75f, 0.25f, 0.25f, 0.25f),
-				EAtlasIcon.Info => new Rect(0.75f, 0.25f, 0.25f, 0.25f),
-				EAtlasIcon.Warning => new Rect(0.75f, 0.25f, 0.25f, 0.25f),
-				EAtlasIcon.Error => new Rect(0.75f, 0.25f, 0.25f, 0.25f),
+				EAtlasIcon.Comment => new Rect(0.75f, 0.25f, 0.125f, 0.125f),
+				EAtlasIcon.Info => new Rect(0.875f, 0.25f, 0.125f, 0.125f),
+				EAtlasIcon.Warning => new Rect(0.75f, 0.375f, 0.125f, 0.125f),
+				EAtlasIcon.Error => new Rect(0.875f, 0.375f, 0.125f, 0.125f),
 				//
 				EAtlasIcon.Folder => new Rect(0.5f, 0.5f, 0.25f, 0.25f),
 				EAtlasIcon.File => new Rect(0.75f, 0.5f, 0.25f, 0.25f),

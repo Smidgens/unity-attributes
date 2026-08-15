@@ -53,14 +53,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnContent(in Rect pos)
 		{
-			GUI.Box(pos, GUIContent.none);
+			GUI.Box(pos, GUIContent.none, EditorStyles.helpBox);
 
 			var s = DrawerStyles.LabelLG;
 			var tAlignment = s.alignment;
 			var tStyle = s.fontStyle;
 			s.alignment = _Attribute.alignment;
 			s.fontStyle = _Attribute.fontStyle;
-			DrawText(pos, _label, s, Color.white);
+			DrawText(pos, _label, s);
 			s.alignment = tAlignment;
 			s.fontStyle = tStyle;
 		}

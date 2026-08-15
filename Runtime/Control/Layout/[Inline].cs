@@ -16,13 +16,11 @@ namespace Smidgenomics.Unity.Attributes
 
 namespace Smidgenomics.Unity.Attributes
 {
-	using System;
 	using UnityEngine;
 
 	/// <summary>
 	/// Set size of specific inlined field
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Field)]
 	public sealed class InlineWidthAttribute : __BaseModifier
 	{
 		public InlineWidthAttribute(float w)
@@ -35,13 +33,22 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		public InlineWidthAttribute(string field, float w) : this(w)
 		{
-			this.fieldName = field;
+			this.field = field;
 		}
 		internal float width { get; }
-		internal string fieldName { get; }
+		internal string field { get; }
 	}
 }
 
+namespace Smidgenomics.Unity.Attributes
+{
+	/// <summary>
+	/// Hide field from being inlined
+	/// </summary>
+	public sealed class InlineHiddenAttribute : __BaseModifier
+	{
+	}
+}
 
 #if UNITY_EDITOR
 
@@ -67,11 +74,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			List<(FieldInfo, float)> fields = new();
 			
-			// loop through 
+			// loop through all potential fields
 			foreach (var f in type.FindInspectorFields<object>())
 			{
+				// skip non inlineable field
+				if (f.IsDefined(typeof(InlineHiddenAttribute)))
+				{
+					continue;
+				}
 				var wAttr = f.GetCustomAttribute<InlineWidthAttribute>();
-
+				
 				if (wAttr == null)
 				{
 					wAttr = GetFieldOverride(f.Name);
@@ -106,7 +118,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return max;
 		}
 
-		private Dictionary<string, InlineWidthAttribute> _outerFieldOverrides = null;
+		private Dictionary<string, InlineWidthAttribute> _outerFieldOverrides;
 
 		private InlineWidthAttribute GetFieldOverride(string name)
 		{
@@ -116,9 +128,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				foreach (var attr in fieldInfo.GetCustomAttributes<InlineWidthAttribute>())
 				{
-					if (!string.IsNullOrEmpty(attr.fieldName))
+					if (!string.IsNullOrEmpty(attr.field))
 					{
-						_outerFieldOverrides[attr.fieldName] = attr;
+						_outerFieldOverrides[attr.field] = attr;
 					}
 				}
 			}

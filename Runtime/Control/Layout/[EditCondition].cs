@@ -1,8 +1,5 @@
 // smidgens @ github
 
-// ReSharper disable PossibleNullReferenceException
-// ReSharper disable ReplaceSubstringWithRangeIndexer
-
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
@@ -10,13 +7,11 @@ namespace Smidgenomics.Unity.Attributes
 
 	public sealed class EditConditionAttribute : __BaseControl
 	{
-		internal string expression { get; }
 		internal bool hide { get; }
 		internal (bool, string, string, string) parsed { get; }
 
 		public EditConditionAttribute(string expression, bool hide = true)
 		{
-			this.expression = expression.Replace(" ", "");
 			this.hide = hide;
 			parsed = EParse.ParseExpression(expression.Replace(" ", ""));
 		}
@@ -123,8 +118,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var pos = ctx.position;
 			var prop = ctx.property;
-			var l = ctx.label;
-			
+
 			if (pos.height == 0)
 			{
 				return;
@@ -174,7 +168,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (!_otherField.Item2)
 			{
-				_otherField = (fieldInfo.DeclaringType.GetField(lProp.name, bFlags), true);
+				_otherField = (fieldInfo.DeclaringType!.GetField(lProp.name, bFlags), true);
 			}
 
 			if (_otherField.Item1 == null)

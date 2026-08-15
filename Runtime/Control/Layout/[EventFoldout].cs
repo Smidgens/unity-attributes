@@ -2,11 +2,6 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
-	using System;
-	using System.Diagnostics;
-
-	[AttributeUsage(AttributeTargets.Field)]
-	[Conditional("UNITY_EDITOR")]
 	public sealed class EventFoldoutAttribute : __BaseControl
 	{
 		public EventFoldoutAttribute() : base(false)
@@ -20,7 +15,6 @@ namespace Smidgenomics.Unity.Attributes
 
 namespace Smidgenomics.Unity.Attributes.Editor
 {
-	using System;
 	using UnityEditor;
 	using UnityEngine;
 	using UnityEngine.Events;
