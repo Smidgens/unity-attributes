@@ -107,6 +107,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				: 0f;
 				var padHeight = _FOLDOUT_PAD * 2f;
 				h += labelHeight + lHeight + padHeight;
+
+				h += EditorStyles.helpBox.padding.top;
+				h += EditorStyles.helpBox.padding.bottom;
+
 			}
 			else
 			{
@@ -128,8 +132,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			if (CheckFlag(EReorderable.Foldable))
 			{
 				GUI.Box(position, GUIContent.none, EditorStyles.helpBox);
-				GUI.Box(position, GUIContent.none);
-				var inner = position.Resized(-_FOLDOUT_PAD);
+				
+				// GUI.Box(position, GUIContent.none);
+				// var inner = position.Resized(-_FOLDOUT_PAD);
+				var inner = position.Padded(EditorStyles.helpBox.padding);
 
 				var labelHeight = DrawerStyles.FoldoutHeight;
 				var foldoutBox = inner.SliceTop(labelHeight);
@@ -155,7 +161,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				if (property.isExpanded)
 				{
 					inner.SliceTop(_FOLDOUT_SPACING);
-					inner.SliceLeft(_FOLDOUT_PAD);
+					// inner.SliceLeft(_FOLDOUT_PAD);
 					var bgRect = inner;
 					bgRect.height -= GetList(property).footerHeight;
 					GUI.Box(bgRect, GUIContent.none);
@@ -180,7 +186,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private static readonly float _PAD_LIST_BOTTOM = EditorGUIUtility.standardVerticalSpacing * 1f;
 		private static readonly float _PAD_ITEM_TOP = EditorGUIUtility.standardVerticalSpacing * 0.5f;
 		private static readonly float _PAD_ITEM_BOTTOM = EditorGUIUtility.standardVerticalSpacing * 0.5f;
-		private static readonly float _FOLDOUT_PAD = EditorGUIUtility.standardVerticalSpacing * 2f;
+		private static readonly float _FOLDOUT_PAD = 0f;
 		private static readonly float _FOLDOUT_SPACING = EditorGUIUtility.standardVerticalSpacing * 2f;
 
 		private static readonly Lazy<GUIStyle> _SIZE_BOX_STYLE = new(() => new GUIStyle(EditorStyles.numberField)
