@@ -35,16 +35,25 @@ namespace Smidgenomics.Unity.Attributes
 
 			pTypes ??= Array.Empty<Type>();
 
-			var m = type.GetMethod(methodName, _FLAGS, null, pTypes, null);
+			var m = type.GetMethod(methodName, _BF_STATIC, null, pTypes, null);
 
-			if (m == null || m.ReturnType != returnType)
+			if (m == null || !returnType.IsAssignableFrom(m.ReturnType))
 			{
 				return null;
 			}
 			return m;
 		}
-		
+
 		private static (Assembly, Type[])[] _cachedTypes;
+		
+		//
+		private const BindingFlags _BF_INSTANCE
+		= BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+		
+		private const BindingFlags _BF_STATIC =
+		BindingFlags.Public
+		| BindingFlags.NonPublic
+		| BindingFlags.Static;
 		
 		public static (Assembly, Type[])[] GetAllAssemblyTypes()
 		{
@@ -74,10 +83,6 @@ namespace Smidgenomics.Unity.Attributes
 			}
 			return _cachedTypes;
 		}
-
-		private const BindingFlags _FLAGS =
-		BindingFlags.Public
-		| BindingFlags.NonPublic
-		| BindingFlags.Static;
+		
 	}
 }

@@ -3,102 +3,30 @@
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
-	using UnityEngine;
-	using System.Collections.Generic;
-	using System.Runtime.InteropServices;
-	using Editor;
 
-	public sealed class DropdownLabelsAttribute : __BaseModifier
-	{
-		public DropdownLabelsAttribute(params string[] labels)
-		{
-			this.labels = (labels ?? Array.Empty<string>()).ToGUIContent();
-		}
-
-		internal GUIContent[] labels { get; }
-	}
-
+	/// <summary>
+	/// Displays list of values in dropdown
+	/// </summary>
 	public sealed class DropdownAttribute : __BaseControl
 	{
 		public DropdownAttribute()
 		{
-			values = new List<(GUIContent,Type,DropdownValue)>();
+			boxedValues = Array.Empty<object>();
 		}
 	
-		public DropdownAttribute(params int[] values)
+		public DropdownAttribute(string optionFn)
 		{
-			this.values = GetOptions(values, s => new DropdownValue
-			{
-				intValue = s
-			});
+			this.optionFn = optionFn;
+			boxedValues = Array.Empty<object>();
 		}
 
-		public DropdownAttribute(params float[] values)
+		public DropdownAttribute(params object[] boxedValues)
 		{
-			this.values = GetOptions(values, v => new DropdownValue
-			{
-				floatValue = v
-			});
+			this.boxedValues = boxedValues ?? Array.Empty<object>();
 		}
 
-		// generic fallback variant - TBD
-		internal DropdownAttribute(params object[] values)
-		{
-			
-		}
-
-		public DropdownAttribute(params string[] values)
-		{
-			this.values = GetOptions(values, s => new DropdownValue
-			{
-				stringRef = s
-			});
-		}
-
-		public DropdownAttribute(params Type[] values)
-		{
-			this.values = GetOptions(values, t => new DropdownValue
-			{
-				stringRef = t.AssemblyQualifiedName
-			});
-		}
-
-		internal IReadOnlyList<(GUIContent,Type,DropdownValue)> values { get; }
-
-		internal Type GetOptionType()
-		{
-			if (values.Count == 0)
-			{
-				return null;
-			}
-			return values[0].Item2;
-		}
-
-		[StructLayout(LayoutKind.Explicit)]
-		internal struct DropdownValue
-		{
-			[FieldOffset(0)] public string stringRef;
-			[FieldOffset(0)] public int intValue;
-			[FieldOffset(0)] public bool boolValue;
-			[FieldOffset(0)] public float floatValue;
-		}
-
-		private static IReadOnlyList<(GUIContent,Type,DropdownValue)> GetOptions<T>(T[] values, Func<T,DropdownValue> vFn, Func<T,string> lFn = null)
-		{
-			var l = new List<(GUIContent, Type, DropdownValue)>();
-
-			if (values == null)
-			{
-				return l;
-			}
-			foreach (var v in values)
-			{
-				var label = lFn != null ? lFn.Invoke(v) : v.ToString();
-				var val = vFn?.Invoke(v) ?? default;
-				l.Add((new GUIContent(label), typeof(T), val));
-			}
-			return l;
-		}
+		internal object[] boxedValues { get; }
+		internal string optionFn { get; }
 		
 	}
 }
@@ -114,19 +42,45 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System.Reflection;
 	using UnityEngine;
 
-	// TBD: refactor using SerializedProperty.boxedValue
 	[CustomPropertyDrawer(typeof(DropdownAttribute))]
 	internal sealed class _DropdownAttribute : __ControlDrawer<DropdownAttribute>
 	{
-		protected override EFieldType GetValidTypes()
-		=> EFieldType.Primitive|EFieldType.String|EFieldType.Color| EFieldType.Object;
-
 		protected override void OnInit()
 		{
-			var labelAttr = GetMod<DropdownLabelsAttribute>();
-			if (labelAttr != null)
+			var optValueType = _FieldType;
+
+			if (typeof(UnityEngine.Object).IsAssignableFrom(_FieldType))
 			{
-				_labels = labelAttr.labels;
+				optValueType = typeof(string);
+			}
+			_optionFn = GetStaticOptionEnumerator(_Attribute.optionFn, optValueType);
+
+			if (_optionFn.Item1 != null)
+			{
+				foreach (var it in _optionFn.Item1.Invoke())
+				{
+					var key = _optionFn.Item2.GetValue(it);
+					var val = _optionFn.Item3.GetValue(it);
+					_options.Add((new GUIContent((string)key), val));
+				}
+			}
+
+			foreach (var boxedValue in _Attribute.boxedValues)
+			{
+				if (boxedValue.GetType() != optValueType)
+				{
+					continue;
+				}
+				_options.Add((new GUIContent(boxedValue.ToString()), boxedValue));
+			}
+			
+			if (_FieldType == typeof(bool))
+			{
+				if (_Attribute.boxedValues.Length == 0 && _options.Count == 0)
+				{
+					_options.Add((new GUIContent("False"), false));
+					_options.Add((new GUIContent("True"), true));
+				}
 			}
 		}
 
@@ -134,32 +88,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var prop = ctx.property;
 			var attr = _Attribute;
-			if (_FieldType == typeof(bool))
-			{
-				if (_boolOptions == null)
-				{
-					if (attr.GetOptionType() == typeof(string) && _labels.Length >= 2)
-					{
-						_boolOptions = new()
-						{
-							(new GUIContent(_labels[0]), typeof(bool), new DropdownAttribute.DropdownValue { boolValue = false }),
-							(new GUIContent(_labels[1]), typeof(bool), new DropdownAttribute.DropdownValue { boolValue = true }),
-						};
-					}
-					else
-					{
-						_boolOptions = _defaultBoolOptions;
-					}
-				}
-			}
-
-			var currentValStr = GetCurrentValueLabel(ctx.property, attr.GetOptionType());
+			var currentValStr = GetCurrentValueLabel(ctx.property);
 			var pos = ctx.position;
 
-
-			bool hasPreview =
-			prop.propertyType == SerializedPropertyType.Color
-			|| prop.propertyType == SerializedPropertyType.ObjectReference;
+			var hasPreview = prop.propertyType
+			is SerializedPropertyType.Color
+			or SerializedPropertyType.ObjectReference;
 
 			Rect previewRect = new();
 
@@ -170,7 +104,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			
 			if (DrawerGUI.PopupButton(pos, currentValStr))
 			{
-				GetMenu(ctx.property, currentValStr, attr)
+				GetMenu(ctx.property, attr)
 				.DropDown(ctx.position);
 			}
 
@@ -190,6 +124,20 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				DrawAssetThumbnail(pos.Resized(-pos.height * 0.1f), prop.objectReferenceValue);
 			}
+		}
+
+		private readonly List<(GUIContent, object)> _options = new();
+
+		private GUIContent FindValueLabel(object o)
+		{
+			foreach (var (label, value) in _options)
+			{
+				if (value.GetHashCode() == o.GetHashCode())
+				{
+					return label;
+				}
+			}
+			return null;
 		}
 
 		private static void DrawAssetThumbnail(Rect pos, UnityEngine.Object o)
@@ -213,41 +161,85 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				EditorGUIUtility.PingObject(o);
 			}
 		}
+		
+		
+		private const BindingFlags _BF_INSTANCE
+		= BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-		private static List<string> LoadAssetOptions(DropdownAttribute attr, Type fieldType)
+		private delegate System.Collections.IEnumerable OptionFn();
+		private (OptionFn, FieldInfo, FieldInfo) _optionFn;
+
+		private static (OptionFn, FieldInfo, FieldInfo) GetStaticOptionEnumerator(string name, Type valueType)
 		{
-			List<string> paths = new();
+			var m = ReflectionUtils.ParseStaticMethodString(name, typeof(System.Collections.IEnumerable));
 
-			if (attr.GetOptionType() != typeof(string))
+			if (m == null)
 			{
-				return paths;
+				return default;
+			}
+			var rType = m.ReturnType;
+			var genericListArgs = rType.GenericTypeArguments;
+			if (genericListArgs.Length != 1)
+			{
+				return default;
+			}
+
+			var itemType = genericListArgs[0]; // should be tuple (string,<valueType>)
+			var itemKeyType = itemType.GenericTypeArguments[0];
+			var itemValueType = itemType.GenericTypeArguments[1];
+
+			if (itemValueType != valueType || itemKeyType != typeof(string))
+			{
+				return default;
+			}
+
+			var fItem1 = itemType.GetField("Item1", _BF_INSTANCE)!;
+			var fItem2 = itemType.GetField("Item2", _BF_INSTANCE)!;
+
+			if (fItem1 == null || fItem2 == null)
+			{
+				return default;
+			}
+			var del = (OptionFn)m.CreateDelegate(typeof(OptionFn));
+			return (del, fItem1, fItem2);
+		}
+
+		private List<(GUIContent, string)> LoadAssetOptions(DropdownAttribute attr, Type fieldType)
+		{
+			List<(GUIContent, string)> paths = new();
+			List<string> values = new();
+
+			foreach (var option in _options)
+			{
+				values.Add((string)option.Item2);
 			}
 
 			var folderPaths = new List<string>();
 
-			foreach (var (_, _, value) in attr.values)
+			foreach (var value in values)
 			{
-				if (value.stringRef.IsGUID())
+				if (value.IsGUID())
 				{
-					var path = AssetDatabase.GUIDToAssetPath(value.stringRef);
+					var path = AssetDatabase.GUIDToAssetPath(value);
 					var aType = AssetDatabase.GetMainAssetTypeAtPath(path);
 					if (aType == fieldType)
 					{
-						paths.Add(path);
+						paths.Add((new GUIContent(GetPathLabel(path)), path));
 					}
 					continue;
 				}
-				folderPaths.Add(value.stringRef);
+				folderPaths.Add(value);
 			}
 
 			foreach (var aGUID in AssetDatabase.FindAssets($"t:{fieldType.Name}", folderPaths.ToArray()))
 			{
-				paths.Add(AssetDatabase.GUIDToAssetPath(aGUID));
+				var path = AssetDatabase.GUIDToAssetPath(aGUID);
+				paths.Add((new GUIContent(GetPathLabel(path)), path));
 			}
 
 			return paths;
 		}
-		private string GetCurrentValueLabel(SerializedProperty prop, Type oType)
+		private string GetCurrentValueLabel(SerializedProperty prop)
 		{
 			if (prop.propertyType == SerializedPropertyType.ObjectReference)
 			{
@@ -263,113 +255,36 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				return $"#{ColorUtility.ToHtmlStringRGBA(prop.colorValue).ToLower()}";
 			}
-
 			if (prop.IsString())
 			{
 				if (string.IsNullOrEmpty(prop.stringValue))
 				{
 					return PluginConstants.Label.POPUP_UNSET;
 				}
-				if (oType == typeof(Type))
-				{
-					var type = Type.GetType(prop.stringValue);
-					return type?.FullName ?? PluginConstants.Label.MISSING;
-				}
-				return prop.stringValue;
+				return FindValueLabel(prop.stringValue)?.text ?? prop.stringValue;
 			}
 
-			if (prop.IsInt())
-			{
-				return prop.intValue.ToString();
-			}
-
-			if (prop.IsFloat())
-			{
-				return prop.floatValue.ToString(CultureInfo.InvariantCulture);
-			}
-
-			if (prop.IsBool())
-			{
-				return _boolOptions[prop.boolValue ? 1 : 0].Item1.text;
-			}
-			return PluginConstants.Label.POPUP_UNSET;
+			var lb = FindValueLabel(prop.boxedValue);
+			return lb != null ? lb.text : prop.boxedValue.ToString();
+			
 		}
 
-		private static void SetValue(SerializedProperty prop, Type oType, in DropdownAttribute.DropdownValue value)
+		private static string GetPathLabel(string path)
 		{
-			if (prop.IsColor())
-			{
-				if (oType == typeof(string))
-				{
-					if (ColorUtility.TryParseHtmlString(value.stringRef, out var color))
-					{
-						prop.colorValue = color;
-					}
-				}
-			}
-
-			if (prop.IsString())
-			{
-				if(oType == typeof(Type) || oType == typeof(string))
-				{
-					prop.stringValue = value.stringRef;
-				}
-			}
-
-			if (prop.IsFloat())
-			{
-				if (oType == typeof(int))
-				{
-					prop.floatValue = value.intValue;
-				}
-				else if (oType == typeof(float))
-				{
-					prop.floatValue = value.floatValue;
-				}
-			}
-
-			if (prop.IsInt())
-			{
-				if (oType == typeof(int))
-				{
-					prop.intValue = value.intValue;
-				}
-				else if (oType == typeof(float))
-				{
-					prop.intValue = (int)value.floatValue;
-				}
-			}
-
-			if (prop.IsBool())
-			{
-				prop.boolValue = value.boolValue;
-			}
+			var dotIndex = path.LastIndexOf('.');
+			var nIndex = path.LastIndexOf('/') + 1;
+			var len = dotIndex - nIndex;
+			return path.Substring(nIndex, len);
 		}
 
-		private GUIContent[] _labels = Array.Empty<GUIContent>();
-
-		private readonly List<(GUIContent, Type, DropdownAttribute.DropdownValue)> _defaultBoolOptions = new()
-		{
-			(new GUIContent("false"), typeof(bool), new DropdownAttribute.DropdownValue { boolValue = false}),
-			(new GUIContent("true"), typeof(bool), new DropdownAttribute.DropdownValue { boolValue = true}),
-		};
-
-		private List<(GUIContent, Type, DropdownAttribute.DropdownValue)> _boolOptions;
-
-		private GenericMenu GetMenu(SerializedProperty p, string currentLabel, DropdownAttribute attr)
+		private GenericMenu GetMenu(SerializedProperty p, DropdownAttribute attr)
 		{
 			var m = new GenericMenu
 			{
 				allowDuplicateNames = true
 			};
 
-			var values = attr.values;
-
-			if (_FieldType == typeof(bool))
-			{
-				values = _boolOptions;
-			}
-			else if (p.propertyType == SerializedPropertyType.ObjectReference)
+			if (p.propertyType == SerializedPropertyType.ObjectReference)
 			{
 				var currentAssetPath = p.objectReferenceValue
 				? AssetDatabase.GetAssetPath(p.objectReferenceValue)
@@ -385,37 +300,27 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				
 				m.AddSeparator(string.Empty);
 
-				foreach (var path in LoadAssetOptions(attr, _FieldType))
+				foreach (var (label, path) in LoadAssetOptions(attr, _FieldType))
 				{
-					var aPath = path;
-					var dotIndex = path.LastIndexOf('.');
-					var nIndex = path.LastIndexOf('/') + 1;
-					var len = dotIndex - nIndex;
-					var label = path.Substring(nIndex, len);
-					m.AddItem(new GUIContent(label), aPath == currentAssetPath, () =>
+					m.AddItem(new GUIContent(label), path == currentAssetPath, () =>
 					{
-						p.objectReferenceValue = AssetDatabase.LoadAssetAtPath(aPath, this._FieldType);
+						p.objectReferenceValue = AssetDatabase.LoadAssetAtPath(path, this._FieldType);
 						p.serializedObject.ApplyModifiedProperties();
 					});
 				}
-
 				if (m.GetItemCount() == 2)
 				{
 					m.AddDisabledItem(new GUIContent(PluginConstants.Label.POPUP_EMPTY));
 				}
-				
 				return m;
 			}
 
-			int i = -1;
-			foreach (var (label, type, value) in values)
+			foreach (var (label, val) in _options)
 			{
-				i++;
-				var v = value;
-				var l = i < _labels.Length - 1 ? _labels[i] : label;
-				m.AddItem(l, currentLabel == label.text, () =>
+				var active = val.GetHashCode() == p.boxedValue?.GetHashCode();
+				m.AddItem(label, active, () =>
 				{
-					SetValue(p, type, v);
+					p.boxedValue = val;
 					p.serializedObject.ApplyModifiedProperties();
 				});
 			}
