@@ -90,7 +90,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 
 			var typeRect = pos.SliceTop(EditorGUIUtility.singleLineHeight);
-			pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
+			// pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 
 			if(l != GUIContent.none && !isArray)
 			{
@@ -110,18 +110,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					DrawerGUI.IndentRect(ref pos, 1);
 				}
 
-				var i = -1;
 				foreach (var field in _fields)
 				{
-					i++;
+					pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 					var fProp = prop.serializedObject.FindProperty(prop.propertyPath + "." + field.Name);
 					var pHeight = EditorGUI.GetPropertyHeight(fProp);
 					var fRect = pos.SliceTop(pHeight);
 					EditorGUI.PropertyField(fRect, fProp);
-					if (i < _fields.Count - 1)
-					{
-						pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
-					}
+					
 				}
 
 			}
@@ -132,7 +128,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
 		{
-			var totalHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+			// dropdown row
+			var totalHeight = EditorGUIUtility.singleLineHeight;
 
 			if (_lastType != prop.managedReferenceValue?.GetType())
 			{
@@ -158,7 +155,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 
 			totalHeight += (Mathf.Max(_fields.Count - 1, 0f)) * EditorGUIUtility.standardVerticalSpacing;
-			
+
 			return totalHeight;
 		}
 

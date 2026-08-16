@@ -25,6 +25,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			return ((object)ob) != null && !ob;
 		}
+		
+		public static bool IsPrefabInstance(this UnityEngine.Object o)
+		{
+			return PrefabUtility.GetPrefabInstanceStatus(o) != PrefabInstanceStatus.NotAPrefab;
+		}
 	}
 }
 

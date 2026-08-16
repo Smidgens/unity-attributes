@@ -158,7 +158,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 
 			// note: cache if prop exists
-			var lProp = currentProp.GetSibling(lhs.Substring(lhsIndex));
+			var lProp = currentProp.FindSibling(lhs.Substring(lhsIndex));
 			if (lProp == null)
 			{
 				return false;

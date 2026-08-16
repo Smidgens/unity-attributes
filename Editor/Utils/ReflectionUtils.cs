@@ -5,7 +5,9 @@
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
+	using System.Collections.Generic;
 	using System.Reflection;
+	using Editor;
 
 	internal static class ReflectionUtils
 	{
@@ -40,6 +42,37 @@ namespace Smidgenomics.Unity.Attributes
 				return null;
 			}
 			return m;
+		}
+		
+		private static (Assembly, Type[])[] _cachedTypes;
+		
+		public static (Assembly, Type[])[] GetAllAssemblyTypes()
+		{
+			if(_cachedTypes == null)
+			{
+				List<(Assembly, Type[])> filteredAssemblies = new();
+
+				foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+				{
+					if (!a.IsUserRelevant())
+					{
+						continue;
+					}
+					var types = a.GetTypes();
+					if (types.Length == 0)
+					{
+						continue;
+					}
+					filteredAssemblies.Add((a, types));
+				}
+				_cachedTypes = new (Assembly, Type[])[filteredAssemblies.Count];
+
+				for (var i = 0; i < filteredAssemblies.Count; i++)
+				{
+					_cachedTypes[i] = (filteredAssemblies[i].Item1, filteredAssemblies[i].Item2);
+				}
+			}
+			return _cachedTypes;
 		}
 
 		private const BindingFlags _FLAGS =

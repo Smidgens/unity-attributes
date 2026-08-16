@@ -63,6 +63,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return PopupButton(pos, _dummyLabel);
 		}
 
+		public static bool PointerButton(in Rect pos)
+		{
+			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
+			return GUI.Button(pos, GUIContent.none, GUIStyle.none);
+		}
+
 		public static void IndentRect(ref Rect r, int indentLevel)
 		{
 			r.SliceLeft(INDENT_W * indentLevel);

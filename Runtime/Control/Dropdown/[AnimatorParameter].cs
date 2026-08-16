@@ -53,7 +53,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return;
 			}
 
-			var animatorProp = prop.serializedObject.FindProperty(animatorFieldPath);
+			SerializedProperty animatorProp;
+
+			// absolute path from root object
+			if (animatorFieldPath.StartsWith('~'))
+			{
+				animatorProp = prop.serializedObject.FindProperty(animatorFieldPath.Substring(1));
+			}
+			else
+			{
+				animatorProp = prop.FindSibling(animatorFieldPath);
+			}
+
 			if (animatorProp == null)
 			{
 				DrawerGUI.MutedInfo(pos, "Invalid field type");

@@ -2,6 +2,7 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
+	using System;
 	using UnityEngine;
 
 	/// <summary>
@@ -11,16 +12,19 @@ namespace Smidgenomics.Unity.Attributes
 	{
 		public LinkAttribute(string text, string url)
 		{
-			// order = -0;
-			URL = url ?? string.Empty;
+			this.url = url;
 			this.text = text;
 		}
 
-		public LinkAttribute(string url) : this(url,url)
+		public LinkAttribute(string url)
 		{
+			// order = -0;
+			this.url = url ?? string.Empty;
+			var uri = new Uri(this.url);
+			this.text = uri.Host.Replace("www.", "");
 		}
 
-		internal string URL { get; }
+		internal string url { get; }
 		internal string text { get; }
 	}
 }
@@ -51,7 +55,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			icoRect.height = icoRect.width;
 			icoRect = icoRect.Resized(-pos.height * 0.25f);
 
-			PluginAtlas.DrawIcon(icoRect, EAtlasIcon.Link, DrawerStyles.LabelLink.normal.textColor);
+			PluginAtlas.DrawIcon(icoRect, EAtlasIcon.LinkExternal, DrawerStyles.LabelLink.normal.textColor);
 
 			var lSize = DrawerStyles.LabelLink.CalcSize(_label);
 
@@ -60,14 +64,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			EditorGUIUtility.AddCursorRect(linkRect, MouseCursor.Link);
 			if (GUI.Button(linkRect, string.Empty, GUIStyle.none))
 			{
-				Application.OpenURL(_Attribute.URL);
+				Application.OpenURL(_Attribute.url);
 			}
 			GUI.Label(pos, _label, DrawerStyles.LabelLink);
 		}
 
 		protected override void OnInit()
 		{
-			_label = new GUIContent(_Attribute.text, _Attribute.URL);
+			_label = new GUIContent(_Attribute.text, _Attribute.url);
 		}
 
 		private GUIContent _label;

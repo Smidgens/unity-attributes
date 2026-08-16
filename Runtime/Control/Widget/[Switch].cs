@@ -102,9 +102,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
-			// var tIndent = EditorGUI.indentLevel;
-			// EditorGUI.indentLevel = 0;
-			
 			if (_isFlags)
 			{
 				DrawFlags(ctx);
@@ -117,7 +114,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				DrawerGUI.MutedInfo(ctx.position, "Field should be enum/bool");
 			}
-			// EditorGUI.indentLevel = tIndent;
 		}
 
 		private bool _isBool;
@@ -130,21 +126,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			prop.boolValue = DrawSwitch(ctx.position, prop.boolValue, _Attribute.label0, _Attribute.label1);
 		}
 
-		private static bool PointerButton(in Rect pos)
-		{
-			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
-			return GUI.Button(pos, GUIContent.none, GUIStyle.none);
-		}
-
 		private static bool DrawSwitch(Rect pos, bool val, in string l0, in string l1)
 		{
-			// EditorGUI.indentLevel = 0;
 			var label = val ? l1 : l0;
 
-			
-
 			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
-			if (PointerButton(pos))
+			if (DrawerGUI.PointerButton(pos))
 			{
 				GUIUtility.keyboardControl = id;
 				val = !val;
@@ -172,25 +159,26 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var icoRect = pos.SliceLeft(pos.height * 2);
 			var ico = val ? EAtlasIcon.SwitchOn : EAtlasIcon.SwitchOff;
 			PluginAtlas.DrawIcon(icoRect, ico, color);
-			var s = val ? EditorStyles.boldLabel : EditorStyles.label;
-
-			var tColor = s.normal.textColor;
-
+			var s = DrawerStyles.LabelSM;
+			var tColorText = s.normal.textColor;
+			var tColor = GUI.color;
+			
 			if (focused)
 			{
 				s.normal.textColor = color;
 			}
 
+			if (!focused && !val)
+			{
+				GUI.color *= 0.9f;
+			}
+
 			GUI.Label(pos, label, s);
 
-			s.normal.textColor = tColor;
-
-			
-
-			// EditorGUI.indentLevel = tIndent;
+			GUI.color = tColor;
+			s.normal.textColor = tColorText;
 			return val;
 		}
-		
 
 		private void DrawFlags(in DrawContext ctx)
 		{

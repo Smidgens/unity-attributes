@@ -37,6 +37,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return newRect;
 		}
 
+		public static Rect Padded(this Rect r, RectOffset ro)
+		{
+			var center = r.center;
+			r.height -= ro.bottom + ro.top;
+			r.width -= ro.left + ro.right;
+			r.center = center;
+			return r;
+		}
+
 		public static Rect SliceBottom(this ref Rect r, in float h)
 		{
 			var r2 = r;

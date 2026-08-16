@@ -4,6 +4,7 @@
 
 namespace Smidgenomics.Unity.Attributes.Editor
 {
+	using System.Collections.Generic;
 	using System.Reflection;
 	using UnityEditor;
 	using UnityEngine;
@@ -25,6 +26,21 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 		public static bool IsBool(this SP p) => p.propertyType == SerializedPropertyType.Boolean;
 		public static bool IsColor(this SP p) => p.propertyType == SerializedPropertyType.Color;
+
+		public static HashSet<Object> GetUniqueReferences(this SP p)
+		{
+			HashSet<Object> hs = new();
+			for (int i = 0; i < p.arraySize; i++)
+			{
+				var ob = p.GetArrayElementAtIndex(i).objectReferenceValue;
+				if (!ob)
+				{
+					continue;
+				}
+				hs.Add(ob);
+			}
+			return hs;
+		}
 
 		public static bool IsRefType<T>(this SP p)
 		{
@@ -72,7 +88,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 
 		// get sibling of given prop
-		public static SerializedProperty GetSibling(this SerializedProperty prop, string name)
+		public static SerializedProperty FindSibling(this SerializedProperty prop, string name)
 		{
 			// array item
 			if (prop.propertyPath.EndsWith(']'))

@@ -20,10 +20,22 @@ namespace Smidgenomics.Unity.Attributes
 		(
 			string method,
 			EFieldUsable flags = EFieldUsable.Always,
+			object[] args = null,
 			string label = null,
 			float width = 0.5f
 		)
 		{
+			this.width = Mathf.Clamp(width, MIN_W, 1f);
+			this.method = method;
+			this.label = label;
+			this.flags = flags;
+			this.args = args ?? Array.Empty<object>();
+			argTypes = this.args.Length > 0 ? new Type[this.args.Length] : Array.Empty<Type>();
+			for (int i = 0; i < this.args.Length; i++)
+			{
+				argTypes[i] = this.args[i].GetType();
+			}
+			
 			if (method.Length >= 2 && method.StartsWith(OUTER_TOKEN))
 			{
 				useOuter = true;
@@ -31,13 +43,8 @@ namespace Smidgenomics.Unity.Attributes
 			}
 			else if (method.Contains(';'))
 			{
-				staticMethod = ReflectionUtils.ParseStaticMethodString(method);
+				staticMethod = ReflectionUtils.ParseStaticMethodString(method, null, argTypes);
 			}
-
-			this.width = Mathf.Clamp(width, MIN_W, 1f);
-			this.method = method;
-			this.label = label;
-			this.flags = flags;
 		}
 
 		internal string label { get; }
@@ -45,6 +52,8 @@ namespace Smidgenomics.Unity.Attributes
 		internal bool useOuter { get; }
 		internal MethodInfo staticMethod { get; }
 		internal float width { get; } // button width (0-1)
+		internal object[] args { get; }
+		internal Type[] argTypes { get; }
 
 		internal MethodInfo GetMethod(FieldInfo field)
 		{
@@ -58,7 +67,7 @@ namespace Smidgenomics.Unity.Attributes
 			{
 				type = field.DeclaringType;
 			}
-			var m = (type!).GetMethod(method, _INST_FLAGS, null, Array.Empty<Type>(), null);
+			var m = (type!).GetMethod(method, _INST_FLAGS, null, argTypes, null);
 			if (m == null || m.ReturnType != typeof(void))
 			{
 				return null;

@@ -32,8 +32,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		public sealed override float GetPropertyHeight(SerializedProperty property, GUIContent label)
 		{
-			EnsureInit();
 			
+			EnsureInit();
+
 			var h = GetHeight(property, label);
 			
 			if(_actions.Count > 0)
@@ -53,6 +54,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			foreach (var a in _actions)
 			{
+				if (a.attribute == null)
+				{
+					continue;
+				}
 				if (cWidth + a.attribute.width > 1.0001f)
 				{
 					rows++;
@@ -195,24 +200,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			public void Invoke(object target)
 			{
-				if (method == null || target == null)
+				if (method == null)
 				{
 					return;
 				}
 
 				if (method.IsStatic)
 				{
-					method.Invoke(null, null);
+					method.Invoke(null, attribute.args);
 				}
 				else
 				{
-					method.Invoke(target, null);
+					method.Invoke(target, attribute.args);
 				}
 			}
 		}
 
 		private void EnsureInit()
 		{
+			
 			if (_init)
 			{
 				return;
@@ -251,14 +257,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return _EMPTY_ACTIONS;
 			}
 
-			var elType = _FieldType;
-
-			// 
-			if (elType.IsPrimitive && !elType.IsStruct())
-			{
-				return _EMPTY_ACTIONS;
-			}
-
 			if (!fieldInfo.IsDefined(typeof(FieldButtonAttribute)))
 			{
 				return _EMPTY_ACTIONS;
@@ -272,10 +270,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				if (method == null)
 				{
-					r.Add(default);
+					// r.Add(default);
 					continue;
 				}
-
+				
 				var info = new ActionInfo
 				{
 					attribute = attr,
@@ -293,6 +291,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				return;
 			}
+			
+			DrawerGUI.IndentRect(ref posx, EditorGUI.indentLevel);
 
 			Rect rowRect = posx.SliceTop(DrawerStyles.ButtonHeightSM);
 			var cWidth = 0f;
@@ -314,12 +314,22 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					continue;
 				}
 
-				var target = a.attribute.useOuter
-				? prop.serializedObject.targetObject
-				: fieldInfo.GetValue(prop.serializedObject.targetObject);
+				object target = null;
 
-				bool enabled = target != null && a.attribute.flags.GetUseState();
-				
+				if (!a.method.IsStatic)
+				{
+					if (a.attribute.useOuter)
+					{
+						target = prop.serializedObject.targetObject;
+					}
+					else
+					{
+						target = prop.boxedValue;
+					}
+				}
+
+				bool enabled = (target != null || a.method.IsStatic) && a.attribute.flags.GetUseState();
+
 				var te = GUI.enabled;
 				GUI.enabled = enabled;
 				

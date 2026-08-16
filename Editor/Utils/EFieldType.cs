@@ -19,6 +19,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		Object = 32, // UnityEngine.Object
 		Color = 64,
 		Primitive = Int|Float|Bool|Enum,
+		Numeric = Int|Float,
 		Any = ~0
 	}
 }

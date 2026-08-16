@@ -57,12 +57,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
+			if (_fields == null)
+			{
+				return;
+			}
+
 			var tIndent = EditorGUI.indentLevel;
 
 			var pos = ctx.position;
 
 			var customLabel = GetCustomLabel();
-
 			var showLabel = !_Attribute.innerOnly && customLabel != null;
 			
 			if (showLabel)
@@ -78,17 +82,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 			}
 			var indent = showLabel ? 1 : 0;
-			EditorGUI.indentLevel += indent;
+
+			if (showLabel)
+			{
+				DrawerGUI.IndentRect(ref pos, 1);
+			}
+
 			foreach (var f in _fields)
 			{
 				var p = ctx.property.FindPropertyRelative(f.Name);
 				var h = EditorGUI.GetPropertyHeight(p);
 				var fRect = pos.SliceTop(h);
-				
-				// fRect =	EditorGUI.PrefixLabel(fRect, new GUIContent(p.displayName));
 				EditorGUI.PropertyField(fRect, p);
-				// EditorGUI.PropertyField(fRect, p, GUIContent.none);
-				
 				pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 			}
 			EditorGUI.indentLevel -= indent;

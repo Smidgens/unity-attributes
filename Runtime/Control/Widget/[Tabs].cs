@@ -130,7 +130,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (focused)
 			{
-				EditorGUI.DrawRect(pos, EditorStyles.label.focused.textColor.Fade(0.9f));
+
+				// var fRect = pos;
+				// fRect.height = 2f;
+				// EditorGUI.DrawRect(fRect, EditorStyles.label.focused.textColor.Fade(0.9f));
 				
 				if (Event.current != null && Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
 				{

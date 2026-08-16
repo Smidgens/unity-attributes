@@ -27,17 +27,19 @@ namespace Smidgenomics.Unity.Attributes
 		}
 
 		public static GUIStyle ButtonSM => _BTN_SM_STYLE.Value;
-		public static GUIStyle LabelLG => _LABEL_LG.Value;
+		
 		public static GUIStyle Foldout => _FOLDOUT.Value;
 		public static GUIStyle FoldoutLG => _FOLDOUT_LG.Value;
 		public static GUIStyle ParagraphSM => _PARAGRAPH_SM.Value;
 		public static GUIStyle ParagraphBoldSM => _PARAGRAPH_SM_BOLD.Value;
-
-		// 
+		public static GUIStyle TextArea => _TEXT_AREA.Value;
+		public static GUIStyle LabelLG => _LABEL_LG.Value;
+		public static GUIStyle LabelMD => _LABEL_MD.Value;
 		public static GUIStyle LabelSM => _LABEL_SM.Value;
 		public static GUIStyle LabelLink => _LABEL_LINK.Value;
 		public static float LabelHeightLink => _LABEL_LINK_H.Value;
 		public static float LabelHeightLG => _LABEL_LG_H.Value;
+		public static float LabelHeightMD => _LABEL_MD_H.Value;
 		public static float FoldoutHeight => _FOLDOUT_H.Value;
 		public static float FoldoutHeightLG => _FOLDOUT_LG_H.Value;
 		public static float ButtonHeightSM => _BTN_SM_H.Value;
@@ -56,10 +58,15 @@ namespace Smidgenomics.Unity.Attributes
 		{
 			fontSize = (int)(EditorStyles.foldout.fontSize * 1.2f)
 		});
+		
+		private static readonly Lazy<GUIStyle> _TEXT_AREA = new(() => new GUIStyle(EditorStyles.textArea)
+		{
+			// fontSize = (int)(EditorStyles.foldout.fontSize * 1.2f)
+		});
 
 		private static readonly Lazy<GUIStyle> _LABEL_SM = new(() => new GUIStyle(EditorStyles.miniLabel)
 		{
-			alignment = TextAnchor.MiddleRight
+			// alignment = TextAnchor.MiddleRight
 		});
 
 		private static readonly Lazy<GUIStyle> _LABEL_LG = new(() => new GUIStyle(EditorStyles.largeLabel)
@@ -67,6 +74,13 @@ namespace Smidgenomics.Unity.Attributes
 			alignment = TextAnchor.MiddleCenter,
 			padding = new RectOffset(7,7,7,7),
 			wordWrap = true
+		});
+		
+		private static readonly Lazy<GUIStyle> _LABEL_MD = new(() => new GUIStyle(EditorStyles.boldLabel)
+		{
+			// alignment = TextAnchor.MiddleCenter,
+			// padding = new RectOffset(7,7,7,7),
+			// wordWrap = true
 		});
 		
 		private static readonly Lazy<GUIStyle> _PARAGRAPH_SM = new(() => new GUIStyle(EditorStyles.wordWrappedLabel)
@@ -91,6 +105,7 @@ namespace Smidgenomics.Unity.Attributes
 		private static readonly Lazy<float> _LABEL_LINK_H = new (() => _LABEL_LINK.Value.CalcHeight(GUIContent.none, 50));
 		private static readonly Lazy<float> _BTN_SM_H = new (() => _BTN_SM_STYLE.Value.CalcHeight(GUIContent.none, 50));
 		private static readonly Lazy<float> _LABEL_LG_H = new (() => _LABEL_LG.Value.CalcHeight(GUIContent.none, 50));
+		private static readonly Lazy<float> _LABEL_MD_H = new (() => LabelMD.CalcHeight(GUIContent.none, 50));
 		private static readonly Lazy<float> _FOLDOUT_H = new (() => _FOLDOUT.Value.CalcHeight(GUIContent.none, 50));
 		private static readonly Lazy<float> _FOLDOUT_LG_H = new (() => _FOLDOUT_LG.Value.CalcHeight(GUIContent.none, 50));
 

@@ -110,6 +110,7 @@ namespace Smidgenomics.Unity.Attributes
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
+	using System.ComponentModel;
 	using System.Reflection;
 	using Editor;
 	using UnityEngine;
@@ -131,7 +132,7 @@ namespace Smidgenomics.Unity.Attributes
 			this.flags = flags;
 			this.typeFilter = FindFunc<Type,bool>(typeFilter);
 			this.assemblyFilter = FindFunc<Assembly,bool>(assemblyFilter);
-			this.labelFn = FindFunc<Type, string>(labelFn);
+			this.labelFn = FindFunc<Type, string>(labelFn) ?? GetTypeDisplayName;
 			if (baseType != null)
 			{
 				baseTypes = new []{ baseType };
@@ -143,6 +144,20 @@ namespace Smidgenomics.Unity.Attributes
 		internal Func<Type,string> labelFn { get; }
 		internal Type[] baseTypes { get; }
 		internal ESearchType flags { get; }
+		
+		private static string GetTypeDisplayName(Type type)
+		{
+			var dn = type.GetCustomAttribute<DisplayNameAttribute>();
+			if (dn != null)
+			{
+				return dn.DisplayName;
+			}
+			if (type.IsNested && type.DeclaringType != null)
+			{
+				return $"{type.DeclaringType.Name}.{type.Name}";
+			}
+			return type.Name;
+		}
 
 		private static Func<T, RT> FindFunc<T, RT>(string path)
 		{
@@ -218,26 +233,28 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return pressed;
 		}
 
-		private const string _EMPTY_LABEL = "<none>";
-		private const string _MISSING_LABEL = "<type missing>";
-
 		private static GUIStyle _defaultLabelStyle;
 		private static readonly GUIContent _dummyLabel = new ();
 		
-		private static string GetTypeLabel(Type t, float width)
+		private string GetTypeLabel(Type t, float width)
 		{
-			var name = string.IsNullOrEmpty(t.Namespace)
-			? $"{t.Assembly.GetName().Name}.{t.Name}"
-			: t.FullName;
-
-			_dummyLabel.text = name;
-			var w = _BTN_LABEL_STYLE.Value.CalcSize(_dummyLabel).x;
-			if (width - 15 < w)
-			{
-				name = t.Name;
-			}
-			return name;
+			return _Attribute.labelFn.Invoke(t);
+			// var name = string.IsNullOrEmpty(t.Namespace)
+			// ? $"{t.Assembly.GetName().Name}.{t.Name}"
+			// : t.FullName;
+			//
+			// _dummyLabel.text = name;
+			// var w = _BTN_LABEL_STYLE.Value.CalcSize(_dummyLabel).x;
+			// if (width - 15 < w)
+			// {
+			// 	name = t.Name;
+			// }
+			// return name;
 		}
+		
+		private static readonly Color _ICON_COLOR = EditorGUIUtility.isProSkin
+		? Color.white * 0.8f
+		: Color.black * 0.65f;
 
 		private TypeSearch.MenuNode _cachedMenu;
 
@@ -252,17 +269,21 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				};
 			}
 
-			var label = _EMPTY_LABEL;
+			var label = PluginConstants.Label.POPUP_UNSET;
 
 			Type t = null;
 
 			var tIndent = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = 0;
+			
+			var icoRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
+			
+			PluginAtlas.DrawIcon(icoRect, EAtlasIcon.Code, _ICON_COLOR);
 
 			if (!string.IsNullOrEmpty(prop.stringValue))
 			{
 				t = Type.GetType(prop.stringValue, false);
-				label = t != null ? GetTypeLabel(t, pos.width) : _MISSING_LABEL;
+				label = t != null ? GetTypeLabel(t, pos.width) :  PluginConstants.Label.MISSING;
 			}
 
 			var missingType = !string.IsNullOrEmpty(prop.stringValue) && t == null;
@@ -273,7 +294,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var brect = pos;
 			
-			_dummyLabel.text = t == null ? label : string.Empty;
+			// _dummyLabel.text = t == null ? label : string.Empty;
+			_dummyLabel.text = label;
 			_dummyLabel.tooltip = prop.stringValue;
 			var shouldOpenPopup = EditorGUI.DropdownButton(brect, _dummyLabel, FocusType.Keyboard);
 
@@ -284,7 +306,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if(t != null)
 			{
-				EditorGUI.LabelField(brect, label, _BTN_LABEL_STYLE.Value);
+				// EditorGUI.LabelField(brect, label, _BTN_LABEL_STYLE.Value);
 			}
 
 			if (!string.IsNullOrEmpty(prop.stringValue))

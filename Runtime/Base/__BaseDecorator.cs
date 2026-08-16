@@ -53,10 +53,17 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		public sealed override void OnGUI(Rect pos)
 		{
+			DrawerGUI.IndentRect(ref pos, EditorGUI.indentLevel);
+			
+
 			var (tm, bm) = GetVerticalMargins();
 			pos.SliceTop(tm);
 			pos.height -= bm;
+
+			var tIndent = EditorGUI.indentLevel;
+			EditorGUI.indentLevel = 0;
 			OnContent(pos);
+			EditorGUI.indentLevel = tIndent;
 		}
 
 		protected virtual void OnInit() { }

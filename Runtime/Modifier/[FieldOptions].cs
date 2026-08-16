@@ -24,6 +24,6 @@ namespace Smidgenomics.Unity.Attributes
 
 		internal EFieldUsable useFlags { get; }
 		internal byte indent { get; }
-		internal string label { get; }
+		public string label { get; }
 	}
 }

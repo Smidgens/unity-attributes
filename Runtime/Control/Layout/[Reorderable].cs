@@ -194,7 +194,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var warnIcon = EditorGUIUtility.IconContent("console.warnicon");
 			return new GUIContent(string.Empty)
 			{
-				tooltip = "List contains missing objects",
+				tooltip = "List has missing items",
 				image = warnIcon?.image
 			};
 		});
@@ -241,7 +241,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var icoRect = box;
 				icoRect.width = icoRect.height;
 				icoRect = icoRect.Resized(-icoRect.height * 0.25f);
-				icoRect.position -= new Vector2(r.height, 0f);
+
+				if (CheckFlag(EReorderable.Drag))
+				{
+					icoRect.position -= new Vector2(r.height, 0f);
+				}
+				else
+				{
+					EditorGUI.DrawRect(icoRect, Color.black);
+				}
+				
 				DrawWarningIcon(icoRect);
 			}
 		}
@@ -274,8 +283,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private static readonly Lazy<GUIContent> _ICO_ADD = GetLazyUnityIcon("CreateAddNew");
 		private static readonly Lazy<GUIContent> _ICO_ADD_DROP = GetLazyUnityIcon("Toolbar Plus More");
 		private static readonly Lazy<GUIContent> _ICO_REMOVE = GetLazyUnityIcon("Toolbar Minus");
-		private static readonly GUIContent _LABEL_CLEAR = new ("Clear");
-		private static readonly GUIContent _LABEL_CLEAR_MISSING = new ("Clear Missing References");
 
 		private void DrawCompactControls(ref Rect pos, SerializedProperty prop, bool add = true, bool rm = true, bool size = true)
 		{
@@ -290,7 +297,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var m = new GenericMenu();
 				if (prop.arraySize > 0)
 				{
-					m.AddItem(_LABEL_CLEAR, false, () =>
+					m.AddItem(PluginConstants.Label.CLEAR, false, () =>
 					{
 						EditorApplication.delayCall += () =>
 						{
@@ -301,16 +308,21 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 				else
 				{
-					m.AddDisabledItem(_LABEL_CLEAR);
+					m.AddDisabledItem(PluginConstants.Label.CLEAR);
 				}
 
+				if (_IsUnityObjectField)
+				{
+					m.AddSeparator(string.Empty);
+				}
+				
 				if (typeof(Object).IsAssignableFrom(_FieldType))
 				{
 					var missingRefs = prop.CountMissingArrayItemRefs();
 
 					if (missingRefs > 0)
 					{
-						m.AddItem(_LABEL_CLEAR_MISSING, false, () =>
+						m.AddItem(PluginConstants.Label.CLEAR_MISSING, false, () =>
 						{
 							EditorApplication.delayCall += () =>
 							{
@@ -327,6 +339,57 @@ namespace Smidgenomics.Unity.Attributes.Editor
 						});
 					}
 				}
+
+				if (_IsUnityObjectField)
+				{
+					
+					m.AddItem(PluginConstants.Label.REMOVE_DUPLICATES, false, () =>
+					{
+						EditorApplication.delayCall += () =>
+						{
+							var obs = prop.GetUniqueReferences();
+							prop.arraySize = obs.Count;
+							{
+								int i = -1;
+								foreach(var ob in obs)
+								{
+									i++;
+									prop.GetArrayElementAtIndex(i).objectReferenceValue = ob;
+								}
+							}
+							prop.serializedObject.ApplyModifiedProperties();
+							prop.serializedObject.Update();
+						};
+					});
+				}
+
+				if (prop.serializedObject.targetObject is Component && typeof(Component).IsAssignableFrom(_FieldType))
+				{
+					m.AddSeparator(string.Empty);
+					m.AddItem(PluginConstants.Label.FIND_CHILD_COMPS, false, () =>
+					{
+						EditorApplication.delayCall += () =>
+						{
+							var obs = prop.GetUniqueReferences();
+							var owner = prop.serializedObject.targetObject as Component;
+							foreach (var cc in owner!.GetComponentsInChildren(_FieldType))
+							{
+								if (obs.Contains(cc))
+								{
+									continue;
+								}
+								var i = prop.arraySize;
+								prop.InsertArrayElementAtIndex(i);
+								prop.GetArrayElementAtIndex(i).objectReferenceValue = cc;
+								prop.serializedObject.ApplyModifiedProperties();
+								prop.serializedObject.Update();
+							}
+						};
+					});
+					
+				}
+				
+				
 				m.ShowAsContext();
 			}
 
@@ -405,7 +468,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 						newItem.serializedObject.Update();
 					};
 				});
-				
 				m.ShowAsContext();
 			}
 			else
@@ -518,7 +580,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var showAdd = !isCompact && CheckFlag(EReorderable.Add);
 				var showRemove = !isCompact && CheckFlag(EReorderable.Remove);
 				var allowDrag = CheckFlag(EReorderable.Drag);
-
+				
 				_list = new ReorderableList(prop.serializedObject, prop, allowDrag, showListheader, showAdd, showRemove)
 				{
 					elementHeightCallback = GetListItemHeight,
@@ -586,23 +648,26 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					continue;
 				}
 
-				Object addOb = null;
+				Object[] addObs = Array.Empty<Object>();;
 
 				if (isGameObjectType || isComponentType)
 				{
-					addOb = GetComponentDrop(_FieldType, ob);
+					addObs = GetComponentDrop(_FieldType, ob);
 				}
 				else if(_FieldType.IsAssignableFrom(dropType))
 				{
-					addOb = ob;
+					addObs = new []{ ob };
 				}
-				if (addOb)
+				if (addObs.Length > 0)
 				{
-					var i = arrProp.arraySize;
-					arrProp.InsertArrayElementAtIndex(i);
-					var item = arrProp.GetArrayElementAtIndex(i);
-					item.objectReferenceValue = addOb;
-					count++;
+					foreach (var addOb in addObs)
+					{
+						var i = arrProp.arraySize;
+						arrProp.InsertArrayElementAtIndex(i);
+						var item = arrProp.GetArrayElementAtIndex(i);
+						item.objectReferenceValue = addOb;
+						count++;
+					}
 				}
 			}
 
@@ -613,28 +678,49 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 		}
 
+		private static readonly Object[] _DROP_SINGLE = new Object[1];
+
 		// retrieve assignable object from dropped gameobject/component
-		private static Object GetComponentDrop(Type fieldType, Object ob)
+		private static Object[] GetComponentDrop(Type fieldType, Object ob)
 		{
 			// field is gameobject
 			if (fieldType == typeof(GameObject) && ob is GameObject)
 			{
-				return ob;
+				return Array.Empty<Object>();
 			}
 
 			// field type is plain component -> default to transform component
 			if (fieldType == typeof(Component) && ob is GameObject gameObject)
 			{
-				return gameObject.transform;
+				_DROP_SINGLE[0] = gameObject.transform;
+				return _DROP_SINGLE;
+			}
+
+			if (ob is Component && typeof(Component).IsAssignableFrom(fieldType))
+			{
+				_DROP_SINGLE[0] = ob;
+				return _DROP_SINGLE;
 			}
 
 			// get sibling component
-			if (ob is Component component && typeof(Component).IsAssignableFrom(fieldType))
+			if (ob is GameObject go && typeof(Component).IsAssignableFrom(fieldType))
 			{
-				return component.GetComponent(fieldType);
+				var comps = go.GetComponents(fieldType);
+
+				if (comps.Length == 1)
+				{
+					_DROP_SINGLE[0] = comps[0];
+					return _DROP_SINGLE;
+				}
+				var outObs = new Object[comps.Length];
+				for (int i = 0; i < comps.Length; i++)
+				{
+					outObs[i] = comps[i];
+				}
+				return outObs;
 			}
 
-			return null;
+			return Array.Empty<Object>();
 		}
 		
 		

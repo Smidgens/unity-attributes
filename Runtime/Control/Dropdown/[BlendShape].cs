@@ -2,17 +2,16 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
+	/// <summary>
+	/// Shows dropdown of blend shapes in skinned mesh renderer
+	/// </summary>
 	public sealed class BlendShapeAttribute : __BaseControl
 	{
-		/// <summary>
-		/// Name of skinned mesh renderer field
-		/// </summary>
-		public string RendererField { get; }
-
-		/// <summary>
-		/// Init with field of renderer
-		/// </summary>
-		public BlendShapeAttribute(string field) => RendererField = field;
+		public BlendShapeAttribute(string field)
+		{
+			this.field = field;
+		}
+		internal string field { get; }
 	}
 }
 
@@ -30,12 +29,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
-			BlendShapePopup(ctx.position, ctx.property, _Attribute.RendererField);
+			BlendShapePopup(ctx.position, ctx.property, _Attribute.field);
 		}
 		
 		private static void BlendShapePopup(in Rect pos, SerializedProperty prop, in string rendererField)
 		{
-			var rendererProp = prop.serializedObject.FindProperty(rendererField);
+			var rendererProp = prop.FindSibling(rendererField);
+			
 			if (rendererProp == null)
 			{
 				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_INVALID);
@@ -44,13 +44,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if(!rendererProp.IsRefType<SkinnedMeshRenderer>())
 			{
-				DrawerGUI.MutedInfo(pos, "field ref. ≠ SkinnedMeshRenderer");
+				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_INVALID);
 				return;
 			}
 
 			if (!rendererProp.objectReferenceValue)
 			{
-				DrawerGUI.MutedInfo(pos, "renderer not set");
+				DrawerGUI.MutedInfo(pos, "No renderer");
 				return;
 			}
 
@@ -58,7 +58,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (!mr?.sharedMesh)
 			{
-				DrawerGUI.MutedInfo(pos, "mesh not set");
+				DrawerGUI.MutedInfo(pos, "No mesh");
 				return;
 			}
 
@@ -66,11 +66,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (shapeCount == 0)
 			{
-				DrawerGUI.MutedInfo(pos, "no shape keys in mesh");
+				DrawerGUI.MutedInfo(pos, "no blend shapes");
 				return;
 			}
 
-			(int, string) shape = (-1,"");
+			(int, string) shape = (-1,string.Empty);
 
 			if (prop.IsInt() && prop.intValue > -1 && prop.intValue < shapeCount)
 			{
@@ -91,7 +91,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				label = $"{shape.Item1}: {shape.Item2}";
 			}
 
-			if (GUI.Button(pos, label, EditorStyles.popup))
+			if (EditorGUI.DropdownButton(pos, new GUIContent(label), FocusType.Keyboard))
 			{
 				var m = new GenericMenu();
 
@@ -100,11 +100,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				m.AddItem(new GUIContent(PluginConstants.Label.POPUP_UNSET), isUnset, () =>
 				{
 					if (prop.IsInt()) { prop.intValue = -1; }
-					else if (prop.IsString()) { prop.stringValue = ""; }
+					else if (prop.IsString()) { prop.stringValue = string.Empty; }
 					prop.serializedObject.ApplyModifiedProperties();
 				});
 
-				m.AddSeparator("");
+				m.AddSeparator(string.Empty);
 
 				for(var i = 0; i < shapeCount; i++)
 				{
