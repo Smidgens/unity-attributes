@@ -55,13 +55,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			_optionFn = GetStaticOptionEnumerator(_Attribute.optionFn, optValueType);
 
+			var isColor = typeof(Color) == _FieldType;
+			
 			if (_optionFn.Item1 != null)
 			{
 				foreach (var it in _optionFn.Item1.Invoke())
 				{
 					var key = _optionFn.Item2.GetValue(it);
 					var val = _optionFn.Item3.GetValue(it);
-					_options.Add((new GUIContent((string)key), val));
+					var str = isColor ? ColorUtility.ToHtmlStringRGBA((Color)val) : val.ToString();
+					_options.Add((new GUIContent((string)key), val, str));
 				}
 			}
 
@@ -71,15 +74,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					continue;
 				}
-				_options.Add((new GUIContent(boxedValue.ToString()), boxedValue));
+				var str = isColor ? ColorUtility.ToHtmlStringRGBA((Color)boxedValue) : boxedValue.ToString();
+				_options.Add((new GUIContent(boxedValue.ToString()), boxedValue, str));
 			}
 			
 			if (_FieldType == typeof(bool))
 			{
 				if (_Attribute.boxedValues.Length == 0 && _options.Count == 0)
 				{
-					_options.Add((new GUIContent("False"), false));
-					_options.Add((new GUIContent("True"), true));
+					_options.Add((new GUIContent("False"), false, "false"));
+					_options.Add((new GUIContent("True"), true, "true"));
 				}
 			}
 		}
@@ -126,13 +130,21 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 		}
 
-		private readonly List<(GUIContent, object)> _options = new();
+		private readonly List<(GUIContent, object, string)> _options = new();
 
 		private GUIContent FindValueLabel(object o)
 		{
-			foreach (var (label, value) in _options)
+			var isColor = _FieldType == typeof(Color);
+
+			var oStr = _FieldType == typeof(Color) ? ColorUtility.ToHtmlStringRGBA((Color)o) : o.ToString();
+			
+			foreach (var (label, value, str) in _options)
 			{
-				if (value.GetHashCode() == o.GetHashCode())
+				// if (value.GetHashCode() == o.GetHashCode())
+				// {
+				// 	return label;
+				// }
+				if (oStr == str)
 				{
 					return label;
 				}
@@ -251,10 +263,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return ob?.name ?? PluginConstants.Label.POPUP_UNSET;
 			}
 
-			if (prop.IsColor())
-			{
-				return $"#{ColorUtility.ToHtmlStringRGBA(prop.colorValue).ToLower()}";
-			}
+			// if (prop.IsColor())
+			// {
+			// 	return $"#{ColorUtility.ToHtmlStringRGBA(prop.colorValue)}";
+			// }
 			if (prop.IsString())
 			{
 				if (string.IsNullOrEmpty(prop.stringValue))
@@ -315,7 +327,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return m;
 			}
 
-			foreach (var (label, val) in _options)
+			foreach (var (label, val, str) in _options)
 			{
 				var active = val.GetHashCode() == p.boxedValue?.GetHashCode();
 				m.AddItem(label, active, () =>
