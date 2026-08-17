@@ -4,8 +4,13 @@
 # ℹ️ Features
 
 * Collection of highly flexible, general-use property attributes and decorators.
-* Does not require custom inspector.
+* All attributes work as-is without custom inspector.
 * 🤞 Reasonably lightweight.
+
+<br/>
+
+> 🧑‍💻💬 *These attributes are an aggregate of helper attributes I've made over the years for various projects. If I find myself needing an attribute in more than one project, it usually ends up in here.*
+
 
 <br/>
 
@@ -13,9 +18,11 @@
 
 > Minimum Unity version: 2022.3
 
+## 📦 Package Manager
+
 1. Open Package Manager
-2. Paste GitHub URL:\
-`https://github.com/Smidgens/unity-attributes.git#<version_tag>`
+2. Install package from Git URL:\
+`https://github.com/Smidgens/unity-attributes.git#<tag_or_sha>`
 
 
 <br/>
@@ -27,8 +34,8 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 
 * Drawers modify how fields are displayed, and in some cases can be chained.
 * Decorators add static elements above fields. Built-in examples include Unity's `[Header]` and `[Space]` attributes
-* Modifiers draw nothing but supply additional options to drawers, such as custom labels, indents, or buttons.
-* Standalone attributes are simple property drawers that do not inherit from this project's base drawer but modify the drawing of fields in some minor way. 
+* Modifiers supply additional options to drawers, such as custom labels, indents, or buttons. By themselves they do nothing.
+* Standalone attributes are simple single-purpose property drawers that do not inherit from this project's base drawer.
 
 ## ⚡ Drawers
 
