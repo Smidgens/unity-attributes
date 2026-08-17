@@ -1,30 +1,11 @@
 <img src="https://raw.githubusercontent.com/Smidgenomics/unity.plugins/master/attributes/banner.png" width="100%"/>
 
-<!--
-snippets
-
-<details>
-    <summary><b>TITLE</b></summary>
-    <img src="/.github/preview/IMAGE.png" />
-    <p></p>
-
-```cs
-
-```
-
-</details>
-
--->
-
 
 # ℹ️ Features
 
-* Collection of general use drawer and decorator attributes.
-* Stripped in production: `[Conditional("UNITY_EDITOR")]`
+* Collection of highly flexible, general-use property attributes and decorators.
+* Does not require custom inspector.
 * 🤞 Reasonably lightweight.
-
-
-<br/>
 
 <br/>
 
@@ -37,565 +18,431 @@ snippets
 
 <br/>
 
-# 🚀 Usage
 
-<!--======================================================-->
-<!--#################### DECORATORS ######################-->
-<!--======================================================-->
+# 🚀 Overview
 
-### 🟢 Decorators
+Attributes break down into four categories: Drawers, Decorators, Modifiers, and Standalone.
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
+* Drawers modify how fields are displayed, and in some cases can be chained.
+* Decorators add static elements above fields. Built-in examples include Unity's `[Header]` and `[Space]` attributes
+* Modifiers draw nothing but supply additional options to drawers, such as custom labels, indents, or buttons.
+* Standalone attributes are simple property drawers that do not inherit from this project's base drawer but modify the drawing of fields in some minor way. 
 
-<!-- BOX HEADER -->
+## ⚡ Drawers
 
-<details>
-    <summary><b>📝 BoxHeader</b></summary>
+* [`DefaultDrawer`](#defaultdrawer)
+* [`EditCondition`](#editcondition)
+* [`Expand`](#expand)
+* [`Inline`](#inline)
+* [`Dropdown`](#dropdown)
+* [`InstancedReference`](#instancedreference)
+* [`Box`](#box)
+* [`Foldout`](#foldout)
+* [`Reorderable`](#reorderable)
+* [`SearchType`](#searchtype)
+* [`SearchEnum`](#searchenum)
+* [`NavMeshAgentID`](#navmeshagentid)
+* [`NavMeshAreaID`](#navmeshareaid)
+* [`ProjectLayer`](#projectlayer)
+* [`ProjectSortLayer`](#projectsortlayer)
+* [`ProjectTag`](#projecttag)
+* [`ProjectScene`](#projectscene)
+* [`ProjectPath`](#projectpath)
+* [`BlendShape`](#blendshape)
+* [`AnimatorParameter`](#animatorparameter)
+* [`RendererMaterial`](#renderermaterial)
+* [`HexColor`](#hexcolor)
+* [`Slider`](#slider)
+* [`IntervalSlider`](#intervalslider)
+* [`Progress`](#progress)
+* [`Switch`](#switch)
+* [`Tabs`](#tabs)
+* [`TextBox`](#textbox)
 
-<br/>
+## 🔧 Modifiers
 
-<img src="/.github/preview/boxheader.png" />
+* [`FieldButton`](#fieldbutton)
+* [`FieldOptions`](#fieldoptions)
+* [`InlineWidth`](#inlinewidth)
+* [`InlineHidden`](#inlinehidden)
 
-```cs
-[BoxHeader("Example Header")]
-[TextArea]
-public string documentedField;
-```
+## ⚡ Decorators
 
-</details>
+* [`BoxHeader`](#boxheader)
+* [`Alert`](#alert)
+* [`Comment`](#comment)
+* [`Link`](#link)
+* [`StaticButton`](#staticbutton)
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
+## ⚡ Standalone
 
-<!-- BOX COMMENT -->
-
-<details>
-    <summary><b>📝 BoxComment</b></summary>
-
-<br/>
-
-<img src="/.github/preview/boxcomment.png" />
-
-```cs
-[BoxComment("Some information about bla")]
-[TextArea]
-public string documentedField;
-```
-
-</details>
-
-
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-<!-- BOX LINK -->
-
-<details>
-    <summary><b>📝 BoxLink</b></summary>
-
-<br/>
-
-<img src="/.github/preview/boxlink.png" />
-
-```cs
-[BoxLink("Documentation", "https://en.wikipedia.org/wiki/Slartibartfast")]
-[TextArea]
-public string documentedField;
-```
-
-</details>
-
-
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-
-<details>
-    <summary><b>🔳 StaticAction</b></summary>
+* [`HideLabel`](#hidelabel)
 
 <br/>
 
-<img src="/.github/preview/staticaction.png" />
+# 🚀 Attributes
+
+
+## ⚙️ Drawers
+
+
+### `[DefaultDrawer]`
+
+> Fields: Any
+
+Draws the default property drawer. This attribute exists to allow modifier attributes like buttons to work with regular drawers.
+
+
+### `[EditCondition]`
+
+> Fields: Any
+
+Toggles field hidden/read-only depending on supplied conditional expression.
 
 ```cs
-class StaticGreets
+[FieldOptions]
+public bool hideToggle;
+
+[EditCondition("hideToggle", hide:true)]
+[FieldOptions(indent:1)]
+public string hiddenOnToggle;
+
+public int intValue;
+
+public TestEnum enumValue;
+
+// show if 
+[EditCondition("enumValue == Value1")]
+public string showIfValue1;
+
+enum TestEnum
 {
-    public static void SayHi()
-    {
-        Debug.Log("Hello, wurst!");
-    }
+	None = 0,
+	Value1 ,
+	Value2,
+	Value3,
+}
+```
 
-    public static void LogValue(int v)
-    {
-        Debug.Log("Your value is: " + v);
-    }
+
+### `[Expand]`
+
+> Fields: Class, Struct
+
+Expands all child fields. Label can be optionally hidden.
+
+```cs
+[Serializable]
+public struct ExpandableStruct
+{
+	public string name;
+	public Texture2D icon;
 }
 
-[StaticAction("Say Hi", "SayHi", typeof(StaticGreets))]
-[StaticAction("Log 10", "LogValue", typeof(StaticGreets), 10)]
-public string staticActionField;
+// show child props indented
+[Expand]
+public ExpandableStruct expanded1;
 
+// only show child props
+[Expand(innerOnly:true)]
+public ExpandableStruct expanded2;
 ```
 
-</details>
+### `[Inline]`
 
+> Fields: Class, Struct
 
-<!--======================================================-->
-<!--###################### DRAWERS #######################-->
-<!--======================================================-->
+Inlines all child fields in a single row.
 
+* `[InlineWidth]` can be used to specify the preferred size of specific fields.
 
-### 🟠 Property Drawers
+* `[InlineHidden]` can be used to exclude fields from being inlined.
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-
-<details>
-    <summary><b>📏 Inline</b></summary>
-    
-
-<br/>
-
-<img src="/.github/preview/inline.png" />
 
 ```cs
-
-[System.Serializable]
-public struct T1
-{
-    public string name;
-    public Texture2D icon;
-}
-
 [Inline]
 public Vector3 inlinedVector;
 
-[FieldSize("name", 40f)]
+[InlineWidth("key", 30f)]
 [Inline]
-public T1 inlinedCustom;
-```
-
-</details>
-
-
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-
-<details>
-    <summary><b>📏 Expand</b></summary>
-    
-
-<br/>
-
-
-<img src="/.github/preview/expand.png" />
-
-```cs
-
-[Serializable]
-public struct T1
-{
-    public string name;
-    public Texture2D icon;
-}
-
-[Serializable]
-public struct T2
-{
-    public int someValue;
-    public T1 nested;
-}
-
-[Expand]
-public T1 expanded1;
-
-[Expand]
-public T2 expanded2;
-```
-
-</details>
-
-
-
-
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-<details>
-    <summary><b>🔘 Tabs</b></summary>
-
-<br/>
-
-
-<img src="/.github/preview/tabs.png" />
-
-```cs
+public InlinedType inlinedCustom;
 
 [System.Serializable]
-struct ToggleData
+struct InlinedType
 {
-    public bool v1,v2,v3;
+	public string key;
+	public string name;
+	[InlineWidth(40f)]
+	public int count;
+	[InlineWidth(0.25f)]
+	public Texture2D icon1;
+	[InlineWidth(0.25f)]
+	public Texture2D icon2;
+}
+```
+
+### `[Dropdown]`
+
+> Fields: Any
+
+Shows a dropdown list of values for field. Values can be supplied directly, or a reference to an options method can be used which returns an IEnumerable of (label,value) tuplies.
+
+Has special behaviour when placed on UnityEngine.Object fields where values can be supplied as folder paths or asset GUIDs.
+
+```cs
+[Dropdown("option1", "option2")]
+public string stringValue;
+
+[Dropdown(0.5f, 1.2f, 2.4f)]
+public float floatValue;
+
+[Dropdown(0, 10)]
+public int intValue;
+
+// load asset options
+[Dropdown("Assets/Textures/icons/", "460278ced8f4db444b2b4cd02a08f984")]
+public Texture2D icon;
+
+// read options from static method
+[Dropdown("GetColorOptions;MyType, MyModule")]
+public Color colorValue;
+
+class MyType
+{
+	public static List<(string, Color)> GetColorOptions()
+	{
+		return new ()
+		{
+			("White", Color.white),
+			("Black", Color.black),
+			("Clear", Color.clear),
+			("Red", Color.red),
+			("Blue", Color.blue),
+			("Green", Color.green),
+			("Yellow", Color.yellow),
+			("Magenta", Color.magenta),
+		};
+	}
+}
+```
+
+### `[InstancedReference]`
+
+> Fields: Class
+
+Draws a popup list of new-able types for field with `[SerializeReference]` attribute.
+
+```cs
+[InstancedReference]
+[SerializeReference]
+public BaseClass instance;
+
+[Serializable]
+abstract class BaseClass {}
+
+[Serializable]
+class ClassA : BaseClass
+{
+	public int myValueFromA;
 }
 
-[Tabs]
-public ToggleData options;
-
-```
-
-```cs
-[System.Flags]
-enum Options
+[Serializable]
+class ClassB : BaseClass
 {
-    Item1 = 1,
-    Item2 = 2,
-    Item3 = 4,
+	public int myValueFromB;
 }
-
-[Tabs]
-public Options options;
 ```
 
-</details>
+### `[Box]`
 
+> Fields: Any
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
+Wraps field in outlined box.
 
-<details>
-    <summary><b>🔘 Switch</b></summary>
-
-<br/>
-
-<img src="/.github/preview/switch.png" />
+Tips:
+* Combine with `[Expand(innerOnly:true)]`.
 
 ```cs
-[Switch]
-public bool switch1;
+[Box]
+[Expand(innerOnly:true)]
+struct GroupedFields fields;
 
-[Switch("Off", "On")]
-public bool switch2;
-
-[Switch("Disabled", "Enabled")]
-public bool switch3;
-```
-```cs
-[System.Flags]
-enum Options
+[Serializable]
+struct GroupedFields
 {
-    Item1 = 1,
-    Item2 = 2,
-    Item3 = 4,
+	public int count;
+	public string name;
 }
-
-[Switch]
-public Options options;
 ```
 
-</details>
+### `[Foldout]`
 
+> Fields: Any
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
+Wraps field in foldout box.
 
+Options:
+* Label. Uses field label by default.
+* Icon GUID. Reference to texture asset.
+* Icon coords. Coordinates of icon in texture file (texture atlas).
 
-<details>
-    <summary><b>🎚️ Slider</b></summary>
-
-<br/>
-
-<img src="/.github/preview/slider.png" />
-
+Tips:
+* Combine with `[Expand(innerOnly:true)]`.
 
 ```cs
-[Slider(1f,10f,1)]
-public float sliderPrecision;
+[Foldout(iconGUID:"b4508e266a1d41445a0cb18bd9acf8d6")]
+[Expand(innerOnly:true)]
+public FoldableStruct foldedStruct;
 
-[Slider(1f,10f,0.5f)]
-public float sliderStep;
-
-[Slider(1,10)]
-public int sliderInt;
+[Serializable]
+struct FoldableStruct
+{
+	public int count;
+	public string name;
+}
 ```
 
-</details>
+### `[Reorderable]`
 
+> Fields: Array/List
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-
-<details>
-    <summary><b>🎚️ Slider01</b></summary>
-
-<br/>
-
-<img src="/.github/preview/slider01.png" />
-
+Draws array as reorderable drag list with various customization options and helpers.
 
 ```cs
-[Slider01]
-public float slider01;
+// draws collapsed list of colliders
+[Reorderable((EReorderable.Minimal|EReorderable.Foldable))]
+public Collider[] _colList;
+
+// hide size input
+[Reorderable(EReorderable.Minimal & ~EReorderable.Resizable)]
+public string[] stringList;
+
+// draws standard-looking list
+[Reorderable(EReorderable.Standard)]
+public string[] standardList;
 ```
 
-</details>
+### `[SearchType]`
 
+> Fields: String
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-
-
-<details>
-    <summary><b>🎨 HexColor</b></summary>
-
-<br/>
-
-<img src="/.github/preview/hexcolor.png" />
-
-
-```cs
-
-[HexColor]
-public string hexColor = "#f00";
-
-```
-
-</details>
-
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-
-<details>
-    <summary><b>🔎 SearchType</b></summary>
-
-<br/>
-
-<img src="/.github/preview/searchtype.png" />
-<br/>
-<img src="/.github/preview/typefind.png" />
-
+Provides a searchable popup for assembly types with various filtering options.
 
 ```cs
 [SearchType]
 public string anyType;
-    
+
 // only show component types
-[SearchType(baseTypes = new Type[]{ typeof(Component) })]
+[SearchType(baseType: typeof(Component))]
 public string componentType;
 
-// only show static classes
-[SearchType(onlyStatic = true)]
-public string staticType;
-
-// only show system types
-[SearchType(assemblies = new string[]{ "mscorlib" })]
+// only show system module types
+[SearchType(assemblies: new string[]{ "mscorlib" })]
 public string systemType;
 ```
 
-</details>
+### `[SearchEnum]`
 
+> Fields: Enum
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-<details>
-    <summary><b>🔻 Dropdown__</b></summary>
-
-<br/>
-
-<img src="/.github/preview/dropdown.png" />
-
+Shows a searchable popup of values in enum.
 
 ```cs
-[DropdownString("option1", "option2")]
-public string _string;
-
-[DropdownFloat(0.5f, 1.2f, 2.4f)]
-public float _float;
-
-[DropdownColor("red", "blue", "cyan")]
-public Color _color;
-
-[DropdownBool("Off", "On")]
-public bool _bool;
-
-[DropdownInt(0, 10)]
-public int _int;
-
-[DropdownAsset("Assets/Demo/")]
-public Texture2D _texture;
+[SearchTSearchEnumype]
+public KeyCode someKey;
 ```
 
-</details>
+### `[NavMeshAgentID]`
 
+> Fields: Int
 
-
-
-
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-<details>
-    <summary><b>🔻 Layer</b></summary>
-
-<br/>
-
-<img src="/.github/preview/layer.png" />
-
+Draws popup of NavMesh agent types in project.
 
 ```cs
-[Layer]
-public int _layer;
+[NavMeshAgentID]
+public int agentID;
 ```
 
-</details>
+### `[NavMeshAreaID]`
 
+> Fields: Int
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-
-<details>
-    <summary><b>🔻 SortLayer</b></summary>
-
-<br/>
-
-<img src="/.github/preview/sortlayer.png" />
-
+Draws popup of NavMesh area types in project.
 
 ```cs
-[SortLayer]
-public int _sortingLayer;
+[NavMeshAreaID]
+public int areaID;
 ```
 
-</details>
+### `[ProjectLayer]`
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
+> Fields: Int
 
-
-<details>
-    <summary><b>🔻 Tag</b></summary>
-
-<br/>
-
-<img src="/.github/preview/tag.png" />
-
+Dropdown of project layer indices.
 
 ```cs
-[Tag]
-public string _tag;
+[ProjectLayer]
+public int layerIndex;
 ```
 
-</details>
+### `[ProjectSortLayer]`
 
+> Fields: Int
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
+Dropdown of project sorting layer indices.
 
+```cs
+[ProjectSortLayer]
+public int sortLayer;
+```
 
-<details>
-    <summary><b>🔻 BuildScene</b></summary>
+### `[ProjectTag]`
 
-<br/>
+> Fields: String
 
-<img src="/.github/preview/buildscene.png" />
+Dropdown of project tags.
+
+```cs
+[ProjectTag]
+public string sortLayer;
+```
+
+### `[ProjectScene]`
+
+> Fields: Int, String
+
+Shows dropdown of scenes in project and saves value as scene path or index in build settings.
 
 
 ```cs
-[BuildScene]
+[ProjectScene]
 public string scenePath;
 
-[BuildScene]
+[ProjectScene(buildOnly:true)]
 public int sceneIndex;
 ```
 
-</details>
+### `[ProjectPath]`
 
+> Fields: String
 
-
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-<details>
-    <summary><b>🔻 AnimatorParameter</b></summary>
-
-<br/>
-
-<img src="/.github/preview/animatorparameter.png" />
-
+Draws popup of paths relative to project root directory. Can be set to either folder or file paths.
 
 ```cs
+// show blender files
+[ProjectPath(pattern:"*.blend")]
+public string filePath;
 
-public Animator myAnimator;
-
-[AnimatorParameter("myAnimator")]
-public string parameterName;
-
-[AnimatorParameter("myAnimator")]
-public int parameterIndex;
+// show folder paths
+[ProjectPath(EProjectPath.Folder)]
+public string folderPath;
 ```
 
-</details>
+### `[BlendShape]`
 
+> Fields: Int, String
 
-
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-<details>
-    <summary><b>🔻 RendererMaterial</b></summary>
-
-<br/>
-
-<img src="/.github/preview/renderermaterial.png" />
-
-
-```cs
-public Renderer myRenderer;
-
-[AnimatorParameter("myRenderer")]
-public int materialIndex
-```
-
-</details>
-
-
-
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-
-<details>
-    <summary><b>🔻 BlendShape</b></summary>
-
-<br/>
-
-<img src="/.github/preview/blendshape.png" />
+Shows dropdown of blend shapes in referenced skinned mesh renderer. Saves value as either string (shape name) or int (index in renderer array).
 
 
 ```cs
@@ -608,102 +455,378 @@ public string blendShapeName
 public int blendShapeIndex
 ```
 
-</details>
+### `[AnimatorParameter]`
 
-<!--======================================================-->
-<!--##################### MODIFIERS ######################-->
-<!--======================================================-->
+> Fields: Int, String
 
-
-
-### 🔵 Modifiers
-
-
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
-
-<details>
-    <summary><b>🔳 FieldAction</b></summary>
-
-<br/>
-
-<img src="/.github/preview/fieldaction.png" />
-
+Shows dropdown of parameters in referenced animator. Saves value as either string (param name) or int (param hash).
 
 ```cs
-[System.Serializable]
-internal class OwnerOfFunctions
-{
-    public int myValue = 10;
+public Animator animator;
 
-    public void SetMyValue(int v)
-    {
-        myValue = v;
-    }
+[AnimatorParameter("animator")]
+public string paramName;
 
-    public void CallMe()
-    {
-        Debug.Log("Yay!");
-    }
+[AnimatorParameter("animator")]
+public int paramHash;
 
-    public void CallMeAsWell()
-    {
-        Debug.Log("OMG YAY");
-    }
-}
-
-
-class MyScript : MonoBehaviour
-{
-    [FieldAction("Action 1", "CallMe")]
-    [FieldAction("Action 2", "CallMeAsWell")]
-    [FieldAction("Set value: 100", "SetMyValue", 100, onlyPlayMode = true)]
-    [FieldAction("Call Target", "ScriptMethod", callRoot = true)]
-    [Expand]
-    public OwnerOfFunctions fieldWithActions;
-
-    private void ScriptMethod()
-    {
-        Debug.Log("Script method called!");
-    }
-}
-
+// restrict to float or int params
+[AnimatorParameter("animator", EAnimatorParameter.Float|EAnimatorParameter.Int)]
+public string floatParam;
 ```
 
-</details>
+### `[RendererMaterial]`
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
+> Fields: Int
 
-<details>
-    <summary><b>📏 Indent</b></summary>
-
-<br/>
-
-<img src="/.github/preview/indent.png" />
-
+Shows dropdown of materials in referenced renderer. Saves value as int index to material in renderer material array.
 
 ```cs
+public Renderer myRenderer;
 
-[Indent(1)]
-[DefaultDrawer]
-public int iAmIndented;
-
-[Indent(2)]
-[DefaultDrawer]
-public int iAmMoreSo;
-
+[RendererMaterial("myRenderer")]
+public int materialIndex
 ```
 
-</details>
+### `[HexColor]`
 
-<!--======================================================-->
-<!--######################################################-->
-<!--======================================================-->
+> Fields: String
+
+Draws color picker for string field and saves as hex color value.
+
+```cs
+[HexColor]
+public string hexColor = "#f00";
+```
+
+### `[Slider]`
+
+> Fields: Numeric
+
+Identical to `[Range]` attribute, but provides options for step and precision.
+
+```cs
+[Slider(1f,10f,1)]
+public float sliderPrecision;
+
+[Slider(1f,10f,0.5f)]
+public float sliderStep;
+
+[Slider(1,10)]
+public int sliderInt;
+```
+
+### `[IntervalSlider]`
+
+> Fields: Class/Struct
+
+Draws Min/Max slider and saves values to two separate child fields.
+
+Options:
+* Min/Max values
+* Step
+* Min/Max fields
+
+```cs
+// defaults to x/y fields
+[IntervalSlider(0f, 1f)]
+public Vector2 vectorInterval;
+
+// specify min/max fields
+[IntervalSlider(0f, 1f, fMin:"min", fMax:"max", step:0.25f)]
+public MyInterval interval; 
+
+[Serializable]
+struct MyInterval
+{
+	public float min,max;
+}
+```
+
+### `[Progress]`
+
+> Fields: Numeric
+
+Draws numeric field as a progress bar.
+
+```cs
+[Progress(0, 100)]
+public float health = 50;
+
+[Progress(0, 100, "Status")]
+public float health = 50;
+```
+
+### `[Switch]`
+
+> Fields: Enum/Flags, Bool, LayerMask
+
+Draws a toggle switch.
+
+For flag and layermask fields, a switch will be drawn for every value.
+
+```cs
+[Switch]
+public bool simpleSwitch;
+
+[Switch("Off", "On")]
+public bool labeledSwitch;
+
+[Switch]
+public EnumFlags enumOptions;
+
+[System.Flags]
+enum EnumFlags
+{
+    Item1 = 1,
+    Item2 = 2,
+    Item3 = 4,
+}
+```
+
+### `[Tabs]`
+
+> Fields: Enum/Flags, Bool
+
+Draws a toolbar of buttons.
+
+```cs
+[System.Flags]
+enum Options
+{
+	Item1 = 1,
+	Item2 = 2,
+	Item3 = 4,
+}
+
+[Tabs]
+public Options flagTabs;
+
+[Tabs]
+public bool boolTabs;
+
+[Tabs(vertical:true)]
+public Options verticalTabs;
+```
+
+### `[TextBox]`
+
+> Fields: String
+
+Draws text area that resizes automatically.
+
+```cs
+[TextBox(minLines:3)]
+public string textArea;
+```
+
+<!--==============================================-->
+<!--=================MODIFIERS====================-->
+<!--==============================================-->
 
 
+## 🔧 Modifiers
+
+Modifiers work in conjunction with property drawers in that they modify their drawing in some way.
+
+Notes:
+
+* Modifiers only work if at least one attribute from this project is present. `[DefaultDrawer]` can be used to get them to work with regular drawers.
 
 
+### `[FieldButton]`
 
+> Fields: Any
+
+Draws a button above field. Can reference method relative to field, or any static method with absolute path to type.
+
+Options:
+* Width (ratio)
+* Label (defaults to method name)
+* Usability flags (when is button enabled)
+
+Notes:
+
+* Method in declaring type can be referenced by prefixing name with `~`.
+* Methods cannot change values of struct types as their value is always boxed when invoking the function.
+
+```cs
+[FieldButton("SetMyValue", "Set=100",  args:new object[]{ 100 }, flags:EFieldUsable.Play, width:0.5f)]
+[FieldButton("~OuterMethod", width:0.5f)]
+[FieldButton("LogValue;StaticClass, MyModule", width:1f]
+[DefaultDrawer]
+public OwnerOfFunctions fieldWithButtons;
+
+private void OuterMethod()
+{
+	Debug.Log("Outer method called!");
+}
+
+[Serializable]
+class OwnerOfFunctions
+{
+	public int myValue = 10;
+
+	public void SetMyValue(int v)
+	{
+		myValue = v;
+	}
+}
+
+class StaticClass
+{
+	public static void LogValue(int v)
+	{
+		Debug.Log(v);
+	}
+}
+```
+
+### `[FieldOptions]`
+
+> Fields: Any
+
+Allows overrides to be specified for given field.
+
+Options:
+* Label. Overrides default display name. Hides if set to `null`.
+* Use flags. Controls when field is editable (play mode etc.).
+* Indent. Extra indent added to field.
+
+
+### `[InlineWidth]`
+
+> Fields: With `[Inline]`
+
+Supplies desired field width to `[Inline]` attribute. Can be placed on inlined field with name of child field, or on child field itself.
+
+```cs
+[InlineWidth("count", 40f)] // specific inner field
+[Inline]
+public InlineType inlined;
+
+[Serializable]
+struct InlineType
+{
+	public int count;
+	public string text;
+	[InlineWidth(40f)]
+	public bool check;
+}
+```
+
+### `[InlineHidden]`
+
+> Fields: With `[Inline]`
+
+Marks specific field to be excluded from being inlined, effectively hiding it when `[Inline]` is used.
+
+```cs
+[Inline]
+public InlineType inlined;
+
+[Serializable]
+struct InlineType
+{
+	public int count;
+	public string text;
+	[InlineHidden]
+	public bool hideMe;
+}
+```
+
+<!--==============================================-->
+<!--=================DECORATORS===================-->
+<!--==============================================-->
+
+## ⚡ Decorators
+
+> Fields: Any
+
+Decorators are simple standalone elements drawn above fields.
+
+### `[BoxHeader]`
+
+Draws large label inside outlined box above field.
+
+```cs
+[BoxHeader("My Section")]
+public string documentedField1;
+
+[BoxHeader("My Other Section", alignment:TextAnchor.MiddleCenter, style:FontStyle.Normal)]
+public string documentedField2;
+```
+
+### `[Comment]`
+
+Draws comment paragraph above field.
+
+```cs
+[Comment("Something useful")]
+public string documentedField;
+```
+
+### `[Alert]`
+
+Draws tinted alert with icon over field.
+
+(Uses CSS-Bootstrap-inspired colors.)
+
+```cs
+	[Alert("I'm important!", EAlert.Error)]
+	[Alert("I'm mildly important.", EAlert.Warning)]
+	[Alert("I'm noteworthy.", EAlert.Info)]
+	public string documentedValue;
+```
+
+### `[Link]`
+
+Draws link to external site above field.
+
+```cs
+[Link("https://www.reddit.com/r/lotrmemes/", "Serious Documentation")]
+public string documentedField;
+```
+
+### `[StaticButton]`
+
+Draws button above field.
+
+StaticButton works almost exactly as FieldButton with some limitations. Bcause it's a decorator, which has no knowledge of the field it's placed on, the method reference must be an absolute path to its type
+
+```cs
+[StaticButton("SayHi;StaticGreets, MyModule")]
+[StaticButton("LogValue;StaticGreets, MyModule", label: "Log", args: new object[]{ 10 })]
+public string documentedField;
+
+class StaticGreets
+{
+	public static void SayHi()
+	{
+		Debug.Log("Hello, wurst!");
+	}
+
+	public static void LogValue(int v)
+	{
+		Debug.Log("Your value is: " + v);
+	}
+}
+```
+
+<!--==============================================-->
+<!--=================STANDALONE===================-->
+<!--==============================================-->
+
+
+## ⚡ Standalone
+
+### `[HideLabel]`
+
+> Fields: Any
+
+Hides prefix label of field.
+
+```cs
+[HideLabel]
+public string documentedField;
+```
