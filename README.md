@@ -418,7 +418,7 @@ Dropdown of project tags.
 
 ```cs
 [ProjectTag]
-public string sortLayer;
+public string pTag;
 ```
 
 ### `[ProjectScene]`
