@@ -12,6 +12,11 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public sealed class TabsAttribute : __BaseControl
 	{
+		public TabsAttribute(bool vertical = false)
+		{
+			this.vertical = false;
+		}
+		internal bool vertical { get; }
 	}
 }
 
@@ -28,13 +33,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	[CustomPropertyDrawer(typeof(TabsAttribute))]
 	internal class _TabsAttribute : __ControlDrawer<TabsAttribute>
 	{
-		protected override EFieldType GetValidTypes()
-		{
-			return EFieldType.Bool | EFieldType.Enum;
-		}
+		protected override EFieldType GetValidTypes() => EFieldType.Bool | EFieldType.Enum;
 
 		protected override float GetHeight(SerializedProperty property, GUIContent label)
 		{
+			if (_Attribute.vertical)
+			{
+				// TODO:
+			}
 			return base.GetHeight(property, label);
 		}
 
@@ -50,12 +56,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			else
 			{
-				DrawDefault(ctx);
+				DrawBool(ctx);
 			}
 			GUI.Box(ctx.position, GUIContent.none, EditorStyles.helpBox);
-			
 		}
-		private void DrawDefault(in DrawContext ctx)
+		private void DrawBool(in DrawContext ctx)
 		{
 			var prop = ctx.property;
 			var pos = ctx.position;
@@ -110,11 +115,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static bool DrawTabButton(in Rect pos, bool value, string label, GUIStyle btnStyle)
 		{
-			// background
-			// EditorGUI.DrawRect(pos, value ? _ACTIVE_COLOR : _INACTIVE_COLOR);
-
-			var bgColor = value ? _ACTIVE_COLOR : _INACTIVE_COLOR;
-			
 			var tColorGUIBG = GUI.backgroundColor;
 			GUI.backgroundColor = value ? _ACTIVE_COLOR : _INACTIVE_COLOR;
 
@@ -130,11 +130,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (focused)
 			{
-
-				// var fRect = pos;
-				// fRect.height = 2f;
-				// EditorGUI.DrawRect(fRect, EditorStyles.label.focused.textColor.Fade(0.9f));
-				
 				if (Event.current != null && Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
 				{
 					value = !value;
@@ -142,15 +137,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 
 			GUI.backgroundColor = tColorGUIBG;
-
 			var tColor = GUI.color;
 			GUI.color = (focused || value) ? _LABEL_COL_ACTIVE : _LABEL_COL_INACTIVE;
 			_tabLabelStyle.Value.fontStyle = value ? FontStyle.Bold : FontStyle.Normal;
 			GUI.Label(pos, label, _tabLabelStyle.Value);
 			GUI.color = tColor;
-
 			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
-		
 			return value;
 		}
 

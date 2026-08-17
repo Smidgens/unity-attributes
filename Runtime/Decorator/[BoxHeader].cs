@@ -9,22 +9,20 @@ namespace Smidgenomics.Unity.Attributes
 		public BoxHeaderAttribute
 		(
 			string text,
-			string textColor = null,
-			string bgColor = null,
 			TextAnchor alignment = TextAnchor.MiddleLeft,
-			FontStyle fontStyle = FontStyle.Bold
+			FontStyle style = FontStyle.Bold
 		)
 		{
 			this.text = text ?? string.Empty;
-			color = ParseColor(textColor, color);
-			backgroundColor = ParseColor(bgColor, backgroundColor);
+			// color = ParseColor(textColor, color);
+			// backgroundColor = ParseColor(bgColor, backgroundColor);
 			this.alignment = alignment;
-			this.fontStyle = fontStyle;
+			this.style = style;
 		}
 		
 		internal string text { get; }
 		internal TextAnchor alignment { get; }
-		internal FontStyle fontStyle { get; }
+		internal FontStyle style { get; }
 		internal Color color { get; } = Color.white;
 		internal Color backgroundColor  { get; } = Color.white;
 	}
@@ -59,7 +57,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var tAlignment = s.alignment;
 			var tStyle = s.fontStyle;
 			s.alignment = _Attribute.alignment;
-			s.fontStyle = _Attribute.fontStyle;
+			s.fontStyle = _Attribute.style;
 			DrawText(pos, _label, s);
 			s.alignment = tAlignment;
 			s.fontStyle = tStyle;

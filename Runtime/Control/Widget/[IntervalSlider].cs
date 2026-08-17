@@ -5,14 +5,14 @@ namespace Smidgenomics.Unity.Attributes
 	/// <summary>
 	/// Interval slider with min/max handles
 	/// </summary>
-	public sealed class IntervalAttribute : __BaseControl
+	public sealed class IntervalSliderAttribute : __BaseControl
 	{
-		public IntervalAttribute
+		public IntervalSliderAttribute
 		(
 			float min,
 			float max,
-			string minField = null,
-			string maxField = null,
+			string fMin = "x",
+			string fMax = "y",
 			float step = 0
 		)
 		{
@@ -22,8 +22,8 @@ namespace Smidgenomics.Unity.Attributes
 			}
 			this.min = min;
 			this.max = max;
-			this.minField = minField;
-			this.maxField = maxField;
+			this.minField = fMin;
+			this.maxField = fMax;
 			this.step = step;
 		}
 		
@@ -43,8 +43,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 	using UnityEngine;
 
-	[CustomPropertyDrawer(typeof(IntervalAttribute))]
-	internal sealed class _IntervalAttribute : __ControlDrawer<IntervalAttribute>
+	[CustomPropertyDrawer(typeof(IntervalSliderAttribute))]
+	internal sealed class _IntervalSliderAttribute : __ControlDrawer<IntervalSliderAttribute>
 	{
 		protected override void OnField(in DrawContext ctx)
 		{
@@ -120,11 +120,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private (SerializedProperty,SerializedProperty) GetMinMaxProps(SerializedProperty prop)
 		{
-			if (_FieldType == typeof(Vector2) || _FieldType == typeof(Vector2Int))
-			{
-				return (prop.FindPropertyRelative("x"), prop.FindPropertyRelative("y"));
-			}
-
 			var minProp = prop.FindPropertyRelative(_Attribute.minField);
 			var maxProp = prop.FindPropertyRelative(_Attribute.maxField);
 

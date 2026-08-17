@@ -5,12 +5,12 @@ namespace Smidgenomics.Unity.Attributes
 	/// <summary>
 	/// Select index of material in referenced renderer
 	/// </summary>
-	public sealed class RendererMaterialIndexAttribute : __BaseControl
+	public sealed class RendererMaterialAttribute : __BaseControl
 	{
 		/// <summary>
 		/// Init with field of renderer
 		/// </summary>
-		public RendererMaterialIndexAttribute(string field)
+		public RendererMaterialAttribute(string field)
 		{
 			RendererFieldPath = field;
 		}
@@ -28,43 +28,42 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System;
 	using SP = UnityEditor.SerializedProperty;
 
-	[CustomPropertyDrawer(typeof(RendererMaterialIndexAttribute))]
-	internal sealed class _RendererMaterialIndexAttribute : PropertyDrawer
+	[CustomPropertyDrawer(typeof(RendererMaterialAttribute))]
+	internal sealed class _RendererMaterialAttribute : __ControlDrawer<RendererMaterialAttribute>
 	{
-		public const string EMPTY_LABEL = PluginConstants.Label.POPUP_UNSET;
 		public const string NO_RENDERER_MSG = "no renderer";
 		public const string NO_MATERIALS_MSG = "no material slots";
 		public const string NULL_LABEL = "(null)";
 
-		public override void OnGUI(Rect pos, SP prop, GUIContent l)
-		{
-			// label
-			DrawerGUI.PrefixLabel(ref pos, l, fieldInfo);
+		protected override EFieldType GetValidTypes() => EFieldType.Int;
 
-			var ctx = new DrawerContext
+		protected override void OnField(in DrawContext ctx)
+		{
+			var pos = ctx.position;
+			var prop = ctx.property;
+
+			var ctx2 = new DrawerContext
 			{
-				attribute = (RendererMaterialIndexAttribute)attribute,
 				property = prop,
+				renderer = GetRendererValue(_Attribute.RendererFieldPath, prop)
 			};
 
-			ctx.renderer = GetRendererValue(ctx.attribute.RendererFieldPath, prop);
-			DrawPopup(pos, ctx);
+			DrawPopup(pos, ctx2);
 		}
-
 
 		private struct DrawerContext
 		{
 			public Renderer renderer;
-			public RendererMaterialIndexAttribute attribute;
 			public SP property;
 		}
 
 		private static Renderer GetRendererValue(in string field, SP prop)
 		{
-			if (prop.propertyType != SerializedPropertyType.Integer) { return null; }
-			var rendererProp = prop.serializedObject.FindProperty(field);
-			if (rendererProp == null) { return null; }
-			if (rendererProp.propertyType != SerializedPropertyType.ObjectReference) { return null; }
+			var rendererProp = prop.FindSibling(field);
+			if (rendererProp == null || !rendererProp.IsObjectRef())
+			{
+				return null;
+			}
 			return rendererProp.objectReferenceValue as Renderer;
 		}
 
@@ -74,7 +73,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var renderer = ctx.renderer;
 
 			// renderer-related errors
-			if(HasError(renderer, out string err))
+			if(Validate(renderer, out string err))
 			{
 				DrawerGUI.MutedInfo(r, err); return;
 			}
@@ -83,7 +82,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			string l = prop.intValue > -1 && prop.intValue < materials.Length
 			? GetLabel(prop.intValue, materials[prop.intValue]?.name)
-			: EMPTY_LABEL;
+			: PluginConstants.Label.POPUP_UNSET;
 
 			if (GUI.Button(r, l, EditorStyles.popup))
 			{
@@ -92,11 +91,20 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 		}
 
-		private static bool HasError(Renderer r, out string msg)
+		private static bool Validate(Renderer r, out string msg)
 		{
 			msg = null;
-			if (!r) { msg = NO_RENDERER_MSG; return true; }
-			if(r.sharedMaterials.Length == 0) { msg = NO_MATERIALS_MSG; return true; }
+			if (!r)
+			{
+				msg = NO_RENDERER_MSG;
+				return true;
+			}
+
+			if (r.sharedMaterials.Length == 0)
+			{
+				msg = NO_MATERIALS_MSG;
+				return true;
+			}
 			return false;
 		}
 
@@ -104,8 +112,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static GenericMenu GetMenu(in DrawerContext ctx)
 		{
-			var menu = new GenericMenu();
-
 			var prop = ctx.property;
 
 			Action<int> setFn = v =>
@@ -114,12 +120,19 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				prop.serializedObject.ApplyModifiedProperties();
 			};
 
-			menu.AddItem(new GUIContent(EMPTY_LABEL), prop.intValue == -1, () => setFn.Invoke(-1));
-			menu.AddSeparator("");
+			var menu = new GenericMenu
+			{
+				allowDuplicateNames = true
+			};
+			menu.AddItem(new GUIContent(PluginConstants.Label.POPUP_UNSET), prop.intValue == -1, () => setFn.Invoke(-1));
+			menu.AddSeparator(string.Empty);
 
 			var mats = ListMaterials(ctx);
 
-			if (mats.Length == 0) { menu.AddDisabledItem(new GUIContent(NO_MATERIALS_MSG)); }
+			if (mats.Length == 0)
+			{
+				menu.AddDisabledItem(new GUIContent(NO_MATERIALS_MSG));
+			}
 
 			for(var i = 0; i < mats.Length; i++)
 			{

@@ -29,7 +29,7 @@ namespace Smidgenomics.Unity.Attributes
 
 		internal EProjectPath mode { get; }
 		internal string path { get; }
-		internal string wildcard { get; }
+		internal string pattern { get; }
 		internal bool recursive { get; }
 		internal string[] ignoreFolders { get; }
 
@@ -37,7 +37,7 @@ namespace Smidgenomics.Unity.Attributes
 		(
 			EProjectPath mode = EProjectPath.File,
 			string path = "Assets",
-			string wildcard = "*",
+			string pattern = "*",
 			bool recursive = true,
 			string[] ignoreFolders = null
 		)
@@ -46,7 +46,7 @@ namespace Smidgenomics.Unity.Attributes
 			this.mode = mode;
 			this.recursive = recursive;
 			this.path = path;
-			this.wildcard = wildcard;
+			this.pattern = pattern;
 		}
 	}
 
@@ -193,7 +193,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			(
 				EProjectPath.Folder,
 				a.path,
-				a.wildcard,
+				a.pattern,
 				a.recursive,
 				a.ignoreFolders
 			);
@@ -205,7 +205,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			(
 				EProjectPath.File,
 				a.path,
-				a.wildcard,
+				a.pattern,
 				a.recursive,
 				a.ignoreFolders
 			);
