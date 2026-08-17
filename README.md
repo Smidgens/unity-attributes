@@ -3,7 +3,7 @@
 
 # ℹ️ Features
 
-* Collection of highly flexible, general-use property attributes and decorators.
+* Collection of highly versatile, general-use property attributes and decorators.
 * All attributes work as-is without custom inspector.
 * 🤞 Reasonably lightweight.
 
@@ -85,7 +85,8 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 
 ## ⚡ Standalone
 
-* [`HideLabel`](#hidelabel)
+* [`FieldLabel`](#fieldlabel)
+* [`FieldIndent`](#fieldindent)
 
 <br/>
 
@@ -833,13 +834,28 @@ class StaticGreets
 
 ## ⚡ Standalone
 
-### `[HideLabel]`
+### `[FieldLabel]`
 
 > Fields: Any
 
-Hides prefix label of field.
+Overrides default label for field. Supplying `null` will hide it.
 
 ```cs
-[HideLabel]
-public string documentedField;
+[FieldLabel("Custom Label")]
+public string someField;
+
+// hide label
+[FieldLabel(null)]
+public string fullWidthField;
+```
+
+### `[FieldIndent]`
+
+> Fields: Any
+
+Adds extra indent to field.
+
+```cs
+[FieldIndent(1)]
+public string indentedField;
 ```
