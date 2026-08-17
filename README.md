@@ -473,7 +473,7 @@ public int blendShapeIndex
 
 > Fields: Int, String
 
-Shows dropdown of parameters in referenced animator. Saves value as either string (param name) or int (param hash).
+Shows dropdown of parameters in referenced animator. Saves value as either string (param name) or int (param index).
 
 ```cs
 public Animator animator;
@@ -482,7 +482,7 @@ public Animator animator;
 public string paramName;
 
 [AnimatorParameter("animator")]
-public int paramHash;
+public int paramIndex;
 
 // restrict to float or int params
 [AnimatorParameter("animator", EAnimatorParameter.Float|EAnimatorParameter.Int)]
