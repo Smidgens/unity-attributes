@@ -10,10 +10,11 @@ namespace Smidgenomics.Unity.Attributes
 	[AttributeUsage(AttributeTargets.Field)]
 	public abstract class __Base : PropertyAttribute
 	{
-		protected __Base(bool collection = false) : base(collection)
-		{
-			
-		}
+		#if UNITY_6000_0_OR_NEWER
+		protected __Base(bool collection = false) : base(collection) {}
+		#else
+		protected __Base(bool collection = false){}
+		#endif
 	}
 
 }
