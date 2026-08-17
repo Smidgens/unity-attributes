@@ -41,6 +41,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System.Globalization;
 	using System.Reflection;
 	using UnityEngine;
+	using Object = UnityEngine.Object;
 
 	[CustomPropertyDrawer(typeof(DropdownAttribute))]
 	internal sealed class _DropdownAttribute : __ControlDrawer<DropdownAttribute>
@@ -49,14 +50,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var optValueType = _FieldType;
 
-			if (typeof(UnityEngine.Object).IsAssignableFrom(_FieldType))
+			if (typeof(Object).IsAssignableFrom(_FieldType))
 			{
 				optValueType = typeof(string);
 			}
 			_optionFn = GetStaticOptionEnumerator(_Attribute.optionFn, optValueType);
 
 			var isColor = typeof(Color) == _FieldType;
-			
+
 			if (_optionFn.Item1 != null)
 			{
 				foreach (var it in _optionFn.Item1.Invoke())
@@ -77,7 +78,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var str = isColor ? ColorUtility.ToHtmlStringRGBA((Color)boxedValue) : boxedValue.ToString();
 				_options.Add((new GUIContent(boxedValue.ToString()), boxedValue, str));
 			}
-			
+
+			// special case for bool dropdown without values
 			if (_FieldType == typeof(bool))
 			{
 				if (_Attribute.boxedValues.Length == 0 && _options.Count == 0)
@@ -134,16 +136,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private GUIContent FindValueLabel(object o)
 		{
-			var isColor = _FieldType == typeof(Color);
-
-			var oStr = _FieldType == typeof(Color) ? ColorUtility.ToHtmlStringRGBA((Color)o) : o.ToString();
-			
+			// we convert colors to hex because it's somewhat more helpful than the default ToString
+			// (kinda shit though)
+			var oStr = _FieldType == typeof(Color)
+			? ColorUtility.ToHtmlStringRGBA((Color)o)
+			: o.ToString();
 			foreach (var (label, value, str) in _options)
 			{
-				// if (value.GetHashCode() == o.GetHashCode())
-				// {
-				// 	return label;
-				// }
 				if (oStr == str)
 				{
 					return label;
@@ -180,10 +179,42 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private delegate System.Collections.IEnumerable OptionFn();
 		private (OptionFn, FieldInfo, FieldInfo) _optionFn;
+		
+		private const BindingFlags _BF_STATIC =
+		BindingFlags.Public
+		| BindingFlags.NonPublic
+		| BindingFlags.Static;
 
-		private static (OptionFn, FieldInfo, FieldInfo) GetStaticOptionEnumerator(string name, Type valueType)
+		internal MethodInfo GetRelativeMethod(Type type, string method)
 		{
-			var m = ReflectionUtils.ParseStaticMethodString(name, typeof(System.Collections.IEnumerable));
+			if (method.StartsWith('~'))
+			{
+				method = method.Substring(1);
+				type = type.DeclaringType;
+			}
+			return (type!).GetMethod(method, _BF_STATIC, null, Array.Empty<Type>(), null);
+		}
+
+		private (OptionFn, FieldInfo, FieldInfo) GetStaticOptionEnumerator(string name, Type valueType)
+		{
+			if (string.IsNullOrEmpty(name))
+			{
+				return default;
+			}
+
+			// hack for asset dropdowns that supply single argument without an options method
+			if (typeof(Object).IsAssignableFrom(valueType) && name.IndexOf('/') > -1)
+			{
+				// value is either path or guid
+				if (name.IndexOf('/') > -1 || name.IsGUID())
+				{
+					return default;
+				}
+			}
+
+			var m = name.IndexOf(';') > -1
+			? ReflectionUtils.ParseStaticMethodString(name, typeof(System.Collections.IEnumerable))
+			: GetRelativeMethod(fieldInfo.DeclaringType, name);
 
 			if (m == null)
 			{
@@ -216,7 +247,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return (del, fItem1, fItem2);
 		}
 
-		private List<(GUIContent, string)> LoadAssetOptions(DropdownAttribute attr, Type fieldType)
+		private List<(GUIContent, string)> LoadAssetOptions()
 		{
 			List<(GUIContent, string)> paths = new();
 			List<string> values = new();
@@ -234,7 +265,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					var path = AssetDatabase.GUIDToAssetPath(value);
 					var aType = AssetDatabase.GetMainAssetTypeAtPath(path);
-					if (aType == fieldType)
+					if (aType == _FieldType)
 					{
 						paths.Add((new GUIContent(GetPathLabel(path)), path));
 					}
@@ -243,7 +274,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				folderPaths.Add(value);
 			}
 
-			foreach (var aGUID in AssetDatabase.FindAssets($"t:{fieldType.Name}", folderPaths.ToArray()))
+			foreach (var aGUID in AssetDatabase.FindAssets($"t:{_FieldType.Name}", folderPaths.ToArray()))
 			{
 				var path = AssetDatabase.GUIDToAssetPath(aGUID);
 				paths.Add((new GUIContent(GetPathLabel(path)), path));
@@ -263,10 +294,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return ob?.name ?? PluginConstants.Label.POPUP_UNSET;
 			}
 
-			// if (prop.IsColor())
-			// {
-			// 	return $"#{ColorUtility.ToHtmlStringRGBA(prop.colorValue)}";
-			// }
 			if (prop.IsString())
 			{
 				if (string.IsNullOrEmpty(prop.stringValue))
@@ -312,7 +339,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				
 				m.AddSeparator(string.Empty);
 
-				foreach (var (label, path) in LoadAssetOptions(attr, _FieldType))
+				foreach (var (label, path) in LoadAssetOptions())
 				{
 					m.AddItem(new GUIContent(label), path == currentAssetPath, () =>
 					{

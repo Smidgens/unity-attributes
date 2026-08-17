@@ -2,19 +2,16 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
-	using System;
-
-	[AttributeUsage(AttributeTargets.Field)]
 	public abstract class __BaseControl : __Base
 	{
 		protected __BaseControl(){}
 
-		protected __BaseControl(bool showActions, bool collection = false) : base(collection)
+		protected __BaseControl(bool buttons, bool collection = false) : base(collection)
 		{
-			this.showActions = showActions;
+			this.buttons = buttons;
 		}
 
-		internal bool showActions { get; }
+		internal bool buttons { get; }
 	}
 }
 
@@ -32,7 +29,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		public sealed override float GetPropertyHeight(SerializedProperty property, GUIContent label)
 		{
-			
 			EnsureInit();
 
 			var h = GetHeight(property, label);
@@ -98,9 +94,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			OnField(ctx);
 			GUI.enabled = tEnabled;
-
 			EditorGUI.EndProperty();
-			
 		}
 
 		private bool IsFieldEditable()
@@ -127,7 +121,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected int _ExtraIndent { get; private set; }
 
 		// absolute type of field
-		protected Type _FieldType => fieldInfo.FieldType.GetInnermostType();
+		protected Type _FieldType => _fieldType;
 
 		protected EFieldUsable _EditFlags { get; private set; } = EFieldUsable.Always;
 
@@ -149,6 +143,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private bool _init;
 		private List<ActionInfo> _actions;
 		private string _customLabel = string.Empty;
+		private Type _fieldType; // absolute field type, array or no
 		
 		private bool CanDraw(SerializedProperty prop, out string err)
 		{
@@ -218,13 +213,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private void EnsureInit()
 		{
-			
 			if (_init)
 			{
 				return;
 			}
 
 			_init = true;
+			_fieldType = fieldInfo.FieldType.GetInnermostType();
 
 			var options = GetMod<FieldOptionsAttribute>();
 
@@ -252,7 +247,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private List<ActionInfo> GetFieldActions()
 		{
-			if (!_Attribute.showActions)
+			if (!_Attribute.buttons)
 			{
 				return _EMPTY_ACTIONS;
 			}
