@@ -40,7 +40,7 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 * [`InstancedReference`](#instancedreference)
 * [`Box`](#box)
 * [`Foldout`](#foldout)
-* [`Reorderable`](#reorderable) (Unity 6.0+)
+* [`Reorderable`](#reorderable-unity-60) (Unity 6.0+)
 * [`SearchType`](#searchtype)
 * [`SearchEnum`](#searchenum)
 * [`NavMeshAgentID`](#navmeshagentid)
