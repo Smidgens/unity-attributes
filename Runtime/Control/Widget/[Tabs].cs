@@ -14,7 +14,7 @@ namespace Smidgenomics.Unity.Attributes
 	{
 		public TabsAttribute(bool vertical = false)
 		{
-			this.vertical = false;
+			this.vertical = vertical;
 		}
 		internal bool vertical { get; }
 	}
@@ -35,55 +35,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override EFieldType GetValidTypes() => EFieldType.Bool | EFieldType.Enum;
 
-		protected override float GetHeight(SerializedProperty property, GUIContent label)
-		{
-			if (_Attribute.vertical)
-			{
-				// TODO:
-			}
-			return base.GetHeight(property, label);
-		}
-
-		protected override void OnField(in DrawContext ctx)
-		{
-			var id = GUIUtility.GetControlID(FocusType.Keyboard, ctx.position);
-			
-			GUI.Box(ctx.position, GUIContent.none);
-
-			if (_isEnum)
-			{
-				DrawEnum(ctx);
-			}
-			else
-			{
-				DrawBool(ctx);
-			}
-			GUI.Box(ctx.position, GUIContent.none, EditorStyles.helpBox);
-		}
-		private void DrawBool(in DrawContext ctx)
-		{
-			var prop = ctx.property;
-			var pos = ctx.position;
-
-			if (TabButton(pos.SliceLeft(pos.width * 0.5f), prop.boolValue, "True", EditorStyles.miniButtonLeft))
-			{
-				prop.boolValue = true;
-			}
-			if (TabButton(pos, !prop.boolValue, "False", EditorStyles.miniButtonRight))
-			{
-				prop.boolValue = false;
-			}
-
-		}
-
-		private static bool TabButton(in Rect pos, bool v, string l, GUIStyle btnStyle)
-		{
-			return DrawTabButton(pos, v, l, btnStyle);
-		}
-
 		protected override void OnInit()
 		{
-			var t = fieldInfo.GetItemType();
+			var t = _FieldType;
 			_isEnum = t.IsEnum;
 			var isFlags = t.IsDefined(typeof(FlagsAttribute));
 
@@ -106,12 +60,65 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					}
 					fValues.Add((labels[i].ToSentenceCase(), vals[i]));
 				}
-				_values = fValues.ToArray();
+				_values = fValues;
 			}
 		}
 
+		protected override float GetHeight(SerializedProperty property, GUIContent label)
+		{
+			var itemHeight = EditorStyles.miniButton.CalcSize(GUIContent.none).y;
+			if (_Attribute.vertical)
+			{
+				int rows = _FieldType == typeof(bool)
+				? 2
+				: _values.Count;
+				return itemHeight * rows;
+			}
+			return Mathf.Max(EditorStyles.label.CalcSize(label).y, itemHeight);
+		}
+
+		protected override void OnField(in DrawContext ctx)
+		{
+			var id = GUIUtility.GetControlID(FocusType.Keyboard, ctx.position);
+
+			GUI.Box(ctx.position, GUIContent.none);
+
+			if (_isEnum)
+			{
+				DrawEnum(ctx);
+			}
+			else
+			{
+				DrawBool(ctx);
+			}
+			GUI.Box(ctx.position, GUIContent.none, EditorStyles.helpBox);
+		}
+		private void DrawBool(in DrawContext ctx)
+		{
+			var prop = ctx.property;
+			var pos = ctx.position;
+
+			var fRect = _Attribute.vertical
+			? pos.SliceTop(EditorStyles.miniButton.CalcSize(GUIContent.none).y)
+			: pos.SliceLeft(pos.width * 0.5f);
+			
+			if (TabButton(fRect, prop.boolValue, "True", EditorStyles.miniButtonLeft))
+			{
+				prop.boolValue = true;
+			}
+			if (TabButton(pos, !prop.boolValue, "False", EditorStyles.miniButtonRight))
+			{
+				prop.boolValue = false;
+			}
+		}
+
+		private static bool TabButton(in Rect pos, bool v, string l, GUIStyle btnStyle)
+		{
+			return DrawTabButton(pos, v, l, btnStyle);
+		}
+
 		private bool _isEnum;
-		private (string, int)[] _values;
+		private List<(string, int)> _values;
 
 		private static bool DrawTabButton(in Rect pos, bool value, string label, GUIStyle btnStyle)
 		{
@@ -146,8 +153,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return value;
 		}
 
-		
-
 		private static readonly Color _INACTIVE_COLOR
 		= DrawerGUI.PickSkin(Color.black.Fade(0.01f), Color.white);
 		
@@ -160,21 +165,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private static readonly Color _LABEL_COL_INACTIVE
 		= DrawerGUI.PickSkin(Color.white.Fade(0.8f), Color.black.Fade(0.9f));
 
-		private static readonly Lazy<GUIStyle> _tabLabelStyle = new (() =>
+		private static readonly Lazy<GUIStyle> _tabLabelStyle = new (() => new GUIStyle(EditorStyles.miniLabel)
 		{
-			return new GUIStyle(EditorStyles.miniLabel)
-			{
-				alignment = TextAnchor.MiddleCenter,
-				hover =
-				{
-					textColor = Color.white
-				},
-				normal =
-				{
-					textColor = Color.white
-				},
-				fontSize = (int)(EditorStyles.miniLabel.fontSize * 0.95f)
-			};
+			alignment = TextAnchor.MiddleCenter,
+			fontSize = (int)(EditorStyles.miniLabel.fontSize * 0.95f)
 		});
 
 		private void DrawEnum(in DrawContext ctx)
@@ -188,31 +182,43 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			
 			var pos = ctx.position;
 
-			var tabWidth = ctx.position.width / _values.Length;
+			var tabWidth = ctx.position.width / _values.Count;
 
 			var isFLags = fieldInfo.FieldType.GetInnermostType().IsDefined(typeof(FlagsAttribute));
+
+			var itemHeight = EditorStyles.miniButton.CalcSize(GUIContent.none).y;
 
 			int i = -1;
 			foreach (var (label, value) in _values)
 			{
 				i++;
 
-				var btnStyle = EditorStyles.miniButtonMid;
+				var btnStyle = EditorStyles.miniButton;
 
-				if (i == 0)
+				if (!_Attribute.vertical)
 				{
-					btnStyle = EditorStyles.miniButtonLeft;
+					if (i == 0)
+					{
+						btnStyle = EditorStyles.miniButtonLeft;
+					}
+					else if (i == _values.Count - 1)
+					{
+						btnStyle = EditorStyles.miniButtonRight;
+					}
+					else
+					{
+						btnStyle = EditorStyles.miniButtonMid;
+					}
 				}
-				else if (i == _values.Length - 1)
-				{
-					btnStyle = EditorStyles.miniButtonRight;
-				}
-				
-				var col = pos.SliceLeft(tabWidth);
+	
+				var btnRect = _Attribute.vertical
+				? pos.SliceTop(itemHeight)
+				: pos.SliceLeft(tabWidth);
+
 				var active = isFLags
 				? (evalue & value) != 0
 				: ctx.property.intValue == value;
-				var nv = TabButton(col, active, label, btnStyle);
+				var nv = TabButton(btnRect, active, label, btnStyle);
 				if (nv != active)
 				{
 					if (isFLags)
