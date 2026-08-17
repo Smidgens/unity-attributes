@@ -51,14 +51,20 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var img = EditorGUIUtility.IconContent("d_SceneAsset Icon")?.image;
 			DrawerGUI.DrawTex(img as Texture2D, pos.Resized(-pos.height * 0.1f));
 		}
+
+		private static bool AssetPathExists(string subPath)
+		{
+			var rootPath = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/'));
+			return System.IO.File.Exists($"{rootPath}/{subPath}");
+		}
 		
 		private void BuildScenePopup(in Rect pos, SerializedProperty prop)
 		{
 			var label = PluginConstants.Label.POPUP_UNSET;
 
 			var currentValue = GetSceneValue(prop);
-
-			var valid = !(!string.IsNullOrEmpty(currentValue.Item2) && !AssetDatabase.AssetPathExists(currentValue.Item2));
+			
+			var valid = !(!string.IsNullOrEmpty(currentValue.Item2) && !AssetPathExists(currentValue.Item2));
 
 			if (!valid)
 			{

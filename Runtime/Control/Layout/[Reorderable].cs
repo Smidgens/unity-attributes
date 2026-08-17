@@ -1,5 +1,7 @@
 // smidgens @ github
 
+#if UNITY_6000_0_OR_NEWER
+
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
@@ -732,5 +734,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		
 	}
 }
+
+#endif
 
 #endif
