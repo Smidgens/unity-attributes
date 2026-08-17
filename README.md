@@ -158,7 +158,6 @@ Inlines all child fields in a single row.
 
 * `[InlineHidden]` can be used to exclude fields from being inlined.
 
-
 ```cs
 [Inline]
 public Vector3 inlinedVector;
@@ -167,7 +166,7 @@ public Vector3 inlinedVector;
 [Inline]
 public InlinedType inlinedCustom;
 
-[System.Serializable]
+[Serializable]
 struct InlinedType
 {
 	public string key;
@@ -575,7 +574,7 @@ public bool labeledSwitch;
 [Switch]
 public EnumFlags enumOptions;
 
-[System.Flags]
+[Flags]
 enum EnumFlags
 {
     Item1 = 1,
@@ -591,7 +590,7 @@ enum EnumFlags
 Draws a toolbar of buttons.
 
 ```cs
-[System.Flags]
+[Flags]
 enum Options
 {
 	Item1 = 1,
@@ -653,7 +652,7 @@ Notes:
 ```cs
 [FieldButton("SetMyValue", "Set=100",  args:new object[]{ 100 }, flags:EFieldUsable.Play, width:0.5f)]
 [FieldButton("~OuterMethod", width:0.5f)]
-[FieldButton("LogValue;StaticClass, MyModule", width:1f]
+[FieldButton("LogValue;StaticClass, MyModule", width:1f)]
 [DefaultDrawer]
 public OwnerOfFunctions fieldWithButtons;
 
