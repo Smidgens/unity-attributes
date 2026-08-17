@@ -11,6 +11,8 @@
 
 # 📦 Install
 
+> Minimum Unity version: 2022.3
+
 1. Open Package Manager
 2. Paste GitHub URL:\
 `https://github.com/Smidgens/unity-attributes.git#<version_tag>`
@@ -38,7 +40,7 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 * [`InstancedReference`](#instancedreference)
 * [`Box`](#box)
 * [`Foldout`](#foldout)
-* [`Reorderable`](#reorderable)
+* [`Reorderable`](#reorderable) (Unity 6.0+)
 * [`SearchType`](#searchtype)
 * [`SearchEnum`](#searchenum)
 * [`NavMeshAgentID`](#navmeshagentid)
@@ -111,9 +113,14 @@ public int intValue;
 
 public TestEnum enumValue;
 
-// show if 
+// show on enum value
 [EditCondition("enumValue == Value1")]
 public string showIfValue1;
+
+// show using int field
+[EditCondition("intValue > 10")]
+public string showIfInt;
+
 
 enum TestEnum
 {
@@ -301,7 +308,7 @@ struct FoldableStruct
 }
 ```
 
-### `[Reorderable]`
+### `[Reorderable]` <small>(Unity 6.0+)</small>
 
 > Fields: Array/List
 
