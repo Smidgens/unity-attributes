@@ -99,14 +99,14 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 
 ### `[DefaultDrawer]`
 
-> Fields: Any
+> Fields: `any`
 
 Draws the default property drawer. This attribute exists to allow modifier attributes like buttons to work with regular drawers.
 
 
 ### `[EditCondition]`
 
-> Fields: Any
+> Fields: `any`
 
 Toggles field hidden/read-only depending on supplied conditional expression.
 
@@ -143,7 +143,7 @@ enum TestEnum
 
 ### `[Expand]`
 
-> Fields: Class, Struct
+> Fields: `class`|`struct`
 
 Expands all child fields. Label can be optionally hidden.
 
@@ -166,7 +166,7 @@ public ExpandableStruct expanded2;
 
 ### `[Inline]`
 
-> Fields: Class, Struct
+> Fields: `class`|`struct`
 
 Inlines all child fields in a single row.
 
@@ -198,11 +198,11 @@ struct InlinedType
 
 ### `[Dropdown]`
 
-> Fields: Any
+> Fields: `any`
 
 Shows a dropdown list of values for field. Values can be supplied directly, or a reference to an options method can be used which returns an `IEnumerable` of `(string,<type>)` tuples (label/value).
 
-Has special behaviour when placed on UnityEngine.Object fields where values can be supplied as folder paths or asset GUIDs.
+Has special behaviour when placed on `UnityEngine.Object` fields where values can be supplied as folder paths or asset GUIDs.
 
 ```cs
 [Dropdown("option1", "option2")]
@@ -244,7 +244,7 @@ public static List<(string, Color)> GetColorOptions()
 
 ### `[InstancedReference]`
 
-> Fields: Class
+> Fields: `class`
 
 Draws a popup list of new-able types for field with `[SerializeReference]` attribute.
 
@@ -271,7 +271,7 @@ class ClassB : BaseClass
 
 ### `[Box]`
 
-> Fields: Any
+> Fields: `any`
 
 Wraps field in outlined box.
 
@@ -293,14 +293,11 @@ struct GroupedFields
 
 ### `[Foldout]`
 
-> Fields: Any
+> Fields: `any`
 
 Wraps field in foldout box.
 
-Options:
-* `label` Uses field label by default.
-* `iconGUID` Reference to texture asset.
-* `iconCoords` Rect coordinates of icon if using atlas.
+**Options**: `label`|`iconGUID`|`iconCoords`
 
 Tips:
 * Combine with `[Expand(innerOnly:true)]`.
@@ -320,7 +317,7 @@ struct FoldableStruct
 
 ### `[Reorderable]`
 
-> Fields: Array/List
+> Fields: `Array`|`List`
 
 Draws an array as a reorderable drag list with various customization options and helpers.
 
@@ -360,7 +357,7 @@ public struct WrappedArray<T>
 
 ### `[SearchType]`
 
-> Fields: String
+> Fields: `string`
 
 Provides a searchable popup for assembly types with various filtering options.
 
@@ -379,7 +376,7 @@ public string systemType;
 
 ### `[SearchEnum]`
 
-> Fields: Enum
+> Fields: `enum`
 
 Shows a searchable popup of values in enum.
 
@@ -390,7 +387,7 @@ public KeyCode someKey;
 
 ### `[NavMeshAgentID]`
 
-> Fields: Int
+> Fields: `int`
 
 Draws popup of NavMesh agent types in project.
 
@@ -401,7 +398,7 @@ public int agentID;
 
 ### `[NavMeshAreaID]`
 
-> Fields: Int
+> Fields: `int`
 
 Draws popup of NavMesh area types in project.
 
@@ -412,7 +409,7 @@ public int areaID;
 
 ### `[ProjectLayer]`
 
-> Fields: Int
+> Fields: `int`
 
 Dropdown of project layer indices.
 
@@ -423,7 +420,7 @@ public int layerIndex;
 
 ### `[ProjectSortLayer]`
 
-> Fields: Int
+> Fields: `int`
 
 Dropdown of project sorting layer indices.
 
@@ -434,7 +431,7 @@ public int sortLayer;
 
 ### `[ProjectTag]`
 
-> Fields: String
+> Fields: `string`
 
 Dropdown of project tags.
 
@@ -445,7 +442,7 @@ public string pTag;
 
 ### `[ProjectScene]`
 
-> Fields: Int, String
+> Fields: `int`|`string`
 
 Shows dropdown of scenes in project and saves value as scene path or index in build settings.
 
@@ -460,7 +457,7 @@ public int sceneIndex;
 
 ### `[ProjectPath]`
 
-> Fields: String
+> Fields: `string`
 
 Draws popup of paths relative to project root directory. Can be set to either folder or file paths.
 
@@ -476,7 +473,7 @@ public string folderPath;
 
 ### `[BlendShape]`
 
-> Fields: Int, String
+> Fields: `int`|`string`
 
 Shows dropdown of blend shapes in referenced skinned mesh renderer. Saves value as either string (shape name) or int (index in renderer array).
 
@@ -493,7 +490,7 @@ public int blendShapeIndex
 
 ### `[AnimatorParameter]`
 
-> Fields: Int, String
+> Fields: `int`|`string`
 
 Shows dropdown of parameters in referenced animator. Saves value as either string (param name) or int (param index).
 
@@ -513,7 +510,7 @@ public string floatParam;
 
 ### `[RendererMaterial]`
 
-> Fields: Int
+> Fields: `int`
 
 Shows dropdown of materials in referenced renderer. Saves value as int index to material in renderer material array.
 
@@ -526,7 +523,7 @@ public int materialIndex
 
 ### `[HexColor]`
 
-> Fields: String
+> Fields: `string`
 
 Draws color picker for string field and saves as hex color value.
 
@@ -537,7 +534,7 @@ public string hexColor = "#f00";
 
 ### `[Slider]`
 
-> Fields: Numeric
+> Fields: `numeric`
 
 Identical to `[Range]` attribute, but provides options for step and precision.
 
@@ -554,14 +551,11 @@ public int sliderInt;
 
 ### `[IntervalSlider]`
 
-> Fields: Class/Struct
+> Fields: `class`|`struct`
 
 Draws Min/Max slider and saves values to two separate child fields.
 
-Options:
-* Min/Max range
-* Step
-* Min/Max fields
+**Options**:`min`|`max`|`fMin`|`fMax`|`step`
 
 ```cs
 // default saves to x/y
@@ -581,7 +575,7 @@ struct MyInterval
 
 ### `[Progress]`
 
-> Fields: Numeric
+> Fields: `numeric`
 
 Draws numeric field as a progress bar.
 
@@ -595,7 +589,7 @@ public float health = 50;
 
 ### `[Switch]`
 
-> Fields: Enum/Flags, Bool, LayerMask
+> Fields: `enum`|`flags`|`bool`|`LayerMask`
 
 Draws a toggle switch.
 
@@ -625,7 +619,7 @@ enum EnumFlags
 
 ### `[Tabs]`
 
-> Fields: Enum/Flags, Bool
+> Fields: `enum`|`flags`|`bool`
 
 Draws a toolbar of buttons.
 
@@ -650,7 +644,7 @@ public Options verticalTabs;
 
 ### `[TextBox]`
 
-> Fields: String
+> Fields: `string`
 
 Draws text area that resizes automatically.
 
@@ -675,17 +669,14 @@ Notes:
 
 ### `[FieldButton]`
 
-> Fields: Any
+> **Options**: `width`|`label`|`flags`
 
 Draws a button above field. Can reference method on field object, its owner, or any static method.
 
 * Static methods can be referenced with the form `<name>;<assembly_type>`.
 * Method on field itself can be referenced by prefixing the supplied name with `.` .
 
-Options:
-* `width` (0-1 ratio)
-* `label` (defaults to method name)
-* `flags` (when is button enabled)
+
 
 Notes:
 
@@ -725,14 +716,10 @@ class StaticClass
 
 ### `[FieldOptions]`
 
-> Fields: Any
+> **Options**: `label`|`useFlags`|`indent`
 
 Allows overrides to be specified for given field.
 
-Options:
-* `label` Overrides default display name. Hides if set to `null`.
-* `useFlags` Controls when field is editable (play mode etc.).
-* `indent` Extra indent added to field.
 
 ```cs
 // custom label
@@ -758,8 +745,6 @@ public float editableInPlayMode;
 
 ### `[InlineWidth]`
 
-> Fields: With `[Inline]`
-
 Supplies desired field width to `[Inline]` attribute. Can be placed on inlined field with name of child field, or on child field itself.
 
 ```cs
@@ -778,8 +763,6 @@ struct InlineType
 ```
 
 ### `[InlineHidden]`
-
-> Fields: With `[Inline]`
 
 Marks specific field to be excluded from being inlined, effectively hiding it when `[Inline]` is used.
 
@@ -802,8 +785,6 @@ struct InlineType
 <!--==============================================-->
 
 ## ⚡ Decorators
-
-> Fields: Any
 
 Decorators are simple standalone elements drawn above fields.
 
@@ -855,7 +836,7 @@ public string documentedField;
 
 Draws horizontal divider above field.
 
-Options: 
+**Options**: `marginTop`|`marginBottom`|`color`
 
 ```cs
 [Divider]
@@ -897,7 +878,7 @@ class StaticGreets
 
 ### `[FieldLabel]`
 
-> Fields: Any
+> Fields: `any`
 
 Overrides default label for field. Supplying `null` will hide it.
 
@@ -912,7 +893,7 @@ public string fullWidthField;
 
 ### `[FieldIndent]`
 
-> Fields: Any
+> Fields: `any`
 
 Adds extra indent to field.
 
