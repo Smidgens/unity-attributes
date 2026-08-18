@@ -47,7 +47,7 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 * [`InstancedReference`](#instancedreference)
 * [`Box`](#box)
 * [`Foldout`](#foldout)
-* [`Reorderable`](#reorderable-unity-60) (Unity 6.0+)
+* [`Reorderable`](#reorderable)
 * [`SearchType`](#searchtype)
 * [`SearchEnum`](#searchenum)
 * [`NavMeshAgentID`](#navmeshagentid)
@@ -317,25 +317,45 @@ struct FoldableStruct
 }
 ```
 
-### `[Reorderable]` <small>(Unity 6.0+)</small>
+### `[Reorderable]`
 
 > Fields: Array/List
 
-Draws array as reorderable drag list with various customization options and helpers.
+Draws an array as a reorderable drag list with various customization options and helpers.
 
+In Unity 6 and later the attribute can be placed directly on arrays.
+
+For older versions, a wrapper type needs to be used.
+
+**Unity 6+**:
 ```cs
 // draws collapsed list of colliders
 [Reorderable((EReorderable.Minimal|EReorderable.Foldable))]
-public Collider[] _colList;
+public Collider[] foldableList;
 
 // hide size input
 [Reorderable(EReorderable.Minimal & ~EReorderable.Resizable)]
-public string[] stringList;
+public string[] nonResizeable;
 
 // draws standard-looking list
 [Reorderable(EReorderable.Standard)]
 public string[] standardList;
 ```
+
+**Pre-Unity 6**
+```cs
+// wrapped array, requires reference to field
+[Reorderable("array", EReorderable.Minimal|EReorderable.Foldable)]
+public WrappedArray<Collider> wrappedList;
+
+// array wrapper
+[Serializable]
+public struct WrappedArray<T>
+{
+	public T[] array;
+}
+```
+
 
 ### `[SearchType]`
 

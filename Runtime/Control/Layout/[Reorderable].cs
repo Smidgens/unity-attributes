@@ -1,7 +1,5 @@
 // smidgens @ github
 
-#if UNITY_6000_0_OR_NEWER
-
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
@@ -63,13 +61,31 @@ namespace Smidgenomics.Unity.Attributes
 
 	/// <summary>
 	/// Draws array as reorderable list
+	///
+	/// Note: Can be placed directly on array fields in Unity 6+ (recommended)
 	/// </summary>
 	public sealed class ReorderableAttribute : __BaseControl
 	{
+		
+#if UNITY_6000_0_OR_NEWER
 		public ReorderableAttribute(EReorderable flags = EReorderable.Minimal) : base(true, true)
 		{
 			this.flags = flags;
 		}
+#endif
+
+		/// <summary>
+		/// Legacy workaround for pre-Unity 6, use nested array
+		/// </summary>
+		/// <param name="arrayField">Name of array field</param>
+		/// <param name="flags"></param>
+		public ReorderableAttribute(string arrayField, EReorderable flags = EReorderable.Minimal) : base(true, true)
+		{
+			this.arrayField = arrayField;
+			this.flags = flags;
+		}
+
+		internal string arrayField { get; }
 		internal EReorderable flags { get; }
 	}
 }
@@ -95,17 +111,59 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			// _focusedIndex = -1;
 		}
 
+		private bool _init;
+
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
 		{
-			GetList(prop);
-			
+			if (!_init)
+			{
+				_displayName = prop.displayName;
+				var cl = GetCustomLabel();
+
+				if (cl != string.Empty)
+				{
+					// custom label is either something (we use it) or null (we hide it)
+					_displayName = cl ?? string.Empty;
+				}
+
+				_itemType = _FieldType;
+				// check if we're using a wrapped array (pre-Unity 6)
+				if (!prop.isArray)
+				{
+					var inner = prop.FindPropertyRelative(_Attribute.arrayField);
+					if (inner is not { isArray: true })
+					{
+						_invalidField = true;
+					}
+					else
+					{
+						var bFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+						_wrappedArray = true;
+						var aField = _itemType.GetField(_Attribute.arrayField, bFlags);
+						_itemType = (aField!).FieldType.GetElementType();
+
+					}
+				}
+
+				_init = true;
+			}
+
+			if (_invalidField)
+			{
+				return EditorGUIUtility.singleLineHeight;
+			}
+
+			var arrProp = _wrappedArray ? prop.FindPropertyRelative(_Attribute.arrayField) : prop;
+
+			var l = GetList(arrProp);
+
 			var h = _PAD_LIST_BOTTOM;
 
 			if (_IsFoldable)
 			{
 				var labelHeight = DrawerStyles.FoldoutHeight;
-				var lHeight = prop.isExpanded
-				? GetList(prop).GetHeight() + _FOLDOUT_SPACING
+				var lHeight = arrProp.isExpanded
+				? l.GetHeight() + _FOLDOUT_SPACING
 				: 0f;
 				var padHeight = _FOLDOUT_PAD * 2f;
 				h += labelHeight + lHeight + padHeight;
@@ -116,27 +174,44 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			else
 			{
-				h += GetList(prop).GetHeight();
+				h += l.GetHeight();
 			}
 			return h;
 		}
 
-		protected override void OnLabel(ref Rect pos, SerializedProperty prop, GUIContent l) {}
-		
+		private bool _wrappedArray;
+		private bool _invalidField;
+		private string _displayName;
+		private Type _itemType;
+
+		protected override void OnLabel(ref Rect pos, SerializedProperty prop, GUIContent l)
+		{
+			if (_invalidField)
+			{
+				base.OnLabel(ref pos, prop, l);
+			}
+		}
+
 		protected override void OnField(in DrawContext ctx)
 		{
-			var property = ctx.property;
+			if (_invalidField)
+			{
+				DrawerGUI.MutedInfo(ctx.position, "Invalid array");
+				return;
+			}
+
+			var property = _wrappedArray
+			? ctx.property.FindPropertyRelative(_Attribute.arrayField)
+			: ctx.property;
+
 			var position = ctx.position;
 
 			position.SliceBottom(_PAD_LIST_BOTTOM);
-			
 
 			if (CheckFlag(EReorderable.Foldable))
 			{
 				GUI.Box(position, GUIContent.none, EditorStyles.helpBox);
-				
-				// GUI.Box(position, GUIContent.none);
-				// var inner = position.Resized(-_FOLDOUT_PAD);
+
 				var inner = position.Padded(EditorStyles.helpBox.padding);
 
 				var labelHeight = DrawerStyles.FoldoutHeight;
@@ -146,7 +221,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				
 				DrawCompactControls(ref foldoutBox, property);
 
-				var label = property.displayName;
+				var label = _displayName;
 
 				if (!CheckFlag(EReorderable.Resizable))
 				{
@@ -177,7 +252,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 
 		private bool _IsFoldable => CheckFlag(EReorderable.Foldable);
-		private bool _IsUnityObjectField => typeof(Object).IsAssignableFrom(_FieldType);
+		private bool _IsUnityObjectField => typeof(Object).IsAssignableFrom(_itemType);
 		private ReorderableList _list;
 
 		private bool CheckFlag(EReorderable flag)
@@ -324,7 +399,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					m.AddSeparator(string.Empty);
 				}
 				
-				if (typeof(Object).IsAssignableFrom(_FieldType))
+				if (typeof(Object).IsAssignableFrom(_itemType))
 				{
 					var missingRefs = prop.CountMissingArrayItemRefs();
 
@@ -371,7 +446,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					});
 				}
 
-				if (prop.serializedObject.targetObject is Component && typeof(Component).IsAssignableFrom(_FieldType))
+				if (prop.serializedObject.targetObject is Component && typeof(Component).IsAssignableFrom(_itemType))
 				{
 					m.AddSeparator(string.Empty);
 					m.AddItem(PluginConstants.Label.FIND_CHILD_COMPS, false, () =>
@@ -380,7 +455,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 						{
 							var obs = prop.GetUniqueReferences();
 							var owner = prop.serializedObject.targetObject as Component;
-							foreach (var cc in owner!.GetComponentsInChildren(_FieldType))
+							foreach (var cc in owner!.GetComponentsInChildren(_itemType))
 							{
 								if (obs.Contains(cc))
 								{
@@ -457,7 +532,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			if (IsManagedReferenceField())
 			{
-				var m = CreateTypeMenu(_FieldType, o =>
+				var m = CreateTypeMenu(_itemType, o =>
 				{
 					var newType = (Type)o;
 
@@ -534,6 +609,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				return;
 			}
+			
+			if (_wrappedArray)
+			{
+				prop = prop.GetParent();
+			}
 
 			var showHeader = CheckFlag(EReorderable.Header) && !_IsFoldable;
 			showHeader |= CheckFlag(EReorderable.Compact) && !_IsFoldable;
@@ -543,7 +623,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return;
 			}
 
-			var label = prop.displayName;
+			var label = _displayName;
 
 			if (!CheckFlag(EReorderable.Resizable))
 			{
@@ -638,8 +718,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return;
 			}
 
-			var isComponentType = typeof(Component).IsAssignableFrom(_FieldType);
-			var isGameObjectType = typeof(GameObject).IsAssignableFrom(_FieldType);
+			var isComponentType = typeof(Component).IsAssignableFrom(_itemType);
+			var isGameObjectType = typeof(GameObject).IsAssignableFrom(_itemType);
 
 			int count = 0;
 
@@ -660,9 +740,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				if (isGameObjectType || isComponentType)
 				{
-					addObs = GetComponentDrop(_FieldType, ob);
+					addObs = GetComponentDrop(_itemType, ob);
 				}
-				else if(_FieldType.IsAssignableFrom(dropType))
+				else if(_itemType.IsAssignableFrom(dropType))
 				{
 					addObs = new []{ ob };
 				}
@@ -734,7 +814,5 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		
 	}
 }
-
-#endif
 
 #endif
