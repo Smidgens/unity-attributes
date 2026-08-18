@@ -13,7 +13,7 @@ namespace Smidgenomics.Unity.Attributes
 	[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
 	public sealed class FieldButtonAttribute : __BaseModifier
 	{
-		internal const char OUTER_TOKEN = '~';
+		internal const char INNER_TOKEN = '.';
 		internal const float MIN_W = 0.1f;
 
 		public FieldButtonAttribute
@@ -36,10 +36,10 @@ namespace Smidgenomics.Unity.Attributes
 				argTypes[i] = this.args[i].GetType();
 			}
 			
-			if (method.Length >= 2 && method.StartsWith(OUTER_TOKEN))
+			if (method.Length >= 2 && method.StartsWith(INNER_TOKEN))
 			{
-				useOuter = true;
-				method = method.Substring(1);
+				useInner = true;
+				this.method = method.Substring(1);
 			}
 			else if (method.Contains(';'))
 			{
@@ -49,7 +49,7 @@ namespace Smidgenomics.Unity.Attributes
 
 		internal string label { get; }
 		internal EFieldUsable flags { get; }
-		internal bool useOuter { get; }
+		internal bool useInner { get; }
 		internal MethodInfo staticMethod { get; }
 		internal float width { get; } // button width (0-1)
 		internal object[] args { get; }
@@ -62,10 +62,10 @@ namespace Smidgenomics.Unity.Attributes
 				return staticMethod;
 			}
 
-			var type = field.FieldType.GetInnermostType();
-			if (useOuter)
+			var type = field.DeclaringType;
+			if (useInner)
 			{
-				type = field.DeclaringType;
+				type = field.FieldType.GetInnermostType();
 			}
 			var m = (type!).GetMethod(method, _INST_FLAGS, null, argTypes, null);
 			if (m == null || m.ReturnType != typeof(void))

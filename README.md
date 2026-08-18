@@ -199,7 +199,7 @@ struct InlinedType
 
 > Fields: Any
 
-Shows a dropdown list of values for field. Values can be supplied directly, or a reference to an options method can be used which returns an IEnumerable of (label,value) tuplies.
+Shows a dropdown list of values for field. Values can be supplied directly, or a reference to an options method can be used which returns an `IEnumerable` of `(string,<type>)` tuples (label/value).
 
 Has special behaviour when placed on UnityEngine.Object fields where values can be supplied as folder paths or asset GUIDs.
 
@@ -217,26 +217,27 @@ public int intValue;
 [Dropdown("Assets/Textures/icons/", "460278ced8f4db444b2b4cd02a08f984")]
 public Texture2D icon;
 
-// read options from static method
+// relative path to options
+[Dropdown("GetColorOptions")]
+public Color colorValue;
+
+// absolute path to options
 [Dropdown("GetColorOptions;MyType, MyModule")]
 public Color colorValue;
 
-class MyType
+public static List<(string, Color)> GetColorOptions()
 {
-	public static List<(string, Color)> GetColorOptions()
+	return new ()
 	{
-		return new ()
-		{
-			("White", Color.white),
-			("Black", Color.black),
-			("Clear", Color.clear),
-			("Red", Color.red),
-			("Blue", Color.blue),
-			("Green", Color.green),
-			("Yellow", Color.yellow),
-			("Magenta", Color.magenta),
-		};
-	}
+		("White", Color.white),
+		("Black", Color.black),
+		("Clear", Color.clear),
+		("Red", Color.red),
+		("Blue", Color.blue),
+		("Green", Color.green),
+		("Yellow", Color.yellow),
+		("Magenta", Color.magenta),
+	};
 }
 ```
 
@@ -296,9 +297,9 @@ struct GroupedFields
 Wraps field in foldout box.
 
 Options:
-* Label. Uses field label by default.
-* Icon GUID. Reference to texture asset.
-* Icon coords. Coordinates of icon in texture file (texture atlas).
+* `label` Uses field label by default.
+* `iconGUID` Reference to texture asset.
+* `iconCoords` Rect coordinates of icon if using atlas.
 
 Tips:
 * Combine with `[Expand(innerOnly:true)]`.
@@ -655,27 +656,28 @@ Notes:
 
 > Fields: Any
 
-Draws a button above field. Can reference method relative to field, or any static method with absolute path to type.
+Draws a button above field. Can reference method on field object, its owner, or any static method.
+
+* Static methods can be referenced with the form `<name>;<assembly_type>`.
+* Method on field itself can be referenced by prefixing the supplied name with `.` .
 
 Options:
-* Width (ratio)
-* Label (defaults to method name)
-* Usability flags (when is button enabled)
+* `width` (0-1 ratio)
+* `label` (defaults to method name)
+* `flags` (when is button enabled)
 
 Notes:
 
-* Static methods can be referenced with the form `<name>;<assembly_type>`.
-* Method in declaring type can be referenced by prefixing name with `~`.
-* Methods cannot change values of struct types as their value is always boxed when invoking the function.
+* Methods cannot change values of struct types as their current contents get copied when invoking the function.
 
 ```cs
-[FieldButton("SetMyValue", "Set=100",  args:new object[]{ 100 }, flags:EFieldUsable.Play, width:0.5f)]
-[FieldButton("~OuterMethod", width:0.5f)]
+[FieldButton("OwnerMethod", width:0.5f)] 
+[FieldButton(".SetMyValue", "Set=100",  args:new object[]{ 100 }, flags:EFieldUsable.Play, width:0.5f)] // inner
 [FieldButton("LogValue;StaticClass, MyModule", width:1f)]
 [DefaultDrawer]
 public OwnerOfFunctions fieldWithButtons;
 
-private void OuterMethod()
+private void OwnerMethod()
 {
 	Debug.Log("Outer method called!");
 }
@@ -707,10 +709,31 @@ class StaticClass
 Allows overrides to be specified for given field.
 
 Options:
-* Label. Overrides default display name. Hides if set to `null`.
-* Use flags. Controls when field is editable (play mode etc.).
-* Indent. Extra indent added to field.
+* `label` Overrides default display name. Hides if set to `null`.
+* `useFlags` Controls when field is editable (play mode etc.).
+* `indent` Extra indent added to field.
 
+```cs
+// custom label
+[FieldOptions(label:"Bojack")]
+[DefaultDrawer]
+public float nameYouWontSee;
+
+// indented
+[FieldOptions(indent:1)]
+[DefaultDrawer]
+public float horseman;
+
+// hidden label
+[FieldOptions(label:null)]
+[DefaultDrawer]
+public float unlabeledValue;
+
+// use flags
+[FieldOptions(useFLags:EFieldUsable.Play)]
+[DefaultDrawer]
+public float editableInPlayMode;
+```
 
 ### `[InlineWidth]`
 

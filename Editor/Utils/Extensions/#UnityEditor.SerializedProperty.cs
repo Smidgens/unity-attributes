@@ -88,6 +88,19 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return result != null && result.StartsWith("Miss");
 		}
 
+		public static SerializedProperty GetParent(this SerializedProperty prop)
+		{
+			// NOTE: Needs fixing for arrays
+			var propertyPath = prop.propertyPath;
+			var i = propertyPath.LastIndexOf('.');
+			if (i < 0)
+			{
+				return null;
+			}
+			var parentPath = propertyPath.Substring(0, i);
+			return prop.serializedObject.FindProperty(parentPath);
+		}
+
 		// get sibling of given prop
 		public static SerializedProperty FindSibling(this SerializedProperty prop, string name)
 		{

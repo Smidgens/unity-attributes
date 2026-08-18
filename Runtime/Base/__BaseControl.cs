@@ -313,13 +313,17 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				if (!a.method.IsStatic)
 				{
-					if (a.attribute.useOuter)
+					if (a.attribute.useInner)
 					{
-						target = prop.serializedObject.targetObject;
+						target = prop.boxedValue;
 					}
 					else
 					{
-						target = prop.boxedValue;
+						// if parent is null then we "should" be at the root serialized object level
+						var parentProp = prop.GetParent();
+						target = parentProp != null
+						? parentProp.boxedValue
+						: prop.serializedObject.targetObject;
 					}
 				}
 
