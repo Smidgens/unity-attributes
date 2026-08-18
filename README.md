@@ -855,6 +855,8 @@ public string documentedField;
 
 Draws horizontal divider above field.
 
+Options: 
+
 ```cs
 [Divider]
 public bool check;
