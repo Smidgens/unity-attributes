@@ -5,13 +5,28 @@ namespace Smidgenomics.Unity.Attributes
 	/// <summary>
 	/// Hex color
 	/// </summary>
-	public sealed class HexColorAttribute : __BaseControl { }
+	public sealed class HexColorAttribute : __BaseControl
+	{
+		public HexColorAttribute
+		(
+			bool showAlpha = true,
+			bool hdr = false
+		)
+		{
+			this.showAlpha = showAlpha;
+			this.hdr = hdr;
+		}
+		
+		internal bool showAlpha { get; }
+		internal bool hdr { get; }
+	}
 }
 
 #if UNITY_EDITOR
 
 namespace Smidgenomics.Unity.Attributes.Editor
 {
+	using System.Reflection;
 	using UnityEditor;
 	using UnityEngine;
 	
@@ -25,7 +40,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			HexColor(ctx.position, ctx.property);
 		}
 
-		private static void HexColor(in Rect pos, SerializedProperty prop)
+		private void HexColor(in Rect pos, SerializedProperty prop)
 		{
 			// valid type?
 			if (prop.propertyType != SerializedPropertyType.String)
@@ -36,7 +51,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			EditorGUI.BeginChangeCheck();
 
-			var newColor = EditorGUI.ColorField(pos, HexToColor(prop.stringValue));
+			var alpha = _Attribute.showAlpha;
+			var hdr = _Attribute.hdr;
+
+			var newColor = EditorGUI.ColorField(pos, GUIContent.none, HexToColor(prop.stringValue), true, alpha, hdr); 
 			if (EditorGUI.EndChangeCheck())
 			{
 				prop.stringValue = newColor.ToHexString();
