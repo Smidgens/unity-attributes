@@ -106,7 +106,8 @@ Draws the default property drawer. This attribute exists to allow modifier attri
 
 ### `[EditCondition]`
 
-> Fields: `any`
+> Fields: `any`\
+>🎚️ `expression`|`hide`
 
 Toggles field hidden/read-only depending on supplied conditional expression.
 
@@ -143,7 +144,8 @@ enum TestEnum
 
 ### `[Expand]`
 
-> Fields: `class`|`struct`
+> Fields: `class`|`struct`\
+>🎚️ `innerOnly`
 
 Expands all child fields. Label can be optionally hidden.
 
@@ -198,7 +200,8 @@ struct InlinedType
 
 ### `[Dropdown]`
 
-> Fields: `any`
+> Fields: `any`\
+>🎚️ `optionFn`|`boxedValues`
 
 Shows a dropdown list of values for field. Values can be supplied directly, or a reference to an options method can be used which returns an `IEnumerable` of `(string,<type>)` tuples (label/value).
 
@@ -246,7 +249,7 @@ public static List<(string, Color)> GetColorOptions()
 
 > Fields: `class`
 
-Draws a popup list of new-able types for field with `[SerializeReference]` attribute.
+Draws a popup list of new-able types on field with [`[SerializeReference]`](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/SerializeReference.html).
 
 ```cs
 [InstancedReference]
@@ -293,11 +296,10 @@ struct GroupedFields
 
 ### `[Foldout]`
 
-> Fields: `any`
+> Fields: `any`\
+>🎚️ `label`|`iconGUID`|`iconCoords`
 
 Wraps field in foldout box.
-
-**Options**: `label`|`iconGUID`|`iconCoords`
 
 Tips:
 * Combine with `[Expand(innerOnly:true)]`.
@@ -317,7 +319,8 @@ struct FoldableStruct
 
 ### `[Reorderable]`
 
-> Fields: `Array`|`List`
+> Fields: `Array`|`List`\
+>🎚️ `flags`|`fieldName`
 
 Draws an array as a reorderable drag list with various customization options and helpers.
 
@@ -357,7 +360,8 @@ public struct WrappedArray<T>
 
 ### `[SearchType]`
 
-> Fields: `string`
+> Fields: `string`\
+>🎚️ `flags`|`baseType`|`assemblies`|`namespaces`
 
 Provides a searchable popup for assembly types with various filtering options.
 
@@ -442,7 +446,8 @@ public string pTag;
 
 ### `[ProjectScene]`
 
-> Fields: `int`|`string`
+> Fields: `int`|`string`\
+>🎚️ `buildOnly`
 
 Shows dropdown of scenes in project and saves value as scene path or index in build settings.
 
@@ -457,7 +462,8 @@ public int sceneIndex;
 
 ### `[ProjectPath]`
 
-> Fields: `string`
+> Fields: `string`\
+>🎚️ `mode`|`pattern`
 
 Draws popup of paths relative to project root directory. Can be set to either folder or file paths.
 
@@ -490,7 +496,8 @@ public int blendShapeIndex
 
 ### `[AnimatorParameter]`
 
-> Fields: `int`|`string`
+> Fields: `int`|`string`\
+>🎚️ `field`|`types`
 
 Shows dropdown of parameters in referenced animator. Saves value as either string (param name) or int (param index).
 
@@ -510,7 +517,8 @@ public string floatParam;
 
 ### `[RendererMaterial]`
 
-> Fields: `int`
+> Fields: `int`\
+>🎚️ `field`
 
 Shows dropdown of materials in referenced renderer. Saves value as int index to material in renderer material array.
 
@@ -523,7 +531,8 @@ public int materialIndex
 
 ### `[HexColor]`
 
-> Fields: `string`
+> Fields: `string`\
+>🎚️ `showAlpha`|`hdr`
 
 Draws color picker for string field and saves as hex color value.
 
@@ -534,7 +543,8 @@ public string hexColor = "#f00";
 
 ### `[Slider]`
 
-> Fields: `numeric`
+> Fields: `numeric`\
+>🎚️ `min`|`max`|`step`|`precision`
 
 Identical to `[Range]` attribute, but provides options for step and precision.
 
@@ -551,11 +561,12 @@ public int sliderInt;
 
 ### `[IntervalSlider]`
 
-> Fields: `class`|`struct`
+> Fields: `class`|`struct`\
+🎚️ `min`|`max`|`fMin`|`fMax`|`step`
 
 Draws Min/Max slider and saves values to two separate child fields.
 
-**Options**:`min`|`max`|`fMin`|`fMax`|`step`
+
 
 ```cs
 // default saves to x/y
@@ -575,7 +586,8 @@ struct MyInterval
 
 ### `[Progress]`
 
-> Fields: `numeric`
+> Fields: `numeric`\
+>🎚️ `min`|`max`|`label`
 
 Draws numeric field as a progress bar.
 
@@ -589,7 +601,8 @@ public float health = 50;
 
 ### `[Switch]`
 
-> Fields: `enum`|`flags`|`bool`|`LayerMask`
+> Fields: `enum`|`flags`|`bool`|`LayerMask`\
+>🎚️ `offLabel`|`onLabel`
 
 Draws a toggle switch.
 
@@ -619,7 +632,8 @@ enum EnumFlags
 
 ### `[Tabs]`
 
-> Fields: `enum`|`flags`|`bool`
+> Fields: `enum`|`flags`|`bool`\
+>🎚️ `vertical`
 
 Draws a toolbar of buttons.
 
@@ -644,7 +658,8 @@ public Options verticalTabs;
 
 ### `[TextBox]`
 
-> Fields: `string`
+> Fields: `string`\
+>🎚️ `minLines`
 
 Draws text area that resizes automatically.
 
@@ -662,25 +677,18 @@ public string textArea;
 
 Modifiers work in conjunction with property drawers in that they modify their drawing in some way.
 
-Notes:
-
-* Modifiers only work if at least one attribute from this project is present. `[DefaultDrawer]` can be used to get them to work with regular drawers.
+<small>⚠️ Modifiers only work if at least one attribute from this project is present. `[DefaultDrawer]` can be used to get them to work with regular drawers.</small>
 
 
 ### `[FieldButton]`
 
-> **Options**: `width`|`label`|`flags`
+> 🎚️ `width`|`label`|`flags`
 
 Draws a button above field. Can reference method on field object, its owner, or any static method.
 
 * Static methods can be referenced with the form `<name>;<assembly_type>`.
 * Method on field itself can be referenced by prefixing the supplied name with `.` .
-
-
-
-Notes:
-
-* Methods cannot change values of struct types as their current contents get copied when invoking the function.
+* Note: Methods cannot change values of struct types as their current contents get copied when invoking the function.
 
 ```cs
 [FieldButton("OwnerMethod", width:0.5f)] 
@@ -716,7 +724,7 @@ class StaticClass
 
 ### `[FieldOptions]`
 
-> **Options**: `label`|`useFlags`|`indent`
+> 🎚️ `label`|`useFlags`|`indent`
 
 Allows overrides to be specified for given field.
 
@@ -744,6 +752,8 @@ public float editableInPlayMode;
 ```
 
 ### `[InlineWidth]`
+
+> 🎚️ `field`|`width`
 
 Supplies desired field width to `[Inline]` attribute. Can be placed on inlined field with name of child field, or on child field itself.
 
@@ -813,7 +823,7 @@ public string documentedField;
 
 Draws tinted alert with icon over field.
 
-(Uses [CSS Bootstrap](https://getbootstrap.com/docs/4.0/utilities/colors/)-inspired colors.)
+<small>(Uses [CSS Bootstrap](https://getbootstrap.com/docs/4.0/utilities/colors/)-inspired colors.)</small>
 
 ```cs
 [Alert("I'm important!", EAlert.Error)]
@@ -823,6 +833,8 @@ public string documentedValue;
 ```
 
 ### `[Link]`
+
+>🎚️ `url`|`text`
 
 Draws link to external site above field.
 
@@ -834,9 +846,10 @@ public string documentedField;
 
 ### `[Divider]`
 
+>🎚️ `marginTop`|`marginBottom`|`color`
+
 Draws horizontal divider above field.
 
-**Options**: `marginTop`|`marginBottom`|`color`
 
 ```cs
 [Divider]
@@ -845,6 +858,8 @@ public bool check;
 
 
 ### `[StaticButton]`
+
+>🎚️ `method`|`label`|`args`
 
 Draws button above field.
 
@@ -878,7 +893,9 @@ class StaticGreets
 
 ### `[FieldLabel]`
 
-> Fields: `any`
+> Fields: `any`\
+>🎚️ `label`
+
 
 Overrides default label for field. Supplying `null` will hide it.
 
@@ -893,7 +910,8 @@ public string fullWidthField;
 
 ### `[FieldIndent]`
 
-> Fields: `any`
+> Fields: `any`\
+>🎚️ `indent`
 
 Adds extra indent to field.
 
