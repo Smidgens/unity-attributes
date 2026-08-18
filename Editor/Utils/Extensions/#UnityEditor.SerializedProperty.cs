@@ -43,10 +43,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return hs;
 		}
 
-		public static bool IsRefType<T>(this SP p)
-		{
-			return p.IsRefType(typeof(T).Name);
-		}
+		// public static bool IsRefType<T>(this SP p)
+		// {
+		// 	return p.IsRefType(typeof(T).Name);
+		// }
 		
 		private static PropertyInfo _refStringProp;
 		
@@ -109,11 +109,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return l?.arraySize ?? 0;
 		}
 
-		public static bool IsRefType(this SP p, string typeName)
+		// checks if property is a reference to a given unity object type
+		public static bool IsRefType<T>(this SP p) where T : Object
 		{
-			if (p.propertyType != SerializedPropertyType.ObjectReference) { return false; }
-			var refName = $"PPtr<${typeName}>";
-			return p.type == refName;
+			if (p is not { propertyType: SerializedPropertyType.ObjectReference })
+			{
+				return false;
+			}
+			return p.type == $"PPtr<${typeof(T).Name}>";
 		}
 
 		public static bool IsArrayElement(this SerializedProperty p)

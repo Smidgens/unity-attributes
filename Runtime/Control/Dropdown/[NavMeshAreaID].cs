@@ -20,38 +20,22 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 
 	[CustomPropertyDrawer(typeof(NavMeshAreaIDAttribute))]
-	internal sealed class _NavMeshAreaIDAttribute : PropertyDrawer
+	internal sealed class _NavMeshAreaIDAttribute : __ControlDrawer<NavMeshAreaIDAttribute>
 	{
-		public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent l)
+		protected override EFieldType GetValidTypes() => EFieldType.Int;
+
+		protected override void OnField(in DrawContext ctx)
 		{
-			EditorGUI.BeginProperty(pos, l, prop);
-			
-			if (l != GUIContent.none)
-			{
-				pos = EditorGUI.PrefixLabel(pos, l);
-			}
-
-			if (prop.propertyType != SerializedPropertyType.Integer)
-			{
-				DrawMessage(pos, "Field type must be int", MessageType.Error);
-				return;
-			}
-
 			if (!HasAIModule())
 			{
-				DrawMessage(pos, "Missing AI module", MessageType.Error);
-				EditorGUI.EndProperty();
+				DrawerGUI.MutedInfo(ctx.position, "Missing AI Module");
 				return;
 			}
-			
-			DrawPopup(pos, prop);
-
-			EditorGUI.EndProperty();
+			DrawPopup(ctx.position, ctx.property);
 		}
 
 		private static (Type, string, bool) _navmeshType = (null, "UnityEngine.AI.NavMesh, UnityEngine.AIModule", false);
 		private static (Type, string, bool) _navmeshHelperType = (null, "UnityEditor.AI.NavMeshEditorHelpers, UnityEditor.CoreModule", false);
-
 		private static (GUIContent, int)[] _cachedMenuOptions;
 		private static (GUIContent, int)[] _cachedAreaOptions;
 		private static int _cachedSettingsCount;
@@ -61,8 +45,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		BindingFlags.Static
 		| BindingFlags.Public;
 
+		private static Texture _areaIcon;
+
 		private static void DrawPopup(Rect pos, SerializedProperty prop)
 		{
+			if (!_areaIcon)
+			{
+				_areaIcon = EditorGUIUtility.IconContent("NavMeshData Icon")?.image;
+			}
+			
 			if (_cachedMenuOptions == null)
 			{
 				_cachedMenuOptions = GetAreaOptions();
@@ -77,6 +68,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				label = options[currentIndex].Item1;
 			}
+			
+			var prefixRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
+			pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
+			DrawerGUI.DrawTex(_areaIcon, prefixRect);
 
 			if(EditorGUI.DropdownButton(pos, label, FocusType.Keyboard))
 			{
@@ -161,20 +156,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			return -1;
 		}
-
-		private static void DrawMessage(Rect pos, string msg, MessageType type)
-		{
-			var color = type switch
-			{
-				MessageType.Error => Color.red * 0.25f,
-				MessageType.Warning => Color.yellow * 0.25f,
-				MessageType.Info => Color.cyan * 0.25f,
-				_ => Color.clear
-			};
-			EditorGUI.DrawRect(pos, color);
-			EditorGUI.LabelField(pos, msg, EditorStyles.centeredGreyMiniLabel);
-		}
-
 
 	}
 }

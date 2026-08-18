@@ -57,6 +57,28 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static readonly GUIContent _dummyLabel = new();
 		
+		private static readonly Color _PREFIX_ICON_COLOR = EditorGUIUtility.isProSkin
+		? Color.white * 0.8f
+		: Color.black * 0.65f;
+
+		public static void DrawControlPrefixIcon(ref Rect pos, EAtlasIcon icon, float pad = 0.1f)
+		{
+			var icoRect = pos
+			.SliceLeft(EditorGUIUtility.singleLineHeight)
+			.Resized(-pos.height * pad);
+			pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
+			PluginAtlas.DrawIcon(icoRect, icon, _PREFIX_ICON_COLOR);
+		}
+		
+		public static void DrawControlPrefixIcon(ref Rect pos, Texture tex, float pad = 0.1f)
+		{
+			var icoRect = pos
+			.SliceLeft(EditorGUIUtility.singleLineHeight)
+			.Resized(-pos.height * pad);
+			pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
+			DrawTex(tex, icoRect);
+		}
+
 		public static bool PopupButton(in Rect pos, in string label)
 		{
 			_dummyLabel.text = label;

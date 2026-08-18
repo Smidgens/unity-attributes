@@ -32,17 +32,24 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			BlendShapePopup(ctx.position, ctx.property, _Attribute.field);
 		}
 		
-		private static void BlendShapePopup(in Rect pos, SerializedProperty prop, in string rendererField)
+		private static Texture _rendererIcon;
+
+		private static Texture GetRendererIcon()
 		{
+			if (!_rendererIcon)
+			{
+				_rendererIcon = EditorGUIUtility.IconContent("SkinnedMeshRenderer Icon")?.image;
+			}
+			return _rendererIcon;
+		}
+		
+		private static void BlendShapePopup(Rect position, SerializedProperty prop, in string rendererField)
+		{
+			var pos = position;
+
 			var rendererProp = prop.FindSibling(rendererField);
 			
-			if (rendererProp == null)
-			{
-				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_INVALID);
-				return;
-			}
-
-			if(!rendererProp.IsRefType<SkinnedMeshRenderer>())
+			if (rendererProp == null || !rendererProp.IsRefType<SkinnedMeshRenderer>())
 			{
 				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_INVALID);
 				return;
@@ -90,6 +97,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				label = $"{shape.Item1}: {shape.Item2}";
 			}
+			
+			var prefixRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
+			pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
+			DrawerGUI.DrawTex(GetRendererIcon(), prefixRect);
 
 			if (EditorGUI.DropdownButton(pos, new GUIContent(label), FocusType.Keyboard))
 			{

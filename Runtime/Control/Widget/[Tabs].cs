@@ -81,7 +81,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var id = GUIUtility.GetControlID(FocusType.Keyboard, ctx.position);
 
-			GUI.Box(ctx.position, GUIContent.none);
+			// GUI.Box(ctx.position, GUIContent.none);
+			
+			// PluginAtlas.DrawIcon(ctx.position, EAtlasIcon.BoxRounded, _ACTIVE_COLOR);
 
 			if (_isEnum)
 			{
@@ -144,11 +146,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 
 			GUI.backgroundColor = tColorGUIBG;
-			var tColor = GUI.color;
-			GUI.color = (focused || value) ? _LABEL_COL_ACTIVE : _LABEL_COL_INACTIVE;
-			_tabLabelStyle.Value.fontStyle = value ? FontStyle.Bold : FontStyle.Normal;
+
+			var ls = _tabLabelStyle.Value;
+			// var tColor = GUI.color;
+
+			// var tlColor = ls.normal.textColor;
+			// ls.normal.textColor = 
+			// GUI.color = (focused || value) ? _LABEL_COL_ACTIVE : _LABEL_COL_INACTIVE;
+			ls.fontStyle = value ? FontStyle.Bold : FontStyle.Normal;
+			ls.normal.textColor = (value) ? _LABEL_COL_ACTIVE : _LABEL_COL_INACTIVE;
+			ls.hover.textColor = ls.normal.textColor;
 			GUI.Label(pos, label, _tabLabelStyle.Value);
-			GUI.color = tColor;
+			// GUI.color = tColor;
 			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
 			return value;
 		}

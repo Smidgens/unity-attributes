@@ -34,22 +34,20 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
-			if (_Attribute.buildOnly && ctx.property.propertyType == SerializedPropertyType.Integer)
-			{
-				DrawerGUI.MutedInfo(ctx.position, "Invalid");
-				return;
-			}
-
 			var pos = ctx.position;
-			var previewRect = pos.SliceLeft(pos.height);
+			DrawerGUI.DrawControlPrefixIcon(ref pos, GetSceneTexture());
 			BuildScenePopup(pos, ctx.property);
-			ScenePreview(previewRect);
 		}
 
-		private static void ScenePreview(in Rect pos)
+		private static Texture _sceneTex;
+
+		private static Texture GetSceneTexture()
 		{
-			var img = EditorGUIUtility.IconContent("d_SceneAsset Icon")?.image;
-			DrawerGUI.DrawTex(img as Texture2D, pos.Resized(-pos.height * 0.1f));
+			if (!_sceneTex)
+			{
+				_sceneTex = EditorGUIUtility.IconContent("SceneAsset Icon")?.image;
+			}
+			return _sceneTex;
 		}
 
 		private static bool AssetPathExists(string subPath)
@@ -68,7 +66,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (!valid)
 			{
-				label = "<invalid scene>";
+				label = "(invalid scene)";
 			}
 			else if(!string.IsNullOrEmpty(currentValue.Item2))
 			{

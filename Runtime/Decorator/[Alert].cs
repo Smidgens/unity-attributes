@@ -71,7 +71,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			box.width -= 2f;
 			box.center = p.center;
 
-			var (icon, tintColor) = _ALERT_STYLES.GetValueOrDefault(_Attribute.type, default);
+			var (icon, tintColor) = _STYLES[(int)_Attribute.type];
 
 			tintColor = tintColor.Fade(0.75f);
 			
@@ -100,17 +100,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			DrawText(pos, _label, s, Color.white);
 		}
 
-		private static readonly Dictionary<EAlert, (EAtlasIcon, Color)> _ALERT_STYLES = new()
+		private static readonly (EAtlasIcon, Color)[] _STYLES =
 		{
-			// bootstrap gonna sue...
-			{ EAlert.Info, (EAtlasIcon.Info, new Color(0.09f, 0.635f, 0.722f)) },
-			{ EAlert.Warning, (EAtlasIcon.Warning, new Color(1f, 0.757f, 0.0275f)) },
-			{ EAlert.Error, (EAtlasIcon.Error, new Color(0.863f, 0.208f, 0.2706f)) },
+			(EAtlasIcon.Info, new Color(0.09f, 0.635f, 0.722f)),
+			(EAtlasIcon.Warning, new Color(1f, 0.757f, 0.0275f)),
+			(EAtlasIcon.Error, new Color(0.863f, 0.208f, 0.2706f)),
 		};
 
 		private GUIContent _label;
-
-		
 
 	}
 }

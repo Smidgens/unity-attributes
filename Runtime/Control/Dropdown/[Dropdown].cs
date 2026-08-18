@@ -106,6 +106,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			if (hasPreview)
 			{
 				previewRect = pos.SliceLeft(pos.height);
+				pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
 			}
 			
 			if (DrawerGUI.PopupButton(pos, currentValStr))
@@ -124,9 +125,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			if (_FieldType == typeof(Color))
 			{
-				EditorGUI.DrawRect(pos.Resized(-pos.height * 0.2f), prop.colorValue);
+				var cRect = pos.Resized(-pos.height * 0.15f);
+				cRect.center = pos.center;
+				cRect.position += new Vector2(-0.25f, 1f);
+				GUI.Box(pos, GUIContent.none, EditorStyles.helpBox);
+				PluginAtlas.DrawIcon(cRect, EAtlasIcon.BoxRounded, prop.colorValue);
 			}
-			else if (typeof(UnityEngine.Object).IsAssignableFrom(_FieldType))
+			else if (typeof(Object).IsAssignableFrom(_FieldType))
 			{
 				DrawAssetThumbnail(pos.Resized(-pos.height * 0.1f), prop.objectReferenceValue);
 			}

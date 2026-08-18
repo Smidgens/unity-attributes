@@ -86,10 +86,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		
 		public const string _EMPTY_LABEL = PluginConstants.Label.POPUP_UNSET;
 
-		private static readonly Color _ICON_COLOR = EditorGUIUtility.isProSkin
-		? Color.white * 0.8f
-		: Color.black * 0.65f;
-
 		private static void DrawPopup(Rect pos, SerializedProperty prop, ProjectPathAttribute a)
 		{
 			var l = !string.IsNullOrEmpty(prop.stringValue)
@@ -101,14 +97,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				l = l.Substring(l.LastIndexOf('/') + 1);
 			}
 
-			var icoRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
-
-			var ico = a.mode == EProjectPath.File
-			? EAtlasIcon.File
-			: EAtlasIcon.Folder;
+			DrawerGUI.DrawControlPrefixIcon(ref pos, a.mode == EProjectPath.File ? EAtlasIcon.File : EAtlasIcon.Folder);
 			
-			PluginAtlas.DrawIcon(icoRect, ico,_ICON_COLOR);
-
 			if (EditorGUI.DropdownButton(pos, new GUIContent(l, prop.stringValue), FocusType.Keyboard))
 			{
 				if (a.mode == EProjectPath.File)

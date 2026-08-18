@@ -34,7 +34,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		Error,
 		Folder,
 		File,
-		Code
+		CurlyBrackets,
+		BoxRounded
 	}
 
 	[System.Serializable]
@@ -55,14 +56,24 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static Rect GetIconCoords(EAtlasIcon icon)
 		{
+			// special case for switch textures as they take up two columns
+			if (icon == EAtlasIcon.SwitchOff)
+			{
+				return new Rect(0, 0.75f, 0.25f, 0.125f);
+			}
+			if (icon == EAtlasIcon.SwitchOn)
+			{
+				return new Rect(0, 0.75f + 0.125f, 0.25f, 0.125f);
+			}
+
 			// could be changed to an array that corresponds to enum values
 			return icon switch
 			{
-				EAtlasIcon.ArrowLeft => new Rect(0.5f, 0, 0.25f, 0.25f),
-				EAtlasIcon.ArrowRight => new Rect(0.75f, 0, 0.25f, 0.25f),
-				EAtlasIcon.SwitchOff => new Rect(0, 0, 0.25f, 0.125f),
-				EAtlasIcon.SwitchOn => new Rect(0, 0.125f, 0.25f, 0.125f),
-				EAtlasIcon.Close => new Rect(0.25f, 0, 0.25f, 0.25f),
+				EAtlasIcon.Close => new Rect(0.25f, 0, 0.125f, 0.125f),
+				EAtlasIcon.ArrowLeft => new Rect(0.375f, 0, 0.125f, 0.125f),
+				EAtlasIcon.ArrowRight => new Rect(0.5f, 0, 0.125f, 0.125f),
+				EAtlasIcon.Folder => new Rect(0.625f, 0f, 0.125f, 0.125f),
+				EAtlasIcon.File => new Rect(0.75f, 0f, 0.125f, 0.125f),
 				EAtlasIcon.Delegate => new Rect(0, 0.25f, 0.125f, 0.125f),
 				EAtlasIcon.Static => new Rect(0.125f, 0.25f, 0.125f, 0.125f),
 				EAtlasIcon.Primitive => new Rect(0.25f, 0.25f, 0.125f, 0.125f),
@@ -80,9 +91,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				EAtlasIcon.Warning => new Rect(0.75f, 0.375f, 0.125f, 0.125f),
 				EAtlasIcon.Error => new Rect(0.875f, 0.375f, 0.125f, 0.125f),
 				//
-				EAtlasIcon.Folder => new Rect(0.5f, 0.5f, 0.25f, 0.25f),
-				EAtlasIcon.File => new Rect(0.75f, 0.5f, 0.25f, 0.25f),
-				EAtlasIcon.Code => new Rect(0.5f, 0.25f, 0.125f, 0.125f),
+				EAtlasIcon.CurlyBrackets => new Rect(0.5f, 0.25f, 0.125f, 0.125f),
+				EAtlasIcon.BoxRounded => new Rect(0, 0.625f, 0.125f, 0.125f),
 				_ => default
 			};
 		}

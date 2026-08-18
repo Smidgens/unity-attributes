@@ -45,8 +45,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			ParameterPopup(ctx.position, ctx.property, _Attribute.field);
 		}
 
-		public void ParameterPopup(in Rect pos, SerializedProperty prop, in string animatorFieldPath)
+		public void ParameterPopup(in Rect position, SerializedProperty prop, in string animatorFieldPath)
 		{
+			var pos = position;
+			// 
+			
 			if (_TYPE_ANIM == null)
 			{
 				DrawerGUI.MutedInfo(pos, "Missing animation module");
@@ -65,21 +68,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				animatorProp = prop.FindSibling(animatorFieldPath);
 			}
 
-			if (animatorProp == null)
+			if (animatorProp == null || !animatorProp.IsRefType<Animator>())
 			{
-				DrawerGUI.MutedInfo(pos, "Invalid field type");
-				return;
-			}
-
-			if (!animatorProp.IsRefType("Animator"))
-			{
-				DrawerGUI.MutedInfo(pos, "Invalid animator field");
+				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_INVALID);
 				return;
 			}
 
 			if (!animatorProp.objectReferenceValue)
 			{
-				DrawerGUI.MutedInfo(pos, "animator not set");
+				DrawerGUI.MutedInfo(pos, "No animator");
 				return;
 			}
 
@@ -100,6 +97,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				btnLabel = new GUIContent(prop.stringValue);
 			}
+
+			var prefixRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
+			pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
+			DrawerGUI.DrawTex(GetAnimatorIcon(), prefixRect);
 
 			if(EditorGUI.DropdownButton(pos, btnLabel, FocusType.Keyboard))
 			{
@@ -127,6 +128,17 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static readonly Type _TYPE_ANIM = Type.GetType("UnityEngine.Animator, UnityEngine.AnimationModule");
 		private static readonly Type _TYPE_ANIM_PARAM = Type.GetType("UnityEngine.AnimatorControllerParameter, UnityEngine.AnimationModule");
+
+		private static Texture _animatorIcon;
+
+		private static Texture GetAnimatorIcon()
+		{
+			if (!_animatorIcon)
+			{
+				_animatorIcon = EditorGUIUtility.IconContent("Animator Icon")?.image;
+			}
+			return _animatorIcon;
+		}
 
 		private static GenericMenu GetParameterMenu(SerializedProperty animatorProp, EAnimatorParameter types, SerializedProperty prop, System.Action<string, int> setFn)
 		{

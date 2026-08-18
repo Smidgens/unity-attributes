@@ -251,10 +251,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			// }
 			// return name;
 		}
-		
-		private static readonly Color _ICON_COLOR = EditorGUIUtility.isProSkin
-		? Color.white * 0.8f
-		: Color.black * 0.65f;
 
 		private TypeSearch.MenuNode _cachedMenu;
 
@@ -276,9 +272,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var tIndent = EditorGUI.indentLevel;
 			EditorGUI.indentLevel = 0;
 			
-			var icoRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
-			
-			PluginAtlas.DrawIcon(icoRect, EAtlasIcon.Code, _ICON_COLOR);
+			// var icoRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
+			// PluginAtlas.DrawIcon(icoRect, EAtlasIcon.Code, _ICON_COLOR);
+
+			DrawerGUI.DrawControlPrefixIcon(ref pos, EAtlasIcon.CurlyBrackets);
 
 			if (!string.IsNullOrEmpty(prop.stringValue))
 			{
