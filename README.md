@@ -123,11 +123,11 @@ public TestEnum enumValue;
 
 // show on enum value
 [EditCondition("enumValue == Value1")]
-public string showIfValue1;
+public string enableIfValue1;
 
 // show using int field
 [EditCondition("intValue > 10")]
-public string showIfInt;
+public string enableIfInt;
 
 
 enum TestEnum
@@ -362,7 +362,7 @@ public string systemType;
 Shows a searchable popup of values in enum.
 
 ```cs
-[SearchTSearchEnumype]
+[SearchEnum]
 public KeyCode someKey;
 ```
 
@@ -587,14 +587,17 @@ public bool simpleSwitch;
 public bool labeledSwitch;
 
 [Switch]
-public EnumFlags enumOptions;
+public EnumFlags flagSwitches;
+
+[Switch]
+public LayerMask layerSwitches;
 
 [Flags]
 enum EnumFlags
 {
-    Item1 = 1,
-    Item2 = 2,
-    Item3 = 4,
+	Item1 = 1,
+	Item2 = 2,
+	Item3 = 4,
 }
 ```
 
@@ -787,10 +790,10 @@ Draws tinted alert with icon over field.
 (Uses CSS-Bootstrap-inspired colors.)
 
 ```cs
-	[Alert("I'm important!", EAlert.Error)]
-	[Alert("I'm mildly important.", EAlert.Warning)]
-	[Alert("I'm noteworthy.", EAlert.Info)]
-	public string documentedValue;
+[Alert("I'm important!", EAlert.Error)]
+[Alert("I'm mildly important.", EAlert.Warning)]
+[Alert("I'm noteworthy.", EAlert.Info)]
+public string documentedValue;
 ```
 
 ### `[Link]`
@@ -806,7 +809,7 @@ public string documentedField;
 
 Draws button above field.
 
-StaticButton works almost exactly as FieldButton with some limitations. Bcause it's a decorator, which has no knowledge of the field it's placed on, the method reference must be an absolute path to its type
+`[StaticButton]` works almost exactly as [`[FieldButton]`](#fieldbutton) with some limitations. Because it's a decorator, which has no knowledge of the field it's placed on, the method reference must be an absolute path to its type
 
 ```cs
 [StaticButton("SayHi;StaticGreets, MyModule")]
