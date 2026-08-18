@@ -3,13 +3,13 @@
 
 # ℹ️ Features
 
-* Collection of highly versatile, general-use property attributes and decorators.
-* All attributes work as-is without custom inspector.
+* Collection of highly versatile, general-use property drawers and decorators.
+* All attributes work as-is without a custom inspector.
 * 🤞 Reasonably lightweight.
 
 <br/>
 
-> 🧑‍💻💬 *These attributes are an aggregate of helper attributes I've made over the years for various projects. If I find myself needing an attribute in more than one project, it usually ends up in here.*
+> 🧑‍💻💬 *These attributes are an aggregate of helper attributes I've made over the years for various projects. If I find myself wanting an attribute for multiple projects, it eventually ends up in here.*
 
 
 <br/>
@@ -537,16 +537,16 @@ public int sliderInt;
 Draws Min/Max slider and saves values to two separate child fields.
 
 Options:
-* Min/Max values
+* Min/Max range
 * Step
 * Min/Max fields
 
 ```cs
-// defaults to x/y fields
+// default saves to x/y
 [IntervalSlider(0f, 1f)]
 public Vector2 vectorInterval;
 
-// specify min/max fields
+// custom min/max fields
 [IntervalSlider(0f, 1f, fMin:"min", fMax:"max", step:0.25f)]
 public MyInterval interval; 
 
@@ -664,6 +664,7 @@ Options:
 
 Notes:
 
+* Static methods can be referenced with the form `<name>;<assembly_type>`.
 * Method in declaring type can be referenced by prefixing name with `~`.
 * Methods cannot change values of struct types as their value is always boxed when invoking the function.
 
