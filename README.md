@@ -81,6 +81,7 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 * [`Alert`](#alert)
 * [`Comment`](#comment)
 * [`Link`](#link)
+* [`Divider`](#divider)
 * [`StaticButton`](#staticbutton)
 
 ## ⚡ Standalone
@@ -848,6 +849,17 @@ Draws link to external site above field.
 [Link("https://www.reddit.com/r/lotrmemes/", "Serious Documentation")]
 public string documentedField;
 ```
+
+
+### `[Divider]`
+
+Draws horizontal divider above field.
+
+```cs
+[Divider]
+public bool check;
+```
+
 
 ### `[StaticButton]`
 
