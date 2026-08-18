@@ -787,7 +787,7 @@ public string documentedField;
 
 Draws tinted alert with icon over field.
 
-(Uses CSS-Bootstrap-inspired colors.)
+(Uses [CSS Bootstrap](https://getbootstrap.com/docs/4.0/utilities/colors/)-inspired colors.)
 
 ```cs
 [Alert("I'm important!", EAlert.Error)]
