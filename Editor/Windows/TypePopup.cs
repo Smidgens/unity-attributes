@@ -730,25 +730,26 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static readonly Dictionary<string, EAtlasIcon> _TYPE_ICO_COORDS = new()
 		{
-			{ "Delegate", EAtlasIcon.Delegate },
-			{ "Static", EAtlasIcon.Static },
+			{ "Delegate", EAtlasIcon.Parentheses },
+			{ "Static", EAtlasIcon.Hash },
 			{ "Primitive", EAtlasIcon.Primitive },
 			// row2
-			{ "Attribute", EAtlasIcon.Attribute },
-			{ "Exception", EAtlasIcon.Exception },
+			{ "Attribute", EAtlasIcon.SquareBrackets },
+			{ "Exception", EAtlasIcon.Warning },
 			{ "Enum", EAtlasIcon.Enum },
 			// row 3
-			{ "Interface", EAtlasIcon.Interface },
-			{ "Struct", EAtlasIcon.Struct },
-			{ "Class", EAtlasIcon.Class },
+			{ "Interface", EAtlasIcon.AngleBrackets },
+			{ "Struct", EAtlasIcon.CurlyBrackets },
+			{ "Class", EAtlasIcon.CurlyBrackets },
 		};
 
 		private static void DrawNodeIcon(Rect pos, string label)
 		{
-			pos = pos.Resized(-pos.height * 0.1f);
-			var c = _TYPE_ICO_COLOR;
-			var icon = _TYPE_ICO_COORDS.GetValueOrDefault(label, EAtlasIcon.Class);
-			PluginAtlas.DrawIcon(pos, icon, c);
+			pos = pos.Resized(-pos.height * 0.2f);
+			// var c = _TYPE_ICO_COLOR;
+			var icon = _TYPE_ICO_COORDS.GetValueOrDefault(label, EAtlasIcon.CurlyBrackets);
+			DrawerGUI.DrawSkinTintedIcon(pos, icon);
+			// PluginAtlas.DrawIcon(pos, icon, c);
 		}
 
 		private static bool DrawItemRow(Rect pos, string label, bool leaf, bool active)

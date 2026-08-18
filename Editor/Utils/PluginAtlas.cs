@@ -12,35 +12,53 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	// indices to editor icons in texture atlas
 	internal enum EAtlasIcon
 	{
+		// row 0
+		Close,
 		ArrowLeft,
 		ArrowRight,
-		Close,
-		SwitchOn,
-		SwitchOff,
-		Class,
-		Delegate,
-		Static,
-		Primitive,
-		Attribute,
-		Exception,
-		Enum,
-		Interface,
-		Struct,
-		Link,
+		Folder,
+		File,
 		LinkExternal,
-		Comment,
+		Link,
+		
+		// row 1
+		CurlyBrackets = 8,
+		SquareBrackets,
+		AngleBrackets,
+		Parentheses,
+		Hash,
+		Primitive,
+		Enum,
+		
+		// Row 2
+		Comment = 16,
 		Info,
 		Warning,
 		Error,
-		Folder,
-		File,
-		CurlyBrackets,
-		BoxRounded
+
+		// Class,
+		// Delegate,
+		// Static,
+		// Attribute,
+		// Exception,
+		// Interface,
+		// Struct,
+		
+		// Row 5
+		BoxRounded = 40,
+		
+		// misc
+		SwitchOn,
+		SwitchOff,
 	}
+
 
 	[System.Serializable]
 	internal static class PluginAtlas
 	{
+		private const int _TILE_COUNT = 8;
+		private const float _TILE_SIZE = 1f / _TILE_COUNT;
+
 		public static void DrawIcon(in Rect pos, EAtlasIcon icon, Color c)
 		{
 			DrawerGUI.DrawTex(_TEX_ATLAS.Value, pos, GetIconCoords(icon), c);
@@ -66,35 +84,42 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return new Rect(0, 0.75f + 0.125f, 0.25f, 0.125f);
 			}
 
-			// could be changed to an array that corresponds to enum values
-			return icon switch
-			{
-				EAtlasIcon.Close => new Rect(0.25f, 0, 0.125f, 0.125f),
-				EAtlasIcon.ArrowLeft => new Rect(0.375f, 0, 0.125f, 0.125f),
-				EAtlasIcon.ArrowRight => new Rect(0.5f, 0, 0.125f, 0.125f),
-				EAtlasIcon.Folder => new Rect(0.625f, 0f, 0.125f, 0.125f),
-				EAtlasIcon.File => new Rect(0.75f, 0f, 0.125f, 0.125f),
-				EAtlasIcon.Delegate => new Rect(0, 0.25f, 0.125f, 0.125f),
-				EAtlasIcon.Static => new Rect(0.125f, 0.25f, 0.125f, 0.125f),
-				EAtlasIcon.Primitive => new Rect(0.25f, 0.25f, 0.125f, 0.125f),
-				EAtlasIcon.Attribute => new Rect(0, 0.375f, 0.125f, 0.125f),
-				EAtlasIcon.Exception => new Rect(0.125f, 0.375f, 0.125f, 0.125f),
-				EAtlasIcon.Enum => new Rect(0.25f, 0.375f, 0.125f, 0.125f),
-				EAtlasIcon.Interface => new Rect(0, 0.5f, 0.125f, 0.125f),
-				EAtlasIcon.Struct => new Rect(0.125f, 0.5f, 0.125f, 0.125f),
-				EAtlasIcon.Class => new Rect(0.25f, 0.5f, 0.125f, 0.125f),
-				EAtlasIcon.Link => new Rect(0.625f, 0.375f, 0.125f, 0.125f),
-				EAtlasIcon.LinkExternal => new Rect(0.625f, 0.25f, 0.125f, 0.125f),
-				// alert icons
-				EAtlasIcon.Comment => new Rect(0.75f, 0.25f, 0.125f, 0.125f),
-				EAtlasIcon.Info => new Rect(0.875f, 0.25f, 0.125f, 0.125f),
-				EAtlasIcon.Warning => new Rect(0.75f, 0.375f, 0.125f, 0.125f),
-				EAtlasIcon.Error => new Rect(0.875f, 0.375f, 0.125f, 0.125f),
-				//
-				EAtlasIcon.CurlyBrackets => new Rect(0.5f, 0.25f, 0.125f, 0.125f),
-				EAtlasIcon.BoxRounded => new Rect(0, 0.625f, 0.125f, 0.125f),
-				_ => default
-			};
+			var i = (int)icon;
+			
+			int y = i / _TILE_COUNT, x = i % _TILE_COUNT;
+			var offset = new Vector2(x, y) * _TILE_SIZE;
+
+			return new Rect(new Vector2(x, y) * _TILE_SIZE, Vector2.one * _TILE_SIZE);
+
+			// // could be changed to an array that corresponds to enum values
+			// return icon switch
+			// {
+			// 	EAtlasIcon.Close => new Rect(0.25f, 0, 0.125f, 0.125f),
+			// 	EAtlasIcon.ArrowLeft => new Rect(0.375f, 0, 0.125f, 0.125f),
+			// 	EAtlasIcon.ArrowRight => new Rect(0.5f, 0, 0.125f, 0.125f),
+			// 	EAtlasIcon.Folder => new Rect(0.625f, 0f, 0.125f, 0.125f),
+			// 	EAtlasIcon.File => new Rect(0.75f, 0f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Delegate => new Rect(0, 0.25f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Static => new Rect(0.125f, 0.25f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Primitive => new Rect(0.25f, 0.25f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Attribute => new Rect(0, 0.375f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Exception => new Rect(0.125f, 0.375f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Enum => new Rect(0.25f, 0.375f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Interface => new Rect(0, 0.5f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Struct => new Rect(0.125f, 0.5f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Class => new Rect(0.25f, 0.5f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Link => new Rect(0.625f, 0.375f, 0.125f, 0.125f),
+			// 	EAtlasIcon.LinkExternal => new Rect(0.625f, 0.25f, 0.125f, 0.125f),
+			// 	// alert icons
+			// 	EAtlasIcon.Comment => new Rect(0.75f, 0.25f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Info => new Rect(0.875f, 0.25f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Warning => new Rect(0.75f, 0.375f, 0.125f, 0.125f),
+			// 	EAtlasIcon.Error => new Rect(0.875f, 0.375f, 0.125f, 0.125f),
+			// 	//
+			// 	EAtlasIcon.CurlyBrackets => new Rect(0.5f, 0.25f, 0.125f, 0.125f),
+			// 	EAtlasIcon.BoxRounded => new Rect(0, 0.625f, 0.125f, 0.125f),
+			// 	_ => default
+			// };
 		}
 	}
 }

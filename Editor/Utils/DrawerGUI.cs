@@ -56,10 +56,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 
 		private static readonly GUIContent _dummyLabel = new();
-		
-		private static readonly Color _PREFIX_ICON_COLOR = EditorGUIUtility.isProSkin
-		? Color.white * 0.8f
-		: Color.black * 0.65f;
+
+		public static readonly Color ICON_SKIN_TINT = EditorGUIUtility.isProSkin
+		? new Color(0.76f,0.76f,0.76f)
+		: new Color(0.337f,0.337f,0.337f);
+
+		public static void DrawSkinTintedIcon(in Rect pos, EAtlasIcon icon)
+		{
+			PluginAtlas.DrawIcon(pos, icon, ICON_SKIN_TINT);
+		}
 
 		public static void DrawControlPrefixIcon(ref Rect pos, EAtlasIcon icon, float pad = 0.1f)
 		{
@@ -67,7 +72,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			.SliceLeft(EditorGUIUtility.singleLineHeight)
 			.Resized(-pos.height * pad);
 			pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
-			PluginAtlas.DrawIcon(icoRect, icon, _PREFIX_ICON_COLOR);
+			PluginAtlas.DrawIcon(icoRect, icon, ICON_SKIN_TINT);
 		}
 		
 		public static void DrawControlPrefixIcon(ref Rect pos, Texture tex, float pad = 0.1f)

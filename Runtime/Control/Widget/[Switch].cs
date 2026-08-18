@@ -137,7 +137,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				val = !val;
 			}
 
-			var color = DrawerGUI.PickSkin(Color.white * 0.8f, Color.black * 0.5f);
+			var color = DrawerGUI.ICON_SKIN_TINT;
 
 			if (!GUI.enabled)
 			{

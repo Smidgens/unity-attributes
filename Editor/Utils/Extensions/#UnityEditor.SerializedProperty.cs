@@ -66,7 +66,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			return count;
 		}
-		
+
 		public static bool HasMissingReference(this SerializedProperty sp)
 		{
 			if (_refStringProp == null)
