@@ -68,7 +68,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 
 		private static readonly float _MIN_WIDTH = Screen.width * 0.4f;
-		private const int _MIN_SEARCH_LEN = 3;
+		private const int _MIN_SEARCH_LEN = 1;
 
 		private static readonly Color _UNITY_SELECT_COLOR = new (0.24f, 0.5f, 0.874f);
 
@@ -173,7 +173,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			_currentValue = currentValue;
 
 			var selectedNode = _rootNode.FindLeaf(currentValue);
-
+			
 			if (selectedNode != null && _rootNode.count >= _MAX_FLAT_RESULTS)
 			{
 				_currentNode = selectedNode.parent;
@@ -299,10 +299,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				// {
 				// 	return this;
 				// }
+				
 
 				if (Equals(lValue))
 				{
 					return this;
+				}
+				
+				if (children.Count == 0)
+				{
+					return null;
 				}
 
 				// if (root._compareFn.Invoke(lValue, value) == 0)
@@ -310,10 +316,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				// 	return this;
 				// }
 
-				if (children.Count == 0)
-				{
-					return null;
-				}
 
 				foreach (var cNode in children)
 				{
@@ -368,7 +370,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			public bool Equals(ST otherValue)
 			{
-				return root._equalsFn?.Invoke(value, otherValue) ?? false;
+				return root._equalsFn.Invoke(value, otherValue);
 			}
 
 			public int CompareTo(MenuNode b)

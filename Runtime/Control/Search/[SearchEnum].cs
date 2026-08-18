@@ -77,6 +77,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 						_cachedTree.AddValue(n, v);
 					}
 				}
+				
+				// _cachedTree.BuildIndex();
 
 				_cachedTree.Filter(SearchPopup<int>.SearchFilter.Empty);
 
