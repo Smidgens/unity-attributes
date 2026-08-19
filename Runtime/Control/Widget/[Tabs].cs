@@ -30,6 +30,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override EFieldType GetValidTypes() => EFieldType.Bool | EFieldType.Enum;
 
+			
+		// GUI.DoControl
+		// 	Rect position,
+		// 	int id,
+		// 	bool on,
+		// 	bool hover,
+		// 	GUIContent content,
+		// 	GUIStyle style
+
+		
 		protected override void OnInit()
 		{
 			var t = _FieldType;
@@ -71,6 +81,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			return Mathf.Max(EditorStyles.label.CalcSize(label).y, itemHeight);
 		}
+	
 
 		protected override void OnField(in DrawContext ctx)
 		{
@@ -82,7 +93,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				DrawBool(ctx);
 			}
-			GUI.Box(ctx.position, GUIContent.none, EditorStyles.helpBox);
+			// GUI.Box(ctx.position, GUIContent.none, EditorStyles.helpBox);
 		}
 		private void DrawBool(in DrawContext ctx)
 		{
@@ -92,7 +103,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var fRect = _Attribute.vertical
 			? pos.SliceTop(EditorStyles.miniButton.CalcSize(GUIContent.none).y)
 			: pos.SliceLeft(pos.width * 0.5f);
-
+			
 			if (TabButton(fRect, prop.boolValue, "True", EditorStyles.miniButtonLeft))
 			{
 				prop.boolValue = true;
@@ -113,26 +124,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static bool DrawTabButton(in Rect pos, bool value, string label, GUIStyle btnStyle)
 		{
-			var tColor = GUI.backgroundColor;
-
-			var focusColor = EditorStyles.label.focused.textColor;
-			GUI.backgroundColor = value ? focusColor : GUI.backgroundColor;
 			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
-			if (GUI.Button(pos, label, btnStyle))
+
+			var hovered = pos.Contains(Event.current.mousePosition);
+
+			if (GUI.Button(pos, GUIContent.none, GUIStyle.none))
 			{
 				GUIUtility.keyboardControl = id;
 				value = !value;
 			}
-			GUI.backgroundColor = tColor;
-			var focused = GUIUtility.keyboardControl == id;
-
-			if (focused)
-			{
-				if (Event.current != null && Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
-				{
-					value = !value;
-				}
-			}
+			DrawerGUI.DoControl(pos, id, value, hovered, new GUIContent(label), btnStyle);
 			return value;
 		}
 

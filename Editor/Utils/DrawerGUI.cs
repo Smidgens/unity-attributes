@@ -70,6 +70,22 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			PluginAtlas.DrawIcon(pos, icon, ICON_SKIN_TINT);
 		}
 
+		private delegate bool DoControlFn(Rect r, int id, bool on, bool hover, GUIContent l, GUIStyle s);
+		private const BindingFlags _STATIC_BF = BindingFlags.Static | BindingFlags.NonPublic;
+
+		private static DoControlFn _doControlFn;
+
+		// wrapper around internal Unity GUI method
+		public static bool DoControl(Rect r, int id, bool on, bool hover, GUIContent l, GUIStyle s)
+		{
+			if (_doControlFn == null)
+			{
+				var m = typeof(GUI).GetMethod(nameof(DoControl), _STATIC_BF);
+				_doControlFn = (DoControlFn)m?.CreateDelegate(typeof(DoControlFn));
+			}
+			return _doControlFn!.Invoke(r, id, on, hover, l, s);
+		}
+
 		public static void DrawControlPrefixIcon(ref Rect pos, EAtlasIcon icon, float pad = 0.1f)
 		{
 			var icoRect = pos

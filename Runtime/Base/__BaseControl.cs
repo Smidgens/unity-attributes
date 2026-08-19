@@ -77,6 +77,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			GUI.enabled &= IsFieldEditable();
 
 			var customLabel = GetCustomLabel();
+
 			if (customLabel == null)
 			{
 				l = GUIContent.none;
