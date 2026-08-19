@@ -2,11 +2,6 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
-	using System;
-	using System.Reflection;
-	using System.Linq;
-	using UnityEngine;
-
 	/// <summary>
 	/// Draw bool or enum fields as tabs
 	/// </summary>
@@ -79,12 +74,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
-			var id = GUIUtility.GetControlID(FocusType.Keyboard, ctx.position);
-
-			// GUI.Box(ctx.position, GUIContent.none);
-			
-			// PluginAtlas.DrawIcon(ctx.position, EAtlasIcon.BoxRounded, _ACTIVE_COLOR);
-
 			if (_isEnum)
 			{
 				DrawEnum(ctx);
@@ -103,7 +92,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var fRect = _Attribute.vertical
 			? pos.SliceTop(EditorStyles.miniButton.CalcSize(GUIContent.none).y)
 			: pos.SliceLeft(pos.width * 0.5f);
-			
+
 			if (TabButton(fRect, prop.boolValue, "True", EditorStyles.miniButtonLeft))
 			{
 				prop.boolValue = true;
@@ -124,17 +113,17 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static bool DrawTabButton(in Rect pos, bool value, string label, GUIStyle btnStyle)
 		{
-			var tColorGUIBG = GUI.backgroundColor;
-			GUI.backgroundColor = value ? _ACTIVE_COLOR : _INACTIVE_COLOR;
+			var tColor = GUI.backgroundColor;
 
+			var focusColor = EditorStyles.label.focused.textColor;
+			GUI.backgroundColor = value ? focusColor : GUI.backgroundColor;
 			var id = GUIUtility.GetControlID(FocusType.Keyboard, pos);
-			
-			if (GUI.Button(pos, string.Empty, btnStyle))
+			if (GUI.Button(pos, label, btnStyle))
 			{
 				GUIUtility.keyboardControl = id;
 				value = !value;
 			}
-
+			GUI.backgroundColor = tColor;
 			var focused = GUIUtility.keyboardControl == id;
 
 			if (focused)
@@ -144,41 +133,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					value = !value;
 				}
 			}
-
-			GUI.backgroundColor = tColorGUIBG;
-
-			var ls = _tabLabelStyle.Value;
-			// var tColor = GUI.color;
-
-			// var tlColor = ls.normal.textColor;
-			// ls.normal.textColor = 
-			// GUI.color = (focused || value) ? _LABEL_COL_ACTIVE : _LABEL_COL_INACTIVE;
-			ls.fontStyle = value ? FontStyle.Bold : FontStyle.Normal;
-			ls.normal.textColor = (value) ? _LABEL_COL_ACTIVE : _LABEL_COL_INACTIVE;
-			ls.hover.textColor = ls.normal.textColor;
-			GUI.Label(pos, label, _tabLabelStyle.Value);
-			// GUI.color = tColor;
-			EditorGUIUtility.AddCursorRect(pos, MouseCursor.Link);
 			return value;
 		}
-
-		private static readonly Color _INACTIVE_COLOR
-		= DrawerGUI.PickSkin(Color.black.Fade(0.01f), Color.white);
-		
-		private static readonly Color _ACTIVE_COLOR
-		= DrawerGUI.PickSkin(Color.black.Fade(0.6f), Color.black.Fade(0.7f));
-
-		private static readonly Color _LABEL_COL_ACTIVE
-		= DrawerGUI.PickSkin(Color.white.Fade(1f), Color.white.Fade(0.9f));
-		
-		private static readonly Color _LABEL_COL_INACTIVE
-		= DrawerGUI.PickSkin(Color.white.Fade(0.8f), Color.black.Fade(0.9f));
-
-		private static readonly Lazy<GUIStyle> _tabLabelStyle = new (() => new GUIStyle(EditorStyles.miniLabel)
-		{
-			alignment = TextAnchor.MiddleCenter,
-			fontSize = (int)(EditorStyles.miniLabel.fontSize * 0.95f)
-		});
 
 		private void DrawEnum(in DrawContext ctx)
 		{

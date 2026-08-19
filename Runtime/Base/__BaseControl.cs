@@ -76,6 +76,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var tEnabled = GUI.enabled;
 			GUI.enabled &= IsFieldEditable();
 
+			var customLabel = GetCustomLabel();
+			if (customLabel == null)
+			{
+				l = GUIContent.none;
+			}
+			else if (customLabel != string.Empty)
+			{
+				l.text = customLabel;
+			}
+
 			// label
 			OnLabel(ref pos, prop, l);
 
@@ -165,16 +175,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected virtual void OnLabel(ref Rect pos, SerializedProperty prop, GUIContent l)
 		{
-			var customLabel = GetCustomLabel();
-
-			if (customLabel == null)
-			{
-				return;
-			}
-			if (customLabel != string.Empty)
-			{
-				l.text = customLabel;
-			}
 			DrawerGUI.PrefixLabel(ref pos, l, fieldInfo);
 		}
 

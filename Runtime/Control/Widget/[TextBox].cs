@@ -37,7 +37,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			_valueLabel.text = prop.stringValue;
 			var minHeight = EditorGUIUtility.singleLineHeight * _Attribute.minLines;
 			var h = Mathf.Max(DrawerStyles.TextArea.CalcHeight(_valueLabel, Screen.width), minHeight);
-			if (label != GUIContent.none && GetCustomLabel() != null)
+			if (label != GUIContent.none)
 			{
 				h += DrawerStyles.LabelHeightMD;
 				h += EditorGUIUtility.standardVerticalSpacing;
@@ -50,7 +50,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		protected override void OnField(in DrawContext ctx)
 		{
 			var pos = ctx.position;
-			if (ctx.label != GUIContent.none && GetCustomLabel() != null)
+			if (ctx.label != GUIContent.none)
 			{
 				EditorGUI.LabelField(pos.SliceTop(DrawerStyles.LabelHeightMD), ctx.label);
 				pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);

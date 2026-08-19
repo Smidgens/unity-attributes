@@ -61,6 +61,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		? new Color(0.76f,0.76f,0.76f)
 		: new Color(0.337f,0.337f,0.337f);
 
+		// public static readonly Color FOCUS_COLOR = EditorGUIUtility.isProSkin
+		// ? new Color(0.2745f, 0.3765f, 0.4863f)
+		// : new Color(0.2745f, 0.3765f, 0.4863f);
+
 		public static void DrawSkinTintedIcon(in Rect pos, EAtlasIcon icon)
 		{
 			PluginAtlas.DrawIcon(pos, icon, ICON_SKIN_TINT);
