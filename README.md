@@ -48,6 +48,7 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 * [`Box`](#box)
 * [`Foldout`](#foldout)
 * [`Reorderable`](#reorderable)
+* [`ObjectGUID`](#objectguid)
 * [`ObjectMethodReference`](#objectmethodreference)
 * [`SearchType`](#searchtype)
 * [`SearchEnum`](#searchenum)
@@ -357,6 +358,21 @@ public struct WrappedArray<T>
 	public T[] array;
 }
 ```
+
+### `[ObjectGUID]`
+
+> Fields: `string`
+
+Allows generation of unique GUID for the serialized object. Uses [GlobalObjectId](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GlobalObjectId.html) to verify uniqueness. 
+Can be leveraged to implement stable IDs for scene objects added at editor time.
+
+Value is saved on the form `<guid>;<global_id>`.
+
+```cs
+[ObjectGUID]
+public string guid;
+```
+
 
 ### `[ObjectMethodReference]`
 
