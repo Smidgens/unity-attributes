@@ -371,6 +371,8 @@ Can be leveraged to implement stable IDs for scene objects added at editor time.
 public string guid;
 ```
 
+<img src=".github/drawers/stableguid.jpg">
+
 
 ### `[ObjectMethodReference]`
 
@@ -432,6 +434,9 @@ public string componentType;
 public string systemType;
 ```
 
+
+<img src=".github/drawers/searchtype.jpg">
+
 ### `[SearchEnum]`
 
 > Fields: `enum`
@@ -442,6 +447,8 @@ Shows a searchable popup of values in enum.
 [SearchEnum]
 public KeyCode someKey;
 ```
+
+<img src=".github/drawers/searchenum.jpg">
 
 ### `[NavMeshAgentID]`
 
@@ -454,6 +461,9 @@ Draws popup of NavMesh agent types in project.
 public int agentID;
 ```
 
+<img src=".github/drawers/navagentid.jpg">
+
+
 ### `[NavMeshAreaID]`
 
 > Fields: `int`
@@ -464,6 +474,8 @@ Draws popup of NavMesh area types in project.
 [NavMeshAreaID]
 public int areaID;
 ```
+
+<img src=".github/drawers/navareaid.jpg">
 
 ### `[ProjectLayer]`
 
@@ -620,7 +632,7 @@ public int sliderInt;
 
 Draws Min/Max slider and saves values to two separate child fields.
 
-
+<img src=".github/drawers/intervalslider.jpg">
 
 ```cs
 // default saves to x/y
@@ -632,11 +644,13 @@ public Vector2 vectorInterval;
 public MyInterval interval; 
 
 [Serializable]
-struct MyInterval
+public struct MyInterval
 {
 	public float min,max;
 }
 ```
+
+
 
 ### `[Progress]`
 
@@ -653,6 +667,8 @@ public float health = 50;
 public float health = 50;
 ```
 
+<img src=".github/drawers/progress.jpg">
+
 ### `[Switch]`
 
 > Fields: `enum`|`flags`|`bool`|`LayerMask`\
@@ -664,16 +680,18 @@ For flag and layermask fields, a switch will be drawn for every value.
 
 ```cs
 [Switch]
-public bool simpleSwitch;
+public bool switch;
 
 [Switch("Off", "On")]
-public bool labeledSwitch;
+public bool switchLabeled;
 
-[Switch]
-public EnumFlags flagSwitches;
+[FieldOptions(label:null)]
+[Foldout,Switch]
+public LayerMask switchLayers;
 
-[Switch]
-public LayerMask layerSwitches;
+[FieldOptions(label:null)]
+[Foldout,Switch]
+public EnumFlags switchFlags;
 
 [Flags]
 enum EnumFlags
@@ -683,6 +701,8 @@ enum EnumFlags
 	Item3 = 4,
 }
 ```
+
+<img src=".github/drawers/switch.jpg">
 
 ### `[Tabs]`
 
@@ -695,9 +715,9 @@ Draws a toolbar of buttons.
 [Flags]
 enum Options
 {
-	Item1 = 1,
-	Item2 = 2,
-	Item3 = 4,
+	Value1 = 1,
+	Value2 = 2,
+	Value3 = 4,
 }
 
 [Tabs]
@@ -709,6 +729,8 @@ public bool boolTabs;
 [Tabs(vertical:true)]
 public Options verticalTabs;
 ```
+
+<img src=".github/drawers/tabs.jpg">
 
 ### `[TextBox]`
 
