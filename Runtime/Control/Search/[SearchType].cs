@@ -126,7 +126,8 @@ namespace Smidgenomics.Unity.Attributes
 			Type baseType = null,
 			string typeFilter = null,
 			string assemblyFilter = null,
-			string labelFn = null
+			string labelFn = null,
+			bool hideIcon = false
 		)
 		{
 			this.flags = flags;
@@ -137,8 +138,10 @@ namespace Smidgenomics.Unity.Attributes
 			{
 				baseTypes = new []{ baseType };
 			}
+			this.hideIcon = hideIcon;
 		}
 
+		internal bool hideIcon { get; }
 		internal Func<Type,bool> typeFilter { get; }
 		internal Func<Assembly,bool> assemblyFilter { get; }
 		internal Func<Type,string> labelFn { get; }
@@ -275,7 +278,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			// var icoRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
 			// PluginAtlas.DrawIcon(icoRect, EAtlasIcon.Code, _ICON_COLOR);
 
-			DrawerGUI.DrawControlPrefixIcon(ref pos, EAtlasIcon.CurlyBrackets);
+			if (!_Attribute.hideIcon)
+			{
+				DrawerGUI.DrawControlPrefixIcon(ref pos, EAtlasIcon.CurlyBrackets);
+			}
 
 			if (!string.IsNullOrEmpty(prop.stringValue))
 			{
