@@ -274,6 +274,8 @@ class ClassB : BaseClass
 }
 ```
 
+<img src=".github/drawers/instancedreference.jpg">
+
 ### `[Box]`
 
 > Fields: `any`
@@ -286,15 +288,17 @@ Tips:
 ```cs
 [Box]
 [Expand(innerOnly:true)]
-struct GroupedFields fields;
+public GroupedFields fieldGroup;
 
 [Serializable]
-struct GroupedFields
+public struct GroupedFields
 {
 	public int count;
 	public string name;
 }
 ```
+
+<img src=".github/drawers/box.jpg">
 
 ### `[Foldout]`
 
@@ -312,12 +316,14 @@ Tips:
 public FoldableStruct foldedStruct;
 
 [Serializable]
-struct FoldableStruct
+public struct FoldableStruct
 {
 	public int count;
 	public string name;
 }
 ```
+
+<img src=".github/drawers/foldout.jpg">
 
 ### `[Reorderable]`
 
@@ -359,6 +365,8 @@ public struct WrappedArray<T>
 }
 ```
 
+<img src=".github/drawers/reorderable.jpg">
+
 ### `[StableGUID]`
 
 > Fields: `string`
@@ -379,7 +387,7 @@ public string guid;
 > Fields: `string`\
 >🎚️ `field`|`delegateType`|`delegateTypeFn`|`flags`
 
-Shows a popup of instance methods available on referenced `UnityEngine.Object`. If object type is either `GameObject` or `Component`, options include any Components on the referenced `GameObject`, same as `UnityEvent`.
+Shows a popup of instance methods available on referenced `UnityEngine.Object`. If target object is a either a `GameObject` or `Component`, the displayed options will include any Components on the referenced `GameObject`, same as `UnityEvent`.
 
 The method referenced stringified on the following form:
 
