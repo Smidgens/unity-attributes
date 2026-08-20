@@ -4,17 +4,38 @@ namespace Smidgenomics.Unity.Attributes
 {
 	using System;
 
+	/// <summary>
+	/// Config flags for [ObjectMethodReference]
+	/// </summary>
 	[Flags]
-	public enum EOBjectMethod
+	public enum EOBjectMethodRef
 	{
+		/// <summary>
+		/// Include nothing (pointless innit?)
+		/// </summary>
 		None = 0,
+		/// <summary>
+		/// Include private/protected methods
+		/// </summary>
 		NonPublic = 1,
+		/// <summary>
+		/// Include property methods
+		/// </summary>
 		Property = 2,
+		/// <summary>
+		/// Standard behaviour, similar to UnityEvent
+		/// </summary>
+		Standard = Property,
+		/// <summary>
+		/// Include everything
+		/// </summary>
 		All = ~0
 	}
 
 	/// <summary>
-	/// Shows popup of methods on referenced object
+	/// Draws popup of methods on referenced object
+	///
+	/// Note: passing null delegate type will include every method
 	/// </summary>
 	public sealed class ObjectMethodReferenceAttribute : __BaseControl
 	{
@@ -22,29 +43,47 @@ namespace Smidgenomics.Unity.Attributes
 		(
 			string field,
 			Type delegateType,
-			EOBjectMethod flags = EOBjectMethod.All
+			EOBjectMethodRef flags = EOBjectMethodRef.Standard,
+			bool hideIcon = false
 		)
 		{
 			this.field = field;
 			this.flags = flags;
-
-			var (rType, aTypes) = GetDelegateTypes(delegateType);
-			returnType = rType;
-			argTypes = aTypes;
+			this.delegateType = delegateType;
+			this.hideIcon = hideIcon;
 		}
-		internal string field { get; }
-		internal Type returnType { get; }
-		internal Type[] argTypes { get; }
-		internal EOBjectMethod flags { get; }
 		
-		private static (Type, Type[]) GetDelegateTypes(Type delType)
+		/// <summary>
+		/// Alternative con
+		/// </summary>
+		public ObjectMethodReferenceAttribute
+		(
+			string field,
+			string delegateTypeFn,
+			EOBjectMethodRef flags = EOBjectMethodRef.Standard,
+			bool hideIcon = false
+		)
+		{
+			this.field = field;
+			this.flags = flags;
+			this.delegateTypeFn = delegateTypeFn;
+			this.hideIcon = hideIcon;
+		}
+		
+		internal bool hideIcon { get; }
+		internal string field { get; }
+		internal Type delegateType { get; }
+		internal string delegateTypeFn { get; }
+		internal EOBjectMethodRef flags { get; }
+
+		internal static (Type, Type[]) GetDelegateTypes(Type delType)
 		{
 			if (delType == null || !typeof(Delegate).IsAssignableFrom(delType))
 			{
 				return default;
 			}
 
-			var invoke = delType.GetMethod("Invoke")!;
+			var invoke = delType.GetMethod(nameof(Action.Invoke))!;
 			var pars = invoke.GetParameters();
 			
 			var rType = invoke.ReturnType;
@@ -52,10 +91,6 @@ namespace Smidgenomics.Unity.Attributes
 			for (int i = 0; i < pars.Length; i++)
 			{
 				aTypes[i] = pars[i].ParameterType;
-				if (aTypes[i].IsByRef)
-				{
-					return default;
-				}
 			}
 			return (rType, aTypes);
 		}
@@ -80,16 +115,74 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		protected override EFieldType GetValidTypes() => EFieldType.String;
 
+		private void EnsureInit(SerializedProperty prop)
+		{
+			if (_init)
+			{
+				return;
+			}
+
+			Type dType = _Attribute.delegateType;
+			if (!string.IsNullOrEmpty(_Attribute.delegateTypeFn))
+			{
+				var m = GetTypeMethod(_Attribute.delegateTypeFn, fieldInfo.DeclaringType);
+				if (m != null)
+				{
+					var target = prop.GetParent().boxedValue;
+					dType = (Type)m.Invoke(target, null);
+				}
+			}
+
+			var (rType, aTypes) = ObjectMethodReferenceAttribute.GetDelegateTypes(dType);
+
+			_optionCtx = new OptionContext
+			{
+				returnType = rType,
+				argTypes = aTypes,
+				flags = _Attribute.flags
+			};
+		}
+
+		private static MethodInfo GetTypeMethod(string method, Type tType)
+		{
+			var m = tType.GetMethod(method, ANY_INSTANCE_MEMBER);
+			if (m == null || m.GetParameters().Length != 0 || m.ReturnType != typeof(Type))
+			{
+				return null;
+			}
+			return m;
+		}
+
+		private bool _init;
+		private (bool, Type, Type[]) _cachedTypeFn;
+
 		protected override void OnField(in DrawContext ctx)
 		{
+			EnsureInit(ctx.property);
+			
 			var prop = ctx.property;
 			var pos = ctx.position;
 
 			var obProp = prop.FindSibling(_Attribute.field);
 
-			if (obProp == null || obProp.propertyType != SerializedPropertyType.ObjectReference || !obProp.objectReferenceValue)
+			if (obProp == null || obProp.propertyType != SerializedPropertyType.ObjectReference)
 			{
 				DrawerGUI.MutedInfo(pos, "Invalid field");
+				return;
+			}
+
+			if (!obProp.objectReferenceValue)
+			{
+				var tEnabled = GUI.enabled;
+				GUI.enabled = false;
+
+				if (!_Attribute.hideIcon)
+				{
+					DrawerGUI.DrawControlPrefixIcon(ref pos, EAtlasIcon.Parentheses);
+				}
+				
+				GUI.Box(pos, _NO_FN_LABEL, EditorStyles.popup);
+				GUI.enabled = tEnabled;
 				return;
 			}
 
@@ -112,7 +205,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				if (ValidateMethodTarget(obRef, currentMethod.ReflectedType))
 				{
-					_btnLabel.text = $"{currentMethod.ReflectedType?.Name}/{GetDisplayName(currentMethod)}";
+					_btnLabel.text = $"{currentMethod.ReflectedType?.Name}.{GetDisplayName(currentMethod)}";
 				}
 				else
 				{
@@ -121,7 +214,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				
 			}
 
-			DrawerGUI.DrawControlPrefixIcon(ref pos, EAtlasIcon.Parentheses);
+			if (!_Attribute.hideIcon)
+			{
+				DrawerGUI.DrawControlPrefixIcon(ref pos, EAtlasIcon.Parentheses);
+			}
 
 			if (EditorGUI.DropdownButton(pos, _btnLabel, FocusType.Keyboard))
 			{
@@ -132,16 +228,23 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					: string.Empty;
 					prop.serializedObject.ApplyModifiedProperties();
 				});
-				
 				m.DropDown(ctx.position);
 			}
 		}
-
+		
 		private readonly GUIContent _btnLabel = new();
 		private static readonly GUIContent _NO_FN_LABEL = new ("No Function");
 		private static readonly CallableInfo[] _singleItem = new CallableInfo[1];
-
 		private (string, MethodInfo) _cachedMethod = (string.Empty, null);
+
+		private OptionContext _optionCtx;
+
+		private struct OptionContext
+		{
+			public Type returnType;
+			public Type[] argTypes;
+			public EOBjectMethodRef flags;
+		}
 
 		private struct CallableInfo
 		{
@@ -167,7 +270,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					return null;
 				}
 			}
-
 			// target is already a game object
 			if (isGameObject && obRef is GameObject)
 			{
@@ -197,11 +299,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				allowDuplicateNames = true
 			};
 
+			var items = FindAllCallables(owner, _optionCtx);
+			
 			m.AddItem(_NO_FN_LABEL, false, () => fn.Invoke(null));
+
 			m.AddSeparator(string.Empty);
-
-			var items = FindAllCallables(owner, _Attribute);
-
+			
 			var groupNames = new HashSet<string>();
 
 			foreach(var it in items)
@@ -237,8 +340,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					});
 				}
 			}
+
+			if (m.GetItemCount() == 2)
+			{
+				m.AddDisabledItem(_NO_OPTS_LABEL);
+			}
 			return m;
 		}
+
+		private static readonly GUIContent _NO_OPTS_LABEL = new ("(no options)");
 
 		private static MethodInfo ParseMethodString(string str)
 		{
@@ -254,8 +364,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return null;
 			}
 
-			var argTypeNames = segments[2].Split(';');
-
 			var returnType = Type.GetType(segments[1]);
 			if (returnType == null)
 			{
@@ -268,14 +376,20 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				return null;
 			}
 
-			Type[] argTypes = new Type[argTypeNames.Length];
-			
-			for (int i = 0; i < argTypes.Length; i++)
+			Type[] argTypes = Array.Empty<Type>();
+
+			if (!string.IsNullOrEmpty(segments[2]))
 			{
-				argTypes[i] = Type.GetType(argTypeNames[i]);
-				if (argTypes[i] == null)
+				var argTypeNames = segments[2].Split(';');
+				argTypes = new Type[argTypeNames.Length];
+			
+				for (int i = 0; i < argTypes.Length; i++)
 				{
-					return null;
+					argTypes[i] = Type.GetType(argTypeNames[i]);
+					if (argTypes[i] == null)
+					{
+						return null;
+					}
 				}
 			}
 
@@ -319,7 +433,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return sb.ToString();
 		}
 
-		private static CallableInfo[] FindAllCallables(UnityEngine.Object ob, ObjectMethodReferenceAttribute attr)
+		private static CallableInfo[] FindAllCallables(UnityEngine.Object ob, in OptionContext ctx)
 		{
 			if (!ob)
 			{
@@ -328,34 +442,32 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (!TryGetGameObject(ob, out GameObject go))
 			{
-				_singleItem[0] = GetCallables(ob.GetType(), attr);
+				_singleItem[0] = GetCallables(ob.GetType(), ctx);
 				return _singleItem;
 			}
 
 			var components = go.GetComponents<Component>();
 			var targets = new CallableInfo[components.Length + 1];
-			targets[0] = GetCallables(typeof(GameObject), attr);
-
+			targets[0] = GetCallables(typeof(GameObject), ctx);
 			for (var i = 0; i < components.Length; i++)
 			{
-				targets[i + 1] = GetCallables(components[i].GetType(), attr);
+				targets[i + 1] = GetCallables(components[i].GetType(), ctx);
 			}
 			return targets;
 		}
 		
 		public const BindingFlags ANY_INSTANCE_MEMBER
-			= BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+		= BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 		
 		public const BindingFlags PUBLIC_INSTANCE_MEMBER
-			= BindingFlags.Instance | BindingFlags.Public;
+		= BindingFlags.Instance | BindingFlags.Public;
 
-		private static CallableInfo GetCallables(Type targetType, ObjectMethodReferenceAttribute attr)
+		private static CallableInfo GetCallables(Type targetType, in OptionContext ctx)
 		{
 			List<MethodInfo> props = new();
 			List<MethodInfo> methods = new();
 
-
-			var bFlags = attr.flags.HasFlag(EOBjectMethod.NonPublic)
+			var bFlags = ctx.flags.HasFlag(EOBjectMethodRef.NonPublic)
 			? ANY_INSTANCE_MEMBER
 			: PUBLIC_INSTANCE_MEMBER;
 			
@@ -366,23 +478,28 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					continue;
 				}
 
-				if (m.ReturnType != attr.returnType)
-				{
-					continue;
-				}
-				
-				var isProperty = IsPropertyMethod(m);
-				
-				if (isProperty && !attr.flags.HasFlag(EOBjectMethod.Property))
+				if (m.IsPrivate && !ctx.flags.HasFlag(EOBjectMethodRef.NonPublic))
 				{
 					continue;
 				}
 
-				if (attr.argTypes != null)
+				if (m.ReturnType != ctx.returnType)
+				{
+					continue;
+				}
+
+				var isProperty = IsPropertyMethod(m);
+				
+				if (isProperty && !ctx.flags.HasFlag(EOBjectMethodRef.Property))
+				{
+					continue;
+				}
+
+				if (ctx.argTypes != null)
 				{
 					var pars = m.GetParameters();
 
-					if (pars.Length != attr.argTypes.Length)
+					if (pars.Length != ctx.argTypes.Length)
 					{
 						continue;
 					}
@@ -390,7 +507,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					var validPars = true;
 					for (int i = 0; i < pars.Length; i++)
 					{
-						if (pars[i].ParameterType != attr.argTypes[i])
+						if (pars[i].ParameterType != ctx.argTypes[i])
 						{
 							validPars = false;
 							break;

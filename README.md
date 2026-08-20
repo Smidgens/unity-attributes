@@ -361,11 +361,11 @@ public struct WrappedArray<T>
 ### `[ObjectMethodReference]`
 
 > Fields: `string`\
->🎚️ `field`|`delegateType`|`flags`
+>🎚️ `field`|`delegateType`|`delegateTypeFn`|`flags`
 
-Shows a popup of instance methods available on referenced `UnityEngine.Object`. If object type is either `GameObject` or `Component`, options include any Components on the referenced `GameObject`, similar to `UnityEvent`.
+Shows a popup of instance methods available on referenced `UnityEngine.Object`. If object type is either `GameObject` or `Component`, options include any Components on the referenced `GameObject`, same as `UnityEvent`.
 
-The method reference is serialized as `string` on the following form:
+The method referenced stringified on the following form:
 
 ```
 <name>;<return_type>;<arg_type1>|<arg_type2>...;<target_type>`
@@ -377,15 +377,25 @@ set_name;System.Void,mscorlib;System.String,mscorlib;UnityEngine.Transform,Unity
 
 **Notes**:
 
-* Properties are referenced via their backing methods whose names are prefixed with `set_/get_`.
-* Types references use assembly qualified names.
-* Ref parameters are not supported.
+* Properties are referenced via their backing methods whose names are prefixed with `get_`/`set_`.
+* Types referenced use assembly qualified names.
+* To allow generic delegates to be supplied to attribute, the `delegateTypeFn` option can be used.
 
 ```cs
 public GameObject objectField;
 	
 [ObjectMethodReference("objectField", typeof(Action<string>))]
 public string method;
+
+// use type getter if we're in templated type
+[ObjectMethodReference("objectField", "GetDelegateType"))]
+public string method;
+
+// return the type of our generic delegate
+Type GetDelegateType()
+{
+	return typeof(Action<T>);
+}
 ```
 
 ### `[SearchType]`
