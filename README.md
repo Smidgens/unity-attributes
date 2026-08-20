@@ -361,14 +361,30 @@ public struct WrappedArray<T>
 ### `[ObjectMethodReference]`
 
 > Fields: `string`\
->🎚️ `field`|`returnType`|`argTypes`|`flags`
+>🎚️ `field`|`delegateType`|`flags`
 
 Shows a popup of instance methods available on referenced `UnityEngine.Object`. If object type is either `GameObject` or `Component`, options include any Components on the referenced `GameObject`, similar to `UnityEvent`.
+
+The method reference is serialized as `string` on the following form:
+
+```
+<name>;<return_type>;<arg_type1>|<arg_type2>...;<target_type>`
+```
+**Example**:
+```
+set_name;System.Void,mscorlib;System.String,mscorlib;UnityEngine.Transform,UnityEngine.CoreModule
+```
+
+**Notes**:
+
+* Properties are referenced via their backing methods whose names are prefixed with `set_/get_`.
+* Types references use assembly qualified names.
+* Ref parameters are not supported.
 
 ```cs
 public GameObject objectField;
 	
-[ObjectMethodReference("objectField", returnType:typeof(void), argTypes:new []{ typeof(string) })]
+[ObjectMethodReference("objectField", typeof(Action<string>))]
 public string method;
 ```
 

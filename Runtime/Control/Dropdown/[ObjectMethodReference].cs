@@ -21,20 +21,44 @@ namespace Smidgenomics.Unity.Attributes
 		public ObjectMethodReferenceAttribute
 		(
 			string field,
-			Type returnType = null,
-			Type[] argTypes = null,
+			Type delegateType,
 			EOBjectMethod flags = EOBjectMethod.All
 		)
 		{
 			this.field = field;
-			this.returnType = returnType ?? typeof(void);
-			this.argTypes = argTypes;
 			this.flags = flags;
+
+			var (rType, aTypes) = GetDelegateTypes(delegateType);
+			returnType = rType;
+			argTypes = aTypes;
 		}
 		internal string field { get; }
 		internal Type returnType { get; }
 		internal Type[] argTypes { get; }
 		internal EOBjectMethod flags { get; }
+		
+		private static (Type, Type[]) GetDelegateTypes(Type delType)
+		{
+			if (delType == null || !typeof(Delegate).IsAssignableFrom(delType))
+			{
+				return default;
+			}
+
+			var invoke = delType.GetMethod("Invoke")!;
+			var pars = invoke.GetParameters();
+			
+			var rType = invoke.ReturnType;
+			var aTypes = new Type[pars.Length];
+			for (int i = 0; i < pars.Length; i++)
+			{
+				aTypes[i] = pars[i].ParameterType;
+				if (aTypes[i].IsByRef)
+				{
+					return default;
+				}
+			}
+			return (rType, aTypes);
+		}
 		
 	}
 }
