@@ -776,8 +776,8 @@ Draws a button above field. Can reference method on field object, its owner, or 
 
 ```cs
 [FieldButton("OwnerMethod", width:0.5f)] 
-[FieldButton(".SetMyValue", "Set=100",  args:new object[]{ 100 }, flags:EFieldUsable.Play, width:0.5f)] // inner
-[FieldButton("LogValue;StaticClass, MyModule", width:1f)]
+[FieldButton(".SetMyValue", label:"Set=100",  args:new object[]{ 100 }, flags:EFieldUsable.Play, width:0.5f)] // inner
+[FieldButton("LogValue;StaticClass, MyModule", args:new object[]{ 42 }, width:1f)]
 [DefaultDrawer]
 public OwnerOfFunctions fieldWithButtons;
 
@@ -787,7 +787,7 @@ private void OwnerMethod()
 }
 
 [Serializable]
-class OwnerOfFunctions
+public class OwnerOfFunctions
 {
 	public int myValue = 10;
 
@@ -805,6 +805,9 @@ class StaticClass
 	}
 }
 ```
+
+
+<img src=".github/drawers/fieldbutton.jpg">
 
 ### `[FieldOptions]`
 
@@ -894,14 +897,18 @@ public string documentedField1;
 public string documentedField2;
 ```
 
+<img src=".github/drawers/boxheader.jpg">
+
 ### `[Comment]`
 
 Draws comment paragraph above field.
 
 ```cs
-[Comment("Something useful")]
+[Comment("Something informative")]
 public string documentedField;
 ```
+
+<img src=".github/drawers/comment.jpg">
 
 ### `[Alert]`
 
@@ -916,6 +923,8 @@ Draws tinted alert with icon over field.
 public string documentedValue;
 ```
 
+<img src=".github/drawers/alert.jpg">
+
 ### `[Link]`
 
 >🎚️ `url`|`text`
@@ -927,6 +936,9 @@ Draws link to external site above field.
 public string documentedField;
 ```
 
+<img src=".github/drawers/link.jpg">
+
+
 
 ### `[Divider]`
 
@@ -936,9 +948,13 @@ Draws horizontal divider above field.
 
 
 ```cs
+public string text;
+
 [Divider]
 public bool check;
 ```
+
+<img src=".github/drawers/divider.jpg">
 
 
 ### `[StaticButton]`
@@ -952,7 +968,7 @@ Draws button above field.
 ```cs
 [StaticButton("SayHi;StaticGreets, MyModule")]
 [StaticButton("LogValue;StaticGreets, MyModule", label: "Log", args: new object[]{ 10 })]
-public string documentedField;
+public string buttonedField;
 
 class StaticGreets
 {
@@ -967,6 +983,8 @@ class StaticGreets
 	}
 }
 ```
+
+<img src=".github/drawers/staticbutton.jpg">
 
 <!--==============================================-->
 <!--=================STANDALONE===================-->
