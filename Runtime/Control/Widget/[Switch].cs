@@ -13,7 +13,8 @@ namespace Smidgenomics.Unity.Attributes
 	{
 		internal string label0 { get; }
 		internal string label1 { get; }
-
+		public bool includeObsolete { get; set; }
+		
 		public SwitchAttribute(string l0, string l1)
 		{
 			label0 = l0;
@@ -50,7 +51,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			return base.GetHeight(property, label);
 		}
-
+		
 		protected override void OnInit()
 		{
 			var t = fieldInfo.GetItemType();
@@ -95,7 +96,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					continue;
 				}
-				fValues.Add((labels[i].ToSentenceCase(), vals[i]));
+
+				if (!_Attribute.includeObsolete && EnumHasAttribute<ObsoleteAttribute>(_FieldType, vals[i]))
+				{
+					continue;
+				}
+
+				var dn = GetEnumAttribute<InspectorNameAttribute>(_FieldType, vals[i]);
+
+				fValues.Add((dn?.displayName ?? labels[i].ToSentenceCase(), vals[i]));
 			}
 			_flagValues = fValues.ToArray();
 		}
@@ -203,6 +212,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 			}
 			ctx.property.intValue = evalue;
+		}
+
+		public static bool EnumHasAttribute<AT>(Type enumType, int value) where AT : Attribute
+		{
+			return enumType.GetField(Enum.GetName(enumType, value)).IsDefined(typeof(AT));
+		}
+
+		public static AT GetEnumAttribute<AT>(Type enumType, int value) where AT : Attribute
+		{
+			var name = Enum.GetName(enumType, value);
+			var a = enumType.GetField(name).GetCustomAttribute<AT>();
+			return a;
 		}
 
 	}
