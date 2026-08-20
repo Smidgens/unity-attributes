@@ -325,7 +325,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					});
 				}
 
-				if (it.properties.Count > 0)
+				if (it.properties.Count > 0 && it.methods.Count > 0)
 				{
 					m.AddSeparator(groupName + "/");
 				}
