@@ -233,7 +233,7 @@ public Color colorValue;
 
 // absolute path to options
 [Dropdown("GetColorOptions;MyType, MyModule")]
-public Color colorValue;
+public Color colorValue2;
 
 public static List<(string, Color)> GetColorOptions()
 {
@@ -250,6 +250,8 @@ public static List<(string, Color)> GetColorOptions()
 	};
 }
 ```
+
+<img src=".github/drawers/dropdown.jpg">
 
 ### `[InstancedReference]`
 
