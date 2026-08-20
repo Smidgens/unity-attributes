@@ -168,6 +168,8 @@ public ExpandableStruct expanded1;
 public ExpandableStruct expanded2;
 ```
 
+<img src=".github/drawers/expand.jpg">
+
 ### `[Inline]`
 
 > Fields: `class`|`struct`
@@ -187,7 +189,7 @@ public Vector3 inlinedVector;
 public InlinedType inlinedCustom;
 
 [Serializable]
-struct InlinedType
+public struct InlinedType
 {
 	public string key;
 	public string name;
@@ -199,6 +201,8 @@ struct InlinedType
 	public Texture2D icon2;
 }
 ```
+
+<img src=".github/drawers/inline.jpg">
 
 ### `[Dropdown]`
 
