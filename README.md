@@ -48,6 +48,7 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 * [`Box`](#box)
 * [`Foldout`](#foldout)
 * [`Reorderable`](#reorderable)
+* [`ObjectMethodReference`](#objectmethodreference)
 * [`SearchType`](#searchtype)
 * [`SearchEnum`](#searchenum)
 * [`NavMeshAgentID`](#navmeshagentid)
@@ -357,6 +358,19 @@ public struct WrappedArray<T>
 }
 ```
 
+### `[ObjectMethodReference]`
+
+> Fields: `string`\
+>🎚️ `field`|`returnType`|`argTypes`|`flags`
+
+Shows a popup of instance methods available on referenced `UnityEngine.Object`. If object type is either `GameObject` or `Component`, options include any Components on the referenced `GameObject`, similar to `UnityEvent`.
+
+```cs
+public GameObject objectField;
+	
+[ObjectMethodReference("objectField", returnType:typeof(void), argTypes:new []{ typeof(string) })]
+public string method;
+```
 
 ### `[SearchType]`
 

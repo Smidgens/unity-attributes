@@ -4,10 +4,12 @@
 
 namespace Smidgenomics.Unity.Attributes.Editor
 {
+	using System;
 	using System.Collections.Generic;
 	using System.Reflection;
 	using UnityEditor;
 	using UnityEngine;
+	using Object = UnityEngine.Object;
 	using SP = UnityEditor.SerializedProperty;
 
 	/// <summary>
@@ -88,17 +90,22 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return result != null && result.StartsWith("Miss");
 		}
 
-		public static SerializedProperty GetParent(this SerializedProperty prop)
+		public static SerializedProperty GetParent(this SerializedProperty p)
 		{
-			// NOTE: Needs fixing for arrays
-			var propertyPath = prop.propertyPath;
+			var propertyPath = p.propertyPath;
+			if (p.IsArrayElement())
+			{
+				// array items have the path <parent_path>.Array.data[<index>]
+				var pPath = propertyPath.Substring(0, propertyPath.LastIndexOf(".Array", StringComparison.Ordinal));
+				return p.serializedObject.FindProperty(pPath);
+			}
 			var i = propertyPath.LastIndexOf('.');
 			if (i < 0)
 			{
 				return null;
 			}
 			var parentPath = propertyPath.Substring(0, i);
-			return prop.serializedObject.FindProperty(parentPath);
+			return p.serializedObject.FindProperty(parentPath);
 		}
 
 		// get sibling of given prop
