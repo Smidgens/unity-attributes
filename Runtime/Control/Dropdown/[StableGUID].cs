@@ -2,10 +2,12 @@
 
 namespace Smidgenomics.Unity.Attributes
 {
-
-	public sealed class ObjectGUIDAttribute : __BaseControl
+	/// <summary>
+	/// Unique GUID helper
+	/// </summary>
+	public sealed class StableGUIDAttribute : __BaseControl
 	{
-		public ObjectGUIDAttribute()
+		public StableGUIDAttribute()
 		{
 	
 		}
@@ -20,8 +22,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System;
 	using UnityEngine;
 
-	[CustomPropertyDrawer(typeof(ObjectGUIDAttribute))]
-	internal sealed class _UniqueGUIDAttribute : __ControlDrawer<ObjectGUIDAttribute>
+	[CustomPropertyDrawer(typeof(StableGUIDAttribute))]
+	internal sealed class _StableGUIDAttribute : __ControlDrawer<StableGUIDAttribute>
 	{
 		protected override EFieldType GetValidTypes() => EFieldType.String;
 
