@@ -31,10 +31,16 @@ namespace Smidgenomics.Unity.Attributes
 			}
 		}
 
+		/// <summary>
+		/// Should listener count be displayed when foldout wraps UnityEvent
+		/// </summary>
+		public bool showEventListenerCount { get; set; } = true;
+
 		internal string name { get; }
 		internal string iconGUID { get; }
 		internal Color iconColor { get; } = Color.white;
 		internal Rect iconCoords { get; } = new (0f, 0f, 1f, 1f);
+	
 	}
 }
 
@@ -111,7 +117,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, foldLabel, true, DrawerStyles.Foldout);
 			EditorGUI.indentLevel--;
 
-			if (_isEvent)
+			if (_isEvent && _Attribute.showEventListenerCount)
 			{
 				var elCount = property.GetEventListenerCount();
 				var tAlignment = DrawerStyles.LabelSM.alignment;
