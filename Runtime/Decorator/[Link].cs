@@ -10,7 +10,7 @@ namespace Smidgenomics.Unity.Attributes
 	/// </summary>
 	public sealed class LinkAttribute : __BaseDecorator
 	{
-		public LinkAttribute(string text, string url)
+		public LinkAttribute(string url, string text)
 		{
 			this.url = url;
 			this.text = text;
