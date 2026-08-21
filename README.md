@@ -107,6 +107,7 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 
 Draws the default property drawer. This attribute exists to allow modifier attributes like buttons to work with regular drawers.
 
+<br/>
 
 ### `[EditCondition]`
 
@@ -144,7 +145,7 @@ enum TestEnum
 	Value3,
 }
 ```
-
+<br/>
 
 ### `[Expand]`
 
@@ -171,6 +172,8 @@ public ExpandableStruct expanded2;
 ```
 
 <img src=".github/drawers/expand.jpg">
+
+<br/>
 
 ### `[Inline]`
 
@@ -205,6 +208,8 @@ public struct InlinedType
 ```
 
 <img src=".github/drawers/inline.jpg">
+
+<br/>
 
 ### `[Dropdown]`
 
@@ -255,6 +260,8 @@ public static List<(string, Color)> GetColorOptions()
 
 <img src=".github/drawers/dropdown.jpg">
 
+<br/>
+
 ### `[InstancedReference]`
 
 > Fields: `class`
@@ -284,6 +291,8 @@ class ClassB : BaseClass
 
 <img src=".github/drawers/instancedreference.jpg">
 
+<br/>
+
 ### `[Box]`
 
 > Fields: `any`
@@ -307,6 +316,8 @@ public struct GroupedFields
 ```
 
 <img src=".github/drawers/box.jpg">
+
+<br/>
 
 ### `[Foldout]`
 
@@ -332,6 +343,8 @@ public struct FoldableStruct
 ```
 
 <img src=".github/drawers/foldout.jpg">
+
+<br/>
 
 ### `[Reorderable]`
 
@@ -375,6 +388,8 @@ public struct WrappedArray<T>
 
 <img src=".github/drawers/reorderable.jpg">
 
+<br/>
+
 ### `[StableGUID]`
 
 > Fields: `string`
@@ -389,6 +404,8 @@ public string guid;
 
 <img src=".github/drawers/stableguid.jpg">
 
+<br/>
+
 ### `[GlobalObjectID]`
 
 > Fields: `string`
@@ -401,6 +418,8 @@ public string objectID;
 ```
 
 <img src=".github/drawers/globalobjectid.jpg">
+
+<br/>
 
 
 ### `[ObjectMethodReference]`
@@ -445,6 +464,8 @@ Type GetDelegateType()
 
 <img src=".github/drawers/objectmethodreference.jpg">
 
+<br/>
+
 
 ### `[SearchType]`
 
@@ -469,6 +490,8 @@ public string systemType;
 
 <img src=".github/drawers/searchtype.jpg">
 
+<br/>
+
 ### `[SearchEnum]`
 
 > Fields: `enum`
@@ -481,6 +504,8 @@ public KeyCode someKey;
 ```
 
 <img src=".github/drawers/searchenum.jpg">
+
+<br/>
 
 ### `[NavMeshAgentID]`
 
@@ -495,6 +520,7 @@ public int agentID;
 
 <img src=".github/drawers/navagentid.jpg">
 
+<br/>
 
 ### `[NavMeshAreaID]`
 
@@ -509,6 +535,8 @@ public int areaID;
 
 <img src=".github/drawers/navareaid.jpg">
 
+<br/>
+
 ### `[ProjectLayer]`
 
 > Fields: `int`
@@ -519,6 +547,8 @@ Dropdown of project layer indices.
 [ProjectLayer]
 public int layerIndex;
 ```
+
+<br/>
 
 ### `[ProjectSortLayer]`
 
@@ -531,6 +561,8 @@ Dropdown of project sorting layer indices.
 public int sortLayer;
 ```
 
+<br/>
+
 ### `[ProjectTag]`
 
 > Fields: `string`
@@ -541,6 +573,8 @@ Dropdown of project tags.
 [ProjectTag]
 public string pTag;
 ```
+
+<br/>
 
 ### `[ProjectScene]`
 
@@ -557,6 +591,8 @@ public string scenePath;
 [ProjectScene(buildOnly:true)]
 public int sceneIndex;
 ```
+
+<br/>
 
 ### `[ProjectPath]`
 
@@ -575,6 +611,8 @@ public string filePath;
 public string folderPath;
 ```
 
+<br/>
+
 ### `[BlendShape]`
 
 > Fields: `int`|`string`
@@ -591,6 +629,8 @@ public string blendShapeName
 [AnimatorParameter("myRenderer")]
 public int blendShapeIndex
 ```
+
+<br/>
 
 ### `[AnimatorParameter]`
 
@@ -613,6 +653,8 @@ public int paramIndex;
 public string floatParam;
 ```
 
+<br/>
+
 ### `[RendererMaterial]`
 
 > Fields: `int`\
@@ -627,6 +669,8 @@ public Renderer myRenderer;
 public int materialIndex
 ```
 
+<br/>
+
 ### `[HexColor]`
 
 > Fields: `string`\
@@ -638,6 +682,8 @@ Draws color picker for string field and saves as hex color value.
 [HexColor]
 public string hexColor = "#f00";
 ```
+
+<br/>
 
 ### `[Slider]`
 
@@ -656,6 +702,8 @@ public float sliderStep;
 [Slider(1,10)]
 public int sliderInt;
 ```
+
+<br/>
 
 ### `[IntervalSlider]`
 
@@ -682,7 +730,7 @@ public struct MyInterval
 }
 ```
 
-
+<br/>
 
 ### `[Progress]`
 
@@ -700,6 +748,8 @@ public float health = 50;
 ```
 
 <img src=".github/drawers/progress.jpg">
+
+<br/>
 
 ### `[Switch]`
 
@@ -736,6 +786,8 @@ enum EnumFlags
 
 <img src=".github/drawers/switch.jpg">
 
+<br/>
+
 ### `[Tabs]`
 
 > Fields: `enum`|`flags`|`bool`\
@@ -764,6 +816,8 @@ public Options verticalTabs;
 
 <img src=".github/drawers/tabs.jpg">
 
+<br/>
+
 ### `[TextBox]`
 
 > Fields: `string`\
@@ -776,6 +830,8 @@ Draws text area that resizes automatically.
 public string textArea;
 ```
 
+<br/>
+
 <!--==============================================-->
 <!--=================MODIFIERS====================-->
 <!--==============================================-->
@@ -787,6 +843,8 @@ Modifiers work in conjunction with property drawers in that they modify their dr
 
 <small>⚠️ Modifiers only work if at least one attribute from this project is present. `[DefaultDrawer]` can be used to get them to work with regular drawers.</small>
 
+
+<br/>
 
 ### `[FieldButton]`
 
@@ -833,6 +891,8 @@ class StaticClass
 
 <img src=".github/drawers/fieldbutton.jpg">
 
+<br/>
+
 ### `[FieldOptions]`
 
 > 🎚️ `label`|`useFlags`|`indent`
@@ -862,6 +922,8 @@ public float unlabeledValue;
 public float editableInPlayMode;
 ```
 
+<br/>
+
 ### `[InlineWidth]`
 
 > 🎚️ `field`|`width`
@@ -883,6 +945,8 @@ struct InlineType
 }
 ```
 
+<br/>
+
 ### `[InlineHidden]`
 
 Marks specific field to be excluded from being inlined, effectively hiding it when `[Inline]` is used.
@@ -901,13 +965,17 @@ struct InlineType
 }
 ```
 
+<br/>
+
 <!--==============================================-->
 <!--=================DECORATORS===================-->
 <!--==============================================-->
 
 ## ⚡ Decorators
 
-Decorators are simple standalone elements drawn above fields.
+Decorators are simple static elements drawn above fields.
+
+<br/>
 
 ### `[BoxHeader]`
 
@@ -923,6 +991,8 @@ public string documentedField2;
 
 <img src=".github/drawers/boxheader.jpg">
 
+<br/>
+
 ### `[Comment]`
 
 Draws comment paragraph above field.
@@ -933,6 +1003,8 @@ public string documentedField;
 ```
 
 <img src=".github/drawers/comment.jpg">
+
+<br/>
 
 ### `[Alert]`
 
@@ -949,6 +1021,8 @@ public string documentedValue;
 
 <img src=".github/drawers/alert.jpg">
 
+<br/>
+
 ### `[Link]`
 
 >🎚️ `url`|`text`
@@ -962,6 +1036,8 @@ public string documentedField;
 
 <img src=".github/drawers/link.jpg">
 
+<br/>
+
 ### `[Texture]`
 
 >🎚️ `guid`
@@ -972,6 +1048,8 @@ Draws image texture above field.
 [Texture("3ccb9ff0b1390bf4e99bf4e25bb72ddc")]
 public string documentedField;
 ```
+
+<br/>
 
 ### `[Divider]`
 
@@ -988,6 +1066,8 @@ public bool check;
 ```
 
 <img src=".github/drawers/divider.jpg">
+
+<br/>
 
 
 ### `[StaticButton]`
@@ -1019,6 +1099,8 @@ class StaticGreets
 
 <img src=".github/drawers/staticbutton.jpg">
 
+<br/>
+
 <!--==============================================-->
 <!--=================STANDALONE===================-->
 <!--==============================================-->
@@ -1042,6 +1124,8 @@ public string someField;
 [FieldLabel(null)]
 public string fullWidthField;
 ```
+
+<br/>
 
 ### `[FieldIndent]`
 
