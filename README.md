@@ -49,6 +49,7 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 * [`Foldout`](#foldout)
 * [`Reorderable`](#reorderable)
 * [`StableGUID`](#stableguid)
+* [`GlobalObjectID`](#globalobjectid)
 * [`ObjectMethodReference`](#objectmethodreference)
 * [`SearchType`](#searchtype)
 * [`SearchEnum`](#searchenum)
@@ -386,6 +387,19 @@ public string guid;
 ```
 
 <img src=".github/drawers/stableguid.jpg">
+
+### `[GlobalObjectID]`
+
+> Fields: `string`
+
+Simpler version of [`StableGUID`](#stableguid) that automatically sets the field value to the serialized object's [Global ID](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GlobalObjectId.html) 
+
+```cs
+[GlobalObjectID]
+public string objectID;
+```
+
+<img src=".github/drawers/globalobjectid.jpg">
 
 
 ### `[ObjectMethodReference]`
