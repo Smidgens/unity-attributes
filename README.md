@@ -84,6 +84,7 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 * [`Alert`](#alert)
 * [`Comment`](#comment)
 * [`Link`](#link)
+* [`Texture`](#texture)
 * [`Divider`](#divider)
 * [`StaticButton`](#staticbutton)
 
@@ -961,7 +962,16 @@ public string documentedField;
 
 <img src=".github/drawers/link.jpg">
 
+### `[Texture]`
 
+>🎚️ `guid`
+
+Draws image texture above field.
+
+```cs
+[Texture("3ccb9ff0b1390bf4e99bf4e25bb72ddc")]
+public string documentedField;
+```
 
 ### `[Divider]`
 
