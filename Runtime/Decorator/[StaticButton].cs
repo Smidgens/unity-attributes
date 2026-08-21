@@ -4,6 +4,7 @@ namespace Smidgenomics.Unity.Attributes
 {
 	using System;
 	using System.Reflection;
+	using System.Runtime.InteropServices;
 
 	public sealed class StaticButtonAttribute : __BaseDecorator
 	{
@@ -12,19 +13,32 @@ namespace Smidgenomics.Unity.Attributes
 			string methodPath,
 			EFieldUsable flags = EFieldUsable.Always,
 			string label = null,
-			string prefixLabel = null
+			string prefixLabel = null,
+			object[] args = null
 		)
 		{
 			this.flags = flags;
 			this.label = label ?? string.Empty;
 			this.prefixLabel = prefixLabel ?? String.Empty;
-			_method = ReflectionUtils.ParseStaticMethodString(methodPath);
-		}
+			this.args = args;
 
+			Type[] aTypes = null;
+			if (args != null && args.Length > 0)
+			{
+				aTypes = new Type[args.Length];
+				for (int i = 0; i < args.Length; i++)
+				{
+					aTypes[i] = args[i].GetType();
+				}
+			}
+			method = ReflectionUtils.ParseStaticMethodString(methodPath, null, aTypes);
+		}
+		
+		internal object[] args { get; }
 		internal string prefixLabel { get; }
 		internal string label { get; }
 		internal EFieldUsable flags { get; }
-		internal readonly MethodInfo _method;
+		internal MethodInfo method { get; }
 	}
 }
 
@@ -36,15 +50,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEngine;
 	using UnityEditor;
 	using System.Reflection;
+	using System.Runtime.InteropServices;
 
 	[CustomPropertyDrawer(typeof(StaticButtonAttribute))]
 	internal sealed class _StaticButtonAttribute : __DecoratorDrawer<StaticButtonAttribute>
 	{
 		protected override void OnInit()
 		{
-			var (fn, method) = GetAction();
+			var method = GetMethod().method;
 
-			if (fn != null)
+			if (method != null)
 			{
 				var l = !string.IsNullOrEmpty(_Attribute.label)
 				? _Attribute.label
@@ -52,7 +67,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				_label = new GUIContent(l);
 			}
 		}
-		
+
 		protected override (float, float) GetVerticalMargins()
 		{
 			return default;
@@ -67,9 +82,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var pos = p;
 			var te = GUI.enabled;
-			var (fn, method) = GetAction();
+			var mRef = GetMethod();
 
-			if (fn == null)
+			if (mRef.method == null)
 			{
 				DrawerGUI.MutedInfo(p, PluginConstants.Msg.NOT_FOUND);
 				return;
@@ -86,7 +101,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if(GUI.Button(pos, _label, DrawerStyles.ButtonSM))
 			{
-				fn?.Invoke();
+				mRef.Invoke();
 				GUIUtility.keyboardControl = id;
 			}
 
@@ -96,31 +111,86 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				
 				if (Event.current != null && Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Return)
 				{
-					fn?.Invoke();
+					mRef.Invoke();
 				}
 			}
-			
 			GUI.enabled = te;
 		}
 		
-		internal (Action, MethodInfo) GetAction()
+		private (MethodRef, bool) _cache;
+		private GUIContent _label = new();
+		
+		private MethodRef GetMethod()
 		{
-			if (!_action.Item2)
+			if (!_cache.Item2)
 			{
-				var m = _Attribute._method;
+				var m = _Attribute.method;
 				if (m == null)
 				{
-					_action = ((null, null), true);
-					return _action.Item1;
+					_cache = (default, true);
+					return _cache.Item1;
 				}
-				_action = (((Action)m.CreateDelegate(typeof(Action)), m), true);
+				_cache = (MethodRef.FromMethod(m, _Attribute.args), true);
 			}
-			return _action.Item1;
+			return _cache.Item1;
+		}
+
+		private struct MethodRef
+		{
+			public MethodInfo method { get; private set; }
+			private object[] _args;
+			private Action _onInvoke;
+
+			public static MethodRef FromMethod(MethodInfo m, object[] args)
+			{
+				var mr = new MethodRef
+				{
+					method = m,
+					_args = args
+				};
+				return mr;
+			}
+
+			public void Invoke()
+			{
+				if (_onInvoke == null)
+				{
+					var aCount = _args?.Length ?? 0;
+					// optimization for no args
+					if (aCount == 0)
+					{
+						_onInvoke = (Action)method.CreateDelegate(typeof(Action), null);
+					}
+					// optimization for one arg with common type
+					else if (aCount == 1)
+					{
+						var val = _args![0];
+						_onInvoke = TryGetClosureDelegate<int>(val)
+						?? TryGetClosureDelegate<float>(val)
+						?? TryGetClosureDelegate<bool>(val)
+						?? TryGetClosureDelegate<double>(val)
+						?? TryGetClosureDelegate<string>(val)
+						?? TryGetClosureDelegate<Type>(val);
+					}
+					_onInvoke ??= InvokeMethodDefault;
+				}
+				_onInvoke.Invoke();
+			}
+
+			// invoke method via reflection
+			private void InvokeMethodDefault() => method.Invoke(null, _args);
+
+			private Action TryGetClosureDelegate<T>(object val)
+			{
+				if (val is not T tVal)
+				{
+					return null;
+				}
+				var del = (Action<T>)method.CreateDelegate(typeof(Action<T>), null);;
+				return () => del.Invoke(tVal);
+			}
 		}
 		
-		private ((Action, MethodInfo), bool) _action;
-
-		private GUIContent _label = new();
 	}
 }
 
