@@ -393,9 +393,9 @@ public string guid;
 > Fields: `string`\
 >🎚️ `field`|`delegateType`|`delegateTypeFn`|`flags`
 
-Shows a popup of instance methods available on referenced `UnityEngine.Object`. If target object is a either a `GameObject` or `Component`, the displayed options will include any Components on the referenced `GameObject`, same as `UnityEvent`.
+Shows a dropdown of instance methods available on referenced `UnityEngine.Object`. If the target object is either a `GameObject` or `Component`, the displayed options will include any Components on the referenced `GameObject`, same as `UnityEvent`.
 
-The method referenced stringified on the following form:
+The method referenced is stringified on the following form:
 
 ```
 <name>;<return_type>;<arg_type1>|<arg_type2>...;<target_type>`
@@ -427,6 +427,9 @@ Type GetDelegateType()
 	return typeof(Action<T>);
 }
 ```
+
+<img src=".github/drawers/objectmethodreference.jpg">
+
 
 ### `[SearchType]`
 
