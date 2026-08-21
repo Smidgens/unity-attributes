@@ -155,9 +155,9 @@ namespace Smidgenomics.Unity.Attributes
 			{
 				return dn.DisplayName;
 			}
-			if (type.IsNested && type.DeclaringType != null)
+			if (type.IsNested && type.FullName != null)
 			{
-				return $"{type.DeclaringType.Name}.{type.Name}";
+				return type.FullName;
 			}
 			return type.Name;
 		}
