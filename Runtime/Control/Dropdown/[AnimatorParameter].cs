@@ -34,8 +34,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEditor;
 	using UnityEngine;
-	using System.Reflection;
-	using Type = System.Type;
 
 	[CustomPropertyDrawer(typeof(AnimatorParameterAttribute))]
 	internal sealed class _AnimatorParameterAttribute : __ControlDrawer<AnimatorParameterAttribute>
@@ -57,13 +55,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 			var pos = position;
 			// 
-			
-			if (_TYPE_ANIM == null)
+
+			if (!HasAnimationModule())
 			{
 				DrawerGUI.MutedInfo(pos, "Missing animation module");
 				return;
 			}
-
+			
 			SerializedProperty animatorProp;
 
 			// absolute path from root object
@@ -76,15 +74,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				animatorProp = prop.FindSibling(animatorFieldPath);
 			}
 
-			if (animatorProp == null || !animatorProp.IsRefType<Animator>())
+			if (animatorProp == null || !IsAnimatorRef(animatorProp.objectReferenceValue))
 			{
 				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_INVALID);
-				return;
-			}
-
-			if (!animatorProp.objectReferenceValue)
-			{
-				DrawerGUI.MutedInfo(pos, "No animator");
 				return;
 			}
 
@@ -99,7 +91,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (isInt && !isDefault)
 			{
-				btnLabel = new GUIContent(GetAnimatorParameterOption(animatorRef, prop.intValue).Item2);
+				btnLabel = new GUIContent(GetAnimatorParameterOption(animatorRef, prop.intValue).name);
 			}
 			else if (!isInt && !isDefault)
 			{
@@ -113,15 +105,15 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					animatorProp,
 					_Attribute.types,
 					prop,
-					(name, index) =>
+					(opt) =>
 					{
 						if (prop.propertyType == SerializedPropertyType.Integer)
 						{
-							prop.intValue = index;
+							prop.intValue = opt.index;
 						}
 						else if (prop.propertyType == SerializedPropertyType.String)
 						{
-							prop.stringValue = name;
+							prop.stringValue = opt.name;
 						}
 						prop.serializedObject.ApplyModifiedProperties();
 					}
@@ -130,21 +122,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 		}
 
-		private static readonly Type _TYPE_ANIM = Type.GetType("UnityEngine.Animator, UnityEngine.AnimationModule");
-		private static readonly Type _TYPE_ANIM_PARAM = Type.GetType("UnityEngine.AnimatorControllerParameter, UnityEngine.AnimationModule");
+		private static bool IsAnimatorRef(Object ob)
+		{
+#if SM_ATTR_ANIMATION
+			return typeof(Animator) == ob?.GetType();
+#else
+			return false;
+#endif
+		}
 
-		private static Texture _animatorIcon;
+		private static bool HasAnimationModule()
+		{
+#if SM_ATTR_ANIMATION
+			return true;
+#else
+			return false;
+#endif
+		}
 
-		// private static Texture GetAnimatorIcon()
-		// {
-		// 	if (!_animatorIcon)
-		// 	{
-		// 		_animatorIcon = EditorGUIUtility.IconContent("Animator Icon")?.image;
-		// 	}
-		// 	return _animatorIcon;
-		// }
-
-		private static GenericMenu GetParameterMenu(SerializedProperty animatorProp, EAnimatorParameter types, SerializedProperty prop, System.Action<string, int> setFn)
+		private static GenericMenu GetParameterMenu(SerializedProperty animatorProp, EAnimatorParameter types, SerializedProperty prop, System.Action<AnimOption> setFn)
 		{
 			Object animatorRef = animatorProp.objectReferenceValue;
 			bool isInt = prop.propertyType == SerializedPropertyType.Integer;
@@ -153,7 +149,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			: string.IsNullOrEmpty(prop.stringValue);
 			
 			var m = new GenericMenu();
-			m.AddItem(_POPUP_DEFAULT, isDefault, () => setFn.Invoke(string.Empty, -1));
+			m.AddItem(_POPUP_DEFAULT, isDefault, () => setFn.Invoke(new AnimOption
+			{
+				name = string.Empty,
+				index = -1
+			}));
 			m.AddSeparator("");
 
 			var pCount = GetAnimatorParameterCount(animatorRef);
@@ -165,96 +165,91 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			for(var i = 0; i < pCount; i++)
 			{
-				var (label, name, index, type) = GetAnimatorParameterOption(animatorRef, i);
+				var opt = GetAnimatorParameterOption(animatorRef, i);
 
-				if (type[0] == 'F' && !types.HasFlag(EAnimatorParameter.Float))
+				if (!types.HasFlag(opt.typeFlag))
 				{
 					continue;
 				}
 				
-				if (type[0] == 'B' && !types.HasFlag(EAnimatorParameter.Bool))
-				{
-					continue;
-				}
-
-				if (type[0] == 'I' && !types.HasFlag(EAnimatorParameter.Int))
-				{
-					continue;
-				}
-	
-				if (type[0] == 'T' && !types.HasFlag(EAnimatorParameter.Trigger))
-				{
-					continue;
-				}
-
 				var oActive = isInt
-				? prop.intValue == index
-				: prop.stringValue == name;
+				? prop.intValue == opt.index
+				: prop.stringValue == opt.name;
 				
-				m.AddItem(new GUIContent(label), oActive, () => setFn.Invoke(name, index));
+				m.AddItem(opt.menuLabel, oActive, () => setFn.Invoke(opt));
 			}
 			return m;
 		}
 
-		private const BindingFlags _BFLAGS_INSTANCE_PROP =
-		BindingFlags.Instance
-		| BindingFlags.GetProperty
-		| BindingFlags.Public;
-		
-		private const BindingFlags _BFLAGS_INSTANCE_FN =
-		BindingFlags.Instance
-		| BindingFlags.Public;
-
-		private static MethodInfo _paramGetterFn;
-		private static PropertyInfo _paramCountProp;
-		private static PropertyInfo _paramTypeProp;
-		private static PropertyInfo _paramNameProp;
-
-		private static readonly object[] _paramArray = new object[1];
-		
 		private static readonly GUIContent _POPUP_DEFAULT = new (PluginConstants.Label.POPUP_UNSET);
 		private static readonly GUIContent _POPUP_EMPTY = new (PluginConstants.Label.POPUP_EMPTY);
 
-		private static (GUIContent, string, int, string) GetAnimatorParameterOption(Object animatorRef, int index)
+		private struct AnimOption
 		{
-			if (!animatorRef || animatorRef.GetType() != _TYPE_ANIM)
+			public GUIContent menuLabel;
+			public string name;
+			public int index;
+			public int nameHash;
+			public EAnimatorParameter typeFlag;
+		}
+
+		private static AnimOption GetAnimatorParameterOption(Object animatorRef, int index)
+		{
+#if !SM_ATTR_ANIMATION
+			return default;
+#else
+
+			if (!animatorRef || animatorRef.GetType() != typeof(Animator))
 			{
 				return default;
 			}
 
-			if (_paramTypeProp == null)
-			{
-				_paramGetterFn = _TYPE_ANIM.GetMethod("GetParameter", _BFLAGS_INSTANCE_FN);
-				_paramTypeProp = _TYPE_ANIM_PARAM.GetProperty("type", _BFLAGS_INSTANCE_PROP);
-				_paramNameProp = _TYPE_ANIM_PARAM.GetProperty("name", _BFLAGS_INSTANCE_PROP);
-			}
+			var animator = (animatorRef as Animator)!;
 
-			_paramArray[0] = index;
-			var param = (_paramGetterFn!).Invoke(animatorRef, _paramArray);
-			if (param == null)
-			{
-				return (_POPUP_DEFAULT, string.Empty, -1, string.Empty);
-			}
-
-			var pType = (_paramTypeProp!).GetValue(param);
-			var pName = (_paramNameProp!).GetValue(param);
+			var par = animator.GetParameter(index);
 			
-			return (new GUIContent($"{pType}/{pName}"), pName.ToString(), index, pType.ToString());
+
+			if (par == null)
+			{
+				return new AnimOption
+				{
+					menuLabel = _POPUP_DEFAULT,
+					index = -1,
+				};
+			}
+
+			var typeFlag = par.type switch
+			{
+				AnimatorControllerParameterType.Bool => EAnimatorParameter.Bool,
+				AnimatorControllerParameterType.Float => EAnimatorParameter.Float,
+				AnimatorControllerParameterType.Int => EAnimatorParameter.Int,
+				AnimatorControllerParameterType.Trigger => EAnimatorParameter.Trigger,
+				_ => EAnimatorParameter.All
+			};
+			
+
+			return new AnimOption
+			{
+				menuLabel = new GUIContent($"{par.type.ToString()}/{par.name}"),
+				nameHash = par.nameHash,
+				index = index,
+				typeFlag = typeFlag,
+			};
+#endif
 		}
-		
-		
-		private static int GetAnimatorParameterCount(UnityEngine.Object animatorRef)
+
+		private static int GetAnimatorParameterCount(Object animatorRef)
 		{
-			if (!animatorRef || animatorRef.GetType() != _TYPE_ANIM)
+#if SM_ATTR_ANIMATION
+			if (!animatorRef || animatorRef is not Animator a)
 			{
 				return 0;
 			}
+			return a.parameterCount;
+#else
+			return 0;
+#endif
 
-			if (_paramCountProp == null)
-			{
-				_paramCountProp = _TYPE_ANIM.GetProperty("parameterCount", _BFLAGS_INSTANCE_PROP);
-			}
-			return (int)(_paramCountProp!).GetValue(animatorRef);
 		}
 		
 	}

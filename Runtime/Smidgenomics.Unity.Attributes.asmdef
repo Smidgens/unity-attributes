@@ -9,6 +9,17 @@
     "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.animation",
+            "expression": "1",
+            "define": "SM_ATTR_ANIMATION"
+        },
+        {
+            "name": "com.unity.modules.ai",
+            "expression": "1",
+            "define": "SM_ATTR_AI"
+        }
+    ],
     "noEngineReferences": false
 }
