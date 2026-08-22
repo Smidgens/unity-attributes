@@ -100,7 +100,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var prefixRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
 			pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
-			DrawerGUI.DrawTex(GetAnimatorIcon(), prefixRect);
+			DrawerGUI.DrawTex(prefixRect, GetAnimatorIcon());
 
 			if(EditorGUI.DropdownButton(pos, btnLabel, FocusType.Keyboard))
 			{

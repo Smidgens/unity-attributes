@@ -289,7 +289,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static void DrawWarningIcon(in Rect pos)
 		{
-			DrawerGUI.DrawTex(_MISSING_REFS_LB.Value?.image, pos);
+			DrawerGUI.DrawTex(pos, _MISSING_REFS_LB.Value?.image);
 		}
 
 		private float GetListItemHeight(int i)
@@ -576,6 +576,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				menu.AddSeparator(string.Empty);
 			}
 
+			var strict =
+			fieldInfo.GetCustomAttribute<InstancedReferenceAttribute>()!.flags.HasFlag(EInstancedReference.Strict);
+
 			var unique = _Attribute.flags.HasFlag(EReorderable.InstanceUnique);
 
 			var addedTypes = unique
@@ -608,6 +611,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 				
 				if (addedTypes != null && addedTypes.Contains(type))
+				{
+					continue;
+				}
+
+				if (strict && !type.IsDefined(typeof(SerializableAttribute), false))
 				{
 					continue;
 				}

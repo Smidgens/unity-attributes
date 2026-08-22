@@ -13,12 +13,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	{
 		public const float INDENT_W = 15f;
 
-		public static void DrawTex(Texture tex, in Rect area)
+		public static void DrawTex(in Rect area, Texture tex)
 		{
-			DrawTex(tex, area, new Rect(0,0,1,1), Color.white);
+			DrawTex(area, tex, new Rect(0,0,1,1), Color.white);
 		}
 
-		public static void DrawTex(Texture tex, in Rect area, in Rect coords, Color color)
+		public static void DrawTex(in Rect area, Texture tex, in Rect coords, Color color)
 		{
 			if (!tex)
 			{
@@ -104,7 +104,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			.SliceLeft(EditorGUIUtility.singleLineHeight)
 			.Resized(-pos.height * pad);
 			pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
-			DrawTex(tex, icoRect);
+			DrawTex(icoRect, tex);
 		}
 
 		public static bool PopupButton(in Rect pos, in string label)

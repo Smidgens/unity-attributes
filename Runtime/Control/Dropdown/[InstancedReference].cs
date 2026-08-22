@@ -11,17 +11,21 @@ namespace Smidgenomics.Unity.Attributes
 	public enum EInstancedReference
 	{
 		None = 0,
-
 		/// <summary>
-		/// Allows instances in arrays to be replaced
+		/// Only show types with [Serializable]
 		/// </summary>
-		ArrayReplaceable = 1,
-
+		Strict = 1,
+		/// <summary>
+		/// Show dropdown in arrays
+		/// </summary>
+		ArrayReplace = 2,
 		/// <summary>
 		/// Sensible defaults
 		/// </summary>
-		Default = ArrayReplaceable,
-
+		Default = ArrayReplace|Strict,
+		/// <summary>
+		/// All
+		/// </summary>
 		All = ~0
 	}
 	
@@ -83,7 +87,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System;
 	using System.Reflection;
 	using System.Collections.Generic;
-	using System.ComponentModel;
 
 	[CustomPropertyDrawer(typeof(InstancedReferenceAttribute))]
 	internal sealed class _InstancedReferenceAttribute : __ControlDrawer<InstancedReferenceAttribute>
@@ -111,34 +114,35 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 			}
 
-			var currentType = prop.managedReferenceValue?.GetType();
+			var isUnset = prop.managedReferenceValue == null;
 
 			var typeRect = pos.SliceTop(EditorGUIUtility.singleLineHeight);
-			// pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 
 			if(l != GUIContent.none && !isArray)
 			{
 				typeRect = EditorGUI.PrefixLabel(typeRect, l);
 			}
 
-			var tEnabled = GUI.enabled;
-
-			if (isArray && !_Attribute.flags.HasFlag(EInstancedReference.ArrayReplaceable))
+			if (!isUnset && isArray && !_Attribute.flags.HasFlag(EInstancedReference.ArrayReplace))
 			{
-				string label = _Attribute.labelFn.Invoke(currentType);
 				GUI.Box(typeRect, GUIContent.none, EditorStyles.helpBox);
 				GUI.Box(typeRect, GUIContent.none);
+				if (_displayIcon.Item1)
+				{
+					var iconRect = typeRect;
+					iconRect.width = iconRect.height;
+					iconRect = iconRect.Resized(-typeRect.height * 0.15f);
+					typeRect.SliceLeft(15f);
+					DrawerGUI.DrawTex(iconRect, _displayIcon.Item1, _displayIcon.Item2, Color.white);
+				}
 				typeRect.SliceLeft(EditorGUIUtility.standardVerticalSpacing * 1.5f);
-				GUI.Label(typeRect, label, EditorStyles.label);
+				GUI.Label(typeRect, _typeLabel, EditorStyles.label);
 			}
 			else
 			{
 				SelectorDropdown(typeRect, prop);
 			}
-			
 
-			GUI.enabled = tEnabled;
-			
 			if (prop.managedReferenceValue == null)
 			{
 				return;
@@ -160,12 +164,13 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					EditorGUI.PropertyField(fRect, fProp);
 					
 				}
-
 			}
 		}
 
 		private Type _lastType;
 		private IReadOnlyList<FieldInfo> _fields;
+		private (Texture, Rect) _displayIcon;
+		private string _typeLabel;
 
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
 		{
@@ -176,6 +181,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				_lastType = null;
 				_fields = null;
+				_displayIcon = default;
 			}
 
 			if (prop.managedReferenceValue == null)
@@ -187,6 +193,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				_fields = prop.managedReferenceValue.GetType().FindInspectorFields<object>();
 				_lastType = prop.managedReferenceValue.GetType();
+				_typeLabel = _lastType != null ? _Attribute.labelFn.Invoke(_lastType) : _Attribute.emptyLabel;
+				var dIcon = _lastType.GetCustomAttribute<DisplayIconAttribute>();
+				if (dIcon != null && dIcon.iconGUID.IsGUID())
+				{
+					var path = AssetDatabase.GUIDToAssetPath(dIcon.iconGUID);
+					var tex = AssetDatabase.LoadAssetAtPath<Texture>(path);
+					_displayIcon = (tex, dIcon.iconCoords);
+				}
 			}
 
 			foreach (var f in _fields)
@@ -196,19 +210,33 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 
 			totalHeight += (Mathf.Max(_fields.Count - 1, 0f)) * EditorGUIUtility.standardVerticalSpacing;
-
 			return totalHeight;
 		}
 
+		private readonly GUIStyle _iconPopup = new GUIStyle(EditorStyles.popup)
+		{
+			padding
+			= new RectOffset(18, EditorStyles.popup.padding.right, EditorStyles.popup.padding.top, EditorStyles.popup.padding.bottom)
+		};
+		
 		private void SelectorDropdown(Rect pos, SerializedProperty prop)
 		{
 			Type currentType = prop.managedReferenceValue?.GetType();
-			string defaultLabel = (attribute as InstancedReferenceAttribute)!.emptyLabel;
+			string defaultLabel = _Attribute.emptyLabel;
 
-			// string label = currentType != null ? GetTypeDisplayName(currentType) : defaultLabel;
-			string label = currentType != null ? _Attribute.labelFn.Invoke(currentType) : defaultLabel;
+			var st = _displayIcon.Item1 ? _iconPopup : EditorStyles.popup;
+			
+			var dropPressed = EditorGUI.DropdownButton(pos, new GUIContent(_typeLabel), FocusType.Keyboard, st);
 
-			if (!EditorGUI.DropdownButton(pos, new GUIContent(label), FocusType.Keyboard))
+			if (_displayIcon.Item1)
+			{
+				var iconRect = pos;
+				iconRect.width = iconRect.height;
+				iconRect = iconRect.Resized(-iconRect.height * 0.15f);
+				DrawerGUI.DrawTex(iconRect, _displayIcon.Item1, _displayIcon.Item2, Color.white);
+			}
+			
+			if (!dropPressed)
 			{
 				return;
 			}
@@ -264,6 +292,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				menu.AddItem(new GUIContent(defaultLabel), false, fn, null);
 				menu.AddSeparator("");
 			}
+			
+			var strict =
+			_Attribute.flags.HasFlag(EInstancedReference.Strict);
 
 			foreach (var type in types)
 			{
@@ -271,6 +302,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					continue;
 				}
+
+				if (strict && !type.IsDefined(typeof(SerializableAttribute), false))
+				{
+					continue;
+				}
+
 				if (currentAssembly != type.Assembly)
 				{
 					if (currentAssembly != null)

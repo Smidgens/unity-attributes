@@ -110,7 +110,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var iconRect = foldoutRect.SliceLeft(foldoutRect.height);
 				iconRect = iconRect.Resized(-iconRect.height * 0.1f);
 				var iconColor = _Attribute.iconColor;
-				DrawerGUI.DrawTex(_icon.Item2, iconRect, _Attribute.iconCoords, iconColor);
+				DrawerGUI.DrawTex(iconRect, _icon.Item2, _Attribute.iconCoords, iconColor);
 			}
 
 			EditorGUI.indentLevel++;
