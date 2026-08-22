@@ -50,13 +50,17 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		Drop = 256,
 		/// <summary>
+		/// Hides already-added types from dropdown options when using [InstancedReference]
+		/// </summary>
+		InstanceUnique = 512,
+		/// <summary>
 		/// Draws typical looking list
 		/// </summary>
-		Standard = All & ~Foldable & ~Compact,
+		Standard = All & ~Foldable & ~Compact & ~InstanceUnique,
 		/// <summary>
 		/// 
 		/// </summary>
-		Minimal = All & ~Resizable & ~Index & ~Foldable,
+		Minimal = All & ~Resizable & ~Index & ~Foldable & ~InstanceUnique,
 	}
 
 	/// <summary>
@@ -95,6 +99,7 @@ namespace Smidgenomics.Unity.Attributes
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using System;
+	using System.Collections.Generic;
 	using System.ComponentModel;
 	using System.Reflection;
 	using UnityEditor;
@@ -469,10 +474,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 							}
 						};
 					});
-					
 				}
-				
-				
+
 				m.ShowAsContext();
 			}
 
@@ -491,7 +494,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			if (drawCompact && add && CheckFlag(EReorderable.Add))
 			{
-				var ico = IsManagedReferenceField() ? _ICO_ADD_DROP.Value : _ICO_ADD.Value;
+				var ico = IsInstancedReferenceField() ? _ICO_ADD_DROP.Value : _ICO_ADD.Value;
 				if (IconButton(ref pos, ico))
 				{
 					OnAddButton(prop);
@@ -520,7 +523,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 		}
 
-		private bool IsManagedReferenceField()
+		private bool IsInstancedReferenceField()
 		{
 			return
 			!_IsUnityObjectField
@@ -530,9 +533,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private void OnAddButton(SerializedProperty arrProp)
 		{
-			if (IsManagedReferenceField())
+			if (IsInstancedReferenceField())
 			{
-				var m = CreateTypeMenu(_itemType, o =>
+				var m = CreateTypeMenu(arrProp, _itemType, o =>
 				{
 					var newType = (Type)o;
 
@@ -559,7 +562,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 		}
 
-		private GenericMenu CreateTypeMenu(Type baseType, GenericMenu.MenuFunction2 fn, bool showNull = false)
+		private GenericMenu CreateTypeMenu(SerializedProperty arrProp, Type baseType, GenericMenu.MenuFunction2 fn, bool showNull = false)
 		{
 			var menu = new GenericMenu();
 
@@ -573,6 +576,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				menu.AddSeparator(string.Empty);
 			}
 
+			var unique = _Attribute.flags.HasFlag(EReorderable.InstanceUnique);
+
+			var addedTypes = unique
+			? new HashSet<Type> ()
+			: null;
+
+			if (unique)
+			{
+				for (int i = 0; i < arrProp.arraySize; i++)
+				{
+					var item = arrProp.GetArrayElementAtIndex(i);
+
+					if (item.managedReferenceValue != null)
+					{
+						addedTypes.Add(item.managedReferenceValue.GetType());
+					}
+				}
+			}
+
 			foreach (var type in types)
 			{
 				if (type.GetConstructor(Type.EmptyTypes) == null) // new()
@@ -584,6 +606,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					continue;
 				}
+				
+				if (addedTypes != null && addedTypes.Contains(type))
+				{
+					continue;
+				}
+				
 				if (currentAssembly != type.Assembly)
 				{
 					if (currentAssembly != null)
@@ -598,6 +626,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				var dname = new GUIContent(label);
 				menu.AddItem(dname, false, fn,  type);
 			}
+			
+			if (menu.GetItemCount() == 0)
+			{
+				menu.AddDisabledItem(new GUIContent("No Options"));
+			}
+			
 			return menu;
 		}
 
@@ -682,7 +716,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 
 				// show dropdown variant if field has [SerializeReference]
-				if (showAdd && IsManagedReferenceField())
+				if (showAdd && IsInstancedReferenceField())
 				{
 					_list.onAddDropdownCallback = (r, l) => OnAddButton(prop);
 				}
