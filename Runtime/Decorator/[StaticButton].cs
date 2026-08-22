@@ -4,7 +4,6 @@ namespace Smidgenomics.Unity.Attributes
 {
 	using System;
 	using System.Reflection;
-	using System.Runtime.InteropServices;
 
 	public sealed class StaticButtonAttribute : __BaseDecorator
 	{
@@ -23,7 +22,7 @@ namespace Smidgenomics.Unity.Attributes
 			this.args = args;
 
 			Type[] aTypes = null;
-			if (args != null && args.Length > 0)
+			if (args is { Length: > 0 })
 			{
 				aTypes = new Type[args.Length];
 				for (int i = 0; i < args.Length; i++)
@@ -50,7 +49,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEngine;
 	using UnityEditor;
 	using System.Reflection;
-	using System.Runtime.InteropServices;
 
 	[CustomPropertyDrawer(typeof(StaticButtonAttribute))]
 	internal sealed class _StaticButtonAttribute : __DecoratorDrawer<StaticButtonAttribute>
@@ -186,7 +184,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					return null;
 				}
-				var del = (Action<T>)method.CreateDelegate(typeof(Action<T>), null);;
+				var del = (Action<T>)method.CreateDelegate(typeof(Action<T>), null);
 				return () => del.Invoke(tVal);
 			}
 		}

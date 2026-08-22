@@ -361,7 +361,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					}
 				}
 
-				bool enabled = (target != null || a.method.IsStatic) && a.attribute.flags.GetUseState();
+				var serializedTarget = prop.serializedObject.targetObject;
+				bool enabled = (target != null || a.method.IsStatic) && a.attribute.flags.GetUseState(serializedTarget);
 
 				var te = GUI.enabled;
 				GUI.enabled = enabled;

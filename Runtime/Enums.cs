@@ -23,6 +23,18 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		Editor = 2,
 		/// <summary>
+		/// Enabled if asset
+		/// </summary>
+		Asset = 4,
+		/// <summary>
+		/// Always enabled if outer object exists in scene
+		/// </summary>
+		AnySceneObject = Play|Editor,
+		/// <summary>
+		/// Always enabled if outer object is an asset
+		/// </summary>
+		AnyAsset = Play|Editor|Asset,
+		/// <summary>
 		/// Always enabled
 		/// </summary>
 		Always = ~0,
