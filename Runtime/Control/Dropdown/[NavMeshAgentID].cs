@@ -3,7 +3,7 @@
 namespace Smidgenomics.Unity.Attributes
 {
 	/// <summary>
-	/// Draws a popup menu of nav agent types
+	/// Draws a dropdown menu of nav agent types
 	/// </summary>
 	public sealed class NavMeshAgentIDAttribute : __BaseControl
 	{
@@ -18,6 +18,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System.Reflection;
 	using UnityEngine;
 	using UnityEditor;
+	using UnityEngine.AI;
 
 	[CustomPropertyDrawer(typeof(NavMeshAgentIDAttribute))]
 	internal sealed class _NavAgentIDAttribute :  __ControlDrawer<NavMeshAgentIDAttribute>
@@ -42,25 +43,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			};
 		}
 
-		private static (Type, string, bool) _navmeshType = (null, "UnityEngine.AI.NavMesh, UnityEngine.AIModule", false);
-		private static (Type, string, bool) _navmeshHelperType = (null, "UnityEditor.AI.NavMeshEditorHelpers, UnityEditor.CoreModule", false);
-		private static (Delegate, Type, string, bool) _settingsCountFn = (null, typeof(Func<int>), "GetSettingsCount", false);
-
 		private static (GUIContent, int)[] _cachedAgentOptions;
 		private static int _cachedSettingsCount;
 
-		private const BindingFlags _BFLAGS_STATIC_FN =
-		BindingFlags.Static
-		| BindingFlags.Public;
-
-		private const BindingFlags _BFLAGS_INSTANCE_PROP =
-		BindingFlags.Instance
-		| BindingFlags.GetProperty
-		| BindingFlags.Public;
-
 		private static void DrawAgentPopup(Rect pos, SerializedProperty prop)
 		{
-
 			var currentSettingsCount = GetNavMeshSettingsCount();
 
 			if (currentSettingsCount != _cachedSettingsCount)
@@ -98,7 +85,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					});
 				}
 
-				m.AddSeparator("");
+				m.AddSeparator(string.Empty);
 				m.AddItem(new GUIContent("Open Agent Settings..."), false, () =>
 				{
 					OpenAgentSettings();
@@ -111,66 +98,44 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static bool HasAIModule()
 		{
-			return GetType(ref _navmeshType) != null;
+#if SM_ATTR_AI
+			return true;
+#else
+			return false;
+#endif
 		}
 
 		private static void OpenAgentSettings()
 		{
-			var type = GetType(ref _navmeshHelperType);
-			var method = type.GetMethod("OpenAgentSettings", _BFLAGS_STATIC_FN);
-			method?.Invoke(null, new object[] { -1 });
+#if SM_ATTR_AI
+			UnityEditor.AI.NavMeshEditorHelpers.OpenAgentSettings(-1);
+#endif
 		}
 
 		private static (GUIContent, int)[] GetAgentOptions()
 		{
+#if SM_ATTR_AI
 			var count = GetNavMeshSettingsCount();
 			(GUIContent, int)[] options = new (GUIContent, int)[count];
 			for (int i = 0; i < count; i++)
 			{
-				var (agentName, agentID) = GetAgentTypeAtSettingsIndex(i);
-				options[i] = (new GUIContent(agentName), agentID);
+				var settings = NavMesh.GetSettingsByIndex(i);
+				var name = NavMesh.GetSettingsNameFromID(settings.agentTypeID);
+				options[i] = (new GUIContent(name), settings.agentTypeID);
 			}
 			return options;
+#else
+			return Array.Empty<(GUIContent, int)>();
+#endif
 		}
 
-		private static (string, int) GetAgentTypeAtSettingsIndex(int i)
-		{
-			var nmType = GetType(ref _navmeshType);
-
-			var settingsFn = (nmType!).GetMethod("GetSettingsByIndex", _BFLAGS_STATIC_FN);
-			var settings = (settingsFn!).Invoke(null, new object[]{ i });
-
-			if (settings == null)
-			{
-				return ("", -1);
-			}
-			var nameFn = (nmType!).GetMethod("GetSettingsNameFromID", _BFLAGS_STATIC_FN);
-			var prop = settings.GetType().GetProperty("agentTypeID", _BFLAGS_INSTANCE_PROP);
-			var agentTypeID = (prop!).GetValue(settings);
-			var name = (nameFn!).Invoke(null, new object[] { agentTypeID });
-			return (name as string, (int)agentTypeID);
-
-		}
-		
 		private static int GetNavMeshSettingsCount()
 		{
-			var fn = GetDelegate(GetType(ref _navmeshType), ref _settingsCountFn, _BFLAGS_STATIC_FN) as Func<int>;
-			return (fn!).Invoke();
-		}
-		
-		private static Type GetType(ref (Type, string, bool) t)
-		{
-			if (!t.Item3)
-			{
-				t = (Type.GetType(t.Item2), t.Item2, true);
-			}
-			return t.Item1;
-		}
-		
-		private static Delegate GetDelegate(Type type, ref (Delegate, Type, string, bool) d, BindingFlags flags)
-		{
-			var fnInfo = (type!).GetMethod(d.Item3, flags);
-			return fnInfo?.CreateDelegate(d.Item2);
+#if SM_ATTR_AI
+			return NavMesh.GetSettingsCount();
+#else
+			return 0;
+#endif
 		}
 
 		private static int FindIndex<T>(T[] arr, Func<T, bool> fn)
