@@ -7,6 +7,24 @@ namespace Smidgenomics.Unity.Attributes
 	using System.Reflection;
 	using Editor;
 
+	[Flags]
+	public enum EInstancedReference
+	{
+		None = 0,
+
+		/// <summary>
+		/// Allows instances in arrays to be replaced
+		/// </summary>
+		ArrayReplaceable = 1,
+
+		/// <summary>
+		/// Sensible defaults
+		/// </summary>
+		Default = ArrayReplaceable,
+
+		All = ~0
+	}
+	
 	// 
 	[AttributeUsage(AttributeTargets.Field)]
 	public sealed class InstancedReferenceAttribute : __BaseControl
@@ -19,7 +37,8 @@ namespace Smidgenomics.Unity.Attributes
 		public InstancedReferenceAttribute
 		(
 			string emptyLabel = PluginConstants.Label.POPUP_UNSET,
-			string labelFn = null
+			string labelFn = null,
+			EInstancedReference flags = EInstancedReference.Default
 		) : base(true)
 		{
 			this.labelFn = GetByDisplayName;
@@ -29,12 +48,15 @@ namespace Smidgenomics.Unity.Attributes
 				this.labelFn = (Func<Type, string>)m.CreateDelegate(typeof(Func<Type, string>), null);
 			}
 			this.emptyLabel = emptyLabel;
+			this.flags = flags;
 		}
 
 		// display value for null/empty string
 		internal string emptyLabel { get; }
 
 		internal Func<Type, string> labelFn { get; }
+		
+		internal EInstancedReference flags { get; }
 		
 		private static string GetByDisplayName(Type type)
 		{
@@ -89,6 +111,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				}
 			}
 
+			var currentType = prop.managedReferenceValue?.GetType();
+
 			var typeRect = pos.SliceTop(EditorGUIUtility.singleLineHeight);
 			// pos.SliceTop(EditorGUIUtility.standardVerticalSpacing);
 
@@ -97,7 +121,24 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				typeRect = EditorGUI.PrefixLabel(typeRect, l);
 			}
 
-			SelectorDropdown(typeRect, prop);
+			var tEnabled = GUI.enabled;
+
+			if (isArray && !_Attribute.flags.HasFlag(EInstancedReference.ArrayReplaceable))
+			{
+				string label = _Attribute.labelFn.Invoke(currentType);
+				GUI.Box(typeRect, GUIContent.none, EditorStyles.helpBox);
+				GUI.Box(typeRect, GUIContent.none);
+				typeRect.SliceLeft(EditorGUIUtility.standardVerticalSpacing * 1.5f);
+				GUI.Label(typeRect, label, EditorStyles.label);
+			}
+			else
+			{
+				SelectorDropdown(typeRect, prop);
+			}
+			
+
+			GUI.enabled = tEnabled;
+			
 			if (prop.managedReferenceValue == null)
 			{
 				return;
