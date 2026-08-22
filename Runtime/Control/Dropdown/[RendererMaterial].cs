@@ -36,6 +36,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public const string NULL_LABEL = "(null)";
 
 		protected override EFieldType GetValidTypes() => EFieldType.Int;
+		
+		protected override DisplayIcon GetFieldDisplayIcon()
+		{
+			return new DisplayIcon
+			{
+				texture = EditorGUIUtility.IconContent("Material Icon")?.image,
+			};
+		}
 
 		protected override void OnField(in DrawContext ctx)
 		{
@@ -56,6 +64,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			public Renderer renderer;
 			public SP property;
 		}
+
+		private static readonly GUIContent _label = new();
 
 		private static Renderer GetRendererValue(in string field, SP prop)
 		{
@@ -84,7 +94,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			? GetLabel(prop.intValue, materials[prop.intValue]?.name)
 			: PluginConstants.Label.POPUP_UNSET;
 
-			if (GUI.Button(r, l, EditorStyles.popup))
+			_label.text = l;
+			if (EditorGUI.DropdownButton(r, _label, FocusType.Keyboard))
 			{
 				GetMenu(ctx)
 				.DropDown(r);

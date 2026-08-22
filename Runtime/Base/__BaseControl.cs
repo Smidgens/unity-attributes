@@ -95,7 +95,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				DrawerGUI.MutedInfo(pos, err, MessageType.Warning);
 				return;
 			}
-			
+
+			if (_displayIcon.texture)
+			{
+				var prefixRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
+				pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
+				var coords = Mathf.Approximately(_displayIcon.coords.width, 0f)
+				? new Rect(0, 0, 1f, 1f)
+				: _displayIcon.coords;
+				var color = Mathf.Approximately(_displayIcon.color.a, 0f)
+				? Color.white
+				: _displayIcon.color;
+
+				if (!GUI.enabled)
+				{
+					color *= 0.8f;
+				}
+				DrawerGUI.DrawTex(prefixRect, _displayIcon.texture, coords, color);
+			}
+
 			var ctx = new DrawContext
 			{
 				position = pos,
@@ -106,6 +124,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			OnField(ctx);
 			GUI.enabled = tEnabled;
 			EditorGUI.EndProperty();
+		}
+
+		protected struct DisplayIcon
+		{
+			public Texture texture;
+			public Rect coords;
+			public Color color;
+		}
+
+		protected virtual DisplayIcon GetFieldDisplayIcon()
+		{
+			return default;
 		}
 
 		private bool IsFieldEditable()
@@ -155,7 +185,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		private List<ActionInfo> _actions;
 		private string _customLabel = string.Empty;
 		private Type _fieldType; // absolute field type, array or no
-		
+		private DisplayIcon _displayIcon;
+
 		private bool CanDraw(SerializedProperty prop, out string err)
 		{
 			var types = GetValidTypes();
@@ -221,6 +252,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			_init = true;
 			_fieldType = fieldInfo.FieldType.GetInnermostType();
+
+			_displayIcon = GetFieldDisplayIcon();
 
 			var options = GetMod<FieldOptionsAttribute>();
 

@@ -33,6 +33,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 			DrawAgentPopup(ctx.position, ctx.property);
 		}
+		
+		protected override DisplayIcon GetFieldDisplayIcon()
+		{
+			return new DisplayIcon
+			{
+				texture = EditorGUIUtility.IconContent("NavMeshAgent Icon")?.image,
+			};
+		}
 
 		private static (Type, string, bool) _navmeshType = (null, "UnityEngine.AI.NavMesh, UnityEngine.AIModule", false);
 		private static (Type, string, bool) _navmeshHelperType = (null, "UnityEditor.AI.NavMeshEditorHelpers, UnityEditor.CoreModule", false);
@@ -50,14 +58,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		| BindingFlags.GetProperty
 		| BindingFlags.Public;
 
-		private static Texture _agentIcon;
-		
 		private static void DrawAgentPopup(Rect pos, SerializedProperty prop)
 		{
-			if (!_agentIcon)
-			{
-				_agentIcon = EditorGUIUtility.IconContent("NavMeshAgent Icon")?.image;
-			}
 
 			var currentSettingsCount = GetNavMeshSettingsCount();
 
@@ -81,10 +83,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				label = options[currentIndex].Item1;
 			}
-
-			var prefixRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
-			pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
-			DrawerGUI.DrawTex(prefixRect, _agentIcon);
 
 			if(EditorGUI.DropdownButton(pos, label, FocusType.Keyboard))
 			{

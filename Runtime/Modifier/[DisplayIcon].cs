@@ -19,13 +19,16 @@ namespace Smidgenomics.Unity.Attributes
 			float x = 0,
 			float y = 0,
 			float w = 1f,
-			float h = 1f
+			float h = 1f,
+			bool editorTint = false
 		)
 		{
 			this.iconGUID = iconGUID;
+			this.editorTint = editorTint;
 			iconCoords = new Rect(x, y, w, h);
 		}
 
+		public bool editorTint { get; }
 		public string iconGUID { get; }
 		public Rect iconCoords { get; }
 	}

@@ -131,9 +131,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					var iconRect = typeRect;
 					iconRect.width = iconRect.height;
-					iconRect = iconRect.Resized(-typeRect.height * 0.15f);
 					typeRect.SliceLeft(15f);
-					DrawerGUI.DrawTex(iconRect, _displayIcon.Item1, _displayIcon.Item2, Color.white);
+					DrawDisplayIcon(iconRect);
 				}
 				typeRect.SliceLeft(EditorGUIUtility.standardVerticalSpacing * 1.5f);
 				GUI.Label(typeRect, _typeLabel, EditorStyles.label);
@@ -169,8 +168,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private Type _lastType;
 		private IReadOnlyList<FieldInfo> _fields;
-		private (Texture, Rect) _displayIcon;
+		private (Texture, Rect, Color) _displayIcon;
 		private string _typeLabel;
+
+		private void DrawDisplayIcon(Rect pos)
+		{
+			var iconRect = pos;
+			iconRect.width = iconRect.height;
+			iconRect = iconRect.Resized(-iconRect.height * 0.15f);
+			DrawerGUI.DrawTex(iconRect, _displayIcon.Item1, _displayIcon.Item2, _displayIcon.Item3);
+		}
 
 		protected override float GetHeight(SerializedProperty prop, GUIContent label)
 		{
@@ -199,7 +206,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					var path = AssetDatabase.GUIDToAssetPath(dIcon.iconGUID);
 					var tex = AssetDatabase.LoadAssetAtPath<Texture>(path);
-					_displayIcon = (tex, dIcon.iconCoords);
+					var color = dIcon.editorTint
+					? DrawerGUI.ICON_SKIN_TINT
+					: Color.white;
+					_displayIcon = (tex, dIcon.iconCoords, color);
 				}
 			}
 
@@ -224,16 +234,19 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			Type currentType = prop.managedReferenceValue?.GetType();
 			string defaultLabel = _Attribute.emptyLabel;
 
+			var dLabel = prop.managedReferenceValue == null
+			? defaultLabel
+			: _typeLabel;
+
 			var st = _displayIcon.Item1 ? _iconPopup : EditorStyles.popup;
 			
-			var dropPressed = EditorGUI.DropdownButton(pos, new GUIContent(_typeLabel), FocusType.Keyboard, st);
-
+			var dropPressed = EditorGUI.DropdownButton(pos, new GUIContent(dLabel), FocusType.Keyboard, st);
+			
 			if (_displayIcon.Item1)
 			{
 				var iconRect = pos;
 				iconRect.width = iconRect.height;
-				iconRect = iconRect.Resized(-iconRect.height * 0.15f);
-				DrawerGUI.DrawTex(iconRect, _displayIcon.Item1, _displayIcon.Item2, Color.white);
+				DrawDisplayIcon(iconRect);
 			}
 			
 			if (!dropPressed)
@@ -265,7 +278,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				EditorApplication.delayCall += () =>
 				{
-					prop.serializedObject.Update();
+					// if (prop.serializedObject != null)
+					// {
+					// 	prop.serializedObject.UpdateIfRequiredOrScript();
+					// }
 				};
 
 			}, defaultLabel);

@@ -14,8 +14,7 @@ namespace Smidgenomics.Unity.Attributes
 	/// <summary>
 	/// Select path to project file
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Field)]
-	public sealed class ProjectPathAttribute : PropertyAttribute
+	public sealed class ProjectPathAttribute : __BaseControl
 	{
 		internal static readonly string[] DEF_IGNORE_FOLDERS =
 		{
@@ -64,27 +63,30 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor;
 
 	[CustomPropertyDrawer(typeof(ProjectPathAttribute))]
-	internal sealed class _ProjectPathAttribute : PropertyDrawer
+	internal sealed class _ProjectPathAttribute : __ControlDrawer<ProjectPathAttribute>
 	{
+		protected override EFieldType GetValidTypes() => EFieldType.String;
 
-		public override void OnGUI(Rect pos, SerializedProperty prop, GUIContent l)
+		protected override void OnField(in DrawContext ctx)
 		{
-			// label
-			DrawerGUI.PrefixLabel(ref pos, l, fieldInfo);
-
-			// type != string
-			if (!prop.IsString())
-			{
-				DrawerGUI.MutedInfo(pos, PluginConstants.Msg.FIELD_NON_STRING);
-				return;
-			}
-
-			var attr = (ProjectPathAttribute)attribute;
-
-			DrawPopup(pos, prop, attr);
+			DrawPopup(ctx.position, ctx.property, _Attribute);
 		}
-		
+
 		public const string _EMPTY_LABEL = PluginConstants.Label.POPUP_UNSET;
+		
+		protected override DisplayIcon GetFieldDisplayIcon()
+		{
+			var ico = _Attribute.mode == EProjectPath.File
+			? EAtlasIcon.File
+			: EAtlasIcon.Folder;
+
+			return new DisplayIcon
+			{
+				texture = PluginAtlas.GetAtlas(),
+				coords = PluginAtlas.GetIconCoords(ico),
+				color = DrawerGUI.ICON_SKIN_TINT
+			};
+		}
 
 		private static void DrawPopup(Rect pos, SerializedProperty prop, ProjectPathAttribute a)
 		{
@@ -97,7 +99,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				l = l.Substring(l.LastIndexOf('/') + 1);
 			}
 
-			DrawerGUI.DrawControlPrefixIcon(ref pos, a.mode == EProjectPath.File ? EAtlasIcon.File : EAtlasIcon.Folder);
+			// DrawerGUI.DrawControlPrefixIcon(ref pos, a.mode == EProjectPath.File ? EAtlasIcon.File : EAtlasIcon.Folder);
 			
 			if (EditorGUI.DropdownButton(pos, new GUIContent(l, prop.stringValue), FocusType.Keyboard))
 			{
@@ -110,8 +112,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					GetFolderMenu(a.path, a, prop).DropDown(pos);
 				}
 			}
-			
-			
 		}
 
 		private static GenericMenu GetFileMenu(string prefix, ProjectPathAttribute a, SerializedProperty prop)

@@ -45,6 +45,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			ParameterPopup(ctx.position, ctx.property, _Attribute.field);
 		}
 
+		protected override DisplayIcon GetFieldDisplayIcon()
+		{
+			return new DisplayIcon
+			{
+				texture = EditorGUIUtility.IconContent("Animator Icon")?.image,
+			};
+		}
+
 		public void ParameterPopup(in Rect position, SerializedProperty prop, in string animatorFieldPath)
 		{
 			var pos = position;
@@ -98,10 +106,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				btnLabel = new GUIContent(prop.stringValue);
 			}
 
-			var prefixRect = pos.SliceLeft(pos.height).Resized(-pos.height * 0.1f);
-			pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
-			DrawerGUI.DrawTex(prefixRect, GetAnimatorIcon());
-
 			if(EditorGUI.DropdownButton(pos, btnLabel, FocusType.Keyboard))
 			{
 				var m = GetParameterMenu
@@ -131,14 +135,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static Texture _animatorIcon;
 
-		private static Texture GetAnimatorIcon()
-		{
-			if (!_animatorIcon)
-			{
-				_animatorIcon = EditorGUIUtility.IconContent("Animator Icon")?.image;
-			}
-			return _animatorIcon;
-		}
+		// private static Texture GetAnimatorIcon()
+		// {
+		// 	if (!_animatorIcon)
+		// 	{
+		// 		_animatorIcon = EditorGUIUtility.IconContent("Animator Icon")?.image;
+		// 	}
+		// 	return _animatorIcon;
+		// }
 
 		private static GenericMenu GetParameterMenu(SerializedProperty animatorProp, EAnimatorParameter types, SerializedProperty prop, System.Action<string, int> setFn)
 		{

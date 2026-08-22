@@ -34,21 +34,18 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		protected override void OnField(in DrawContext ctx)
 		{
-			var pos = ctx.position;
-			DrawerGUI.DrawControlPrefixIcon(ref pos, GetSceneTexture());
-			BuildScenePopup(pos, ctx.property);
+			BuildScenePopup(ctx.position, ctx.property);
+		}
+		
+		protected override DisplayIcon GetFieldDisplayIcon()
+		{
+			return new DisplayIcon
+			{
+				texture = EditorGUIUtility.IconContent("SceneAsset Icon")?.image,
+			};
 		}
 
 		private static Texture _sceneTex;
-
-		private static Texture GetSceneTexture()
-		{
-			if (!_sceneTex)
-			{
-				_sceneTex = EditorGUIUtility.IconContent("SceneAsset Icon")?.image;
-			}
-			return _sceneTex;
-		}
 
 		private static bool AssetPathExists(string subPath)
 		{

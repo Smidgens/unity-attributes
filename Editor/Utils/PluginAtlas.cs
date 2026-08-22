@@ -12,8 +12,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	// indices to editor icons in texture atlas
 	internal enum EAtlasIcon
 	{
+		// None = -1,
 		// row 0
-		Close,
+		Close = 0,
 		ArrowLeft,
 		ArrowRight,
 		Folder,
@@ -56,6 +57,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			DrawerGUI.DrawTex(pos, _TEX_ATLAS.Value, GetIconCoords(icon), c);
 		}
 
+		public static Texture GetAtlas() => _TEX_ATLAS.Value;
+
 		private const string _ATLAS_GUID = "e769e4d9f339626498a12b64168231ee";
 	
 		private static readonly System.Lazy<Texture2D> _TEX_ATLAS = new (() =>
@@ -66,7 +69,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static readonly Vector2 _TILE_SIZE = Vector2.one * _TILE_W;
 
-		private static Rect GetIconCoords(EAtlasIcon icon)
+		public static Rect GetIconCoords(EAtlasIcon icon)
 		{
 			// special case for switch textures as they take up two columns
 			if (icon == EAtlasIcon.SwitchOff)
