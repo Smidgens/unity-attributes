@@ -77,6 +77,7 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 * [`FieldOptions`](#fieldoptions)
 * [`InlineWidth`](#inlinewidth)
 * [`InlineHidden`](#inlinehidden)
+* [`DisplayIcon`](#displayicon)
 
 ## ⚡ Decorators
 
@@ -847,7 +848,7 @@ Modifiers work in conjunction with property drawers in that they modify their dr
 <br/>
 
 ### `[FieldButton]`
-
+> Targets: `field`\
 > 🎚️ `width`|`label`|`flags`
 
 Draws a button above field. Can reference method on field object, its owner, or any static method.
@@ -895,6 +896,7 @@ class StaticClass
 
 ### `[FieldOptions]`
 
+> Targets: `field`\
 > 🎚️ `label`|`useFlags`|`indent`
 
 Allows overrides to be specified for given field.
@@ -926,6 +928,7 @@ public float editableInPlayMode;
 
 ### `[InlineWidth]`
 
+> Targets: `field`\
 > 🎚️ `field`|`width`
 
 Supplies desired field width to `[Inline]` attribute. Can be placed on inlined field with name of child field, or on child field itself.
@@ -949,6 +952,8 @@ struct InlineType
 
 ### `[InlineHidden]`
 
+> Targets: `field`
+
 Marks specific field to be excluded from being inlined, effectively hiding it when `[Inline]` is used.
 
 ```cs
@@ -964,6 +969,16 @@ struct InlineType
 	public bool hideMe;
 }
 ```
+
+<br/>
+
+### `[DisplayIcon]`
+
+> Targets: `class`|`struct`\
+> 🎚️ `iconGUID`|`x`|`y`|`w`|`h`
+
+Declares display icon to be shown for type in drawers. Used for example by [`InstancedReference`](#instancedreference).
+
 
 <br/>
 
