@@ -15,6 +15,8 @@ namespace Smidgenomics.Unity.Attributes
 namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using System;
+	using System.Collections.Generic;
+	using System.IO;
 	using UnityEngine;
 	using UnityEditor;
 	using UnityEngine.AI;
@@ -113,7 +115,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		{
 #if SM_ATTR_AI
 
-			var names = NavMesh.GetAreaNames();
+			var names = GetAreaNames();
 			(GUIContent, int)[] options = new (GUIContent, int)[names.Length];
 			for (int i = 0; i < names.Length; i++)
 			{
@@ -124,6 +126,39 @@ namespace Smidgenomics.Unity.Attributes.Editor
 #else
 			return Array.Empty<(GUIContent, int)>();
 #endif
+		}
+
+		private static string[] GetAreaNames()
+		{
+#if UNITY_2023_3_OR_NEWER
+			return NavMesh.GetAreaNames();
+#else
+			return GetAreaNamesLegacy();
+#endif
+		}
+
+		// hillbilly fallback for pre-2023.3 (NavMesh.GetAreaNames)
+		private static string[] GetAreaNamesLegacy()
+		{
+			List<string> names = new();
+
+			var rootPath = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf('/'));
+			var settingsPath = $"{rootPath}/ProjectSettings/NavMeshAreas.asset";
+
+			var lineIndex = 7;
+			var lines = File.ReadAllLines(settingsPath);
+
+			for (int i = 0; i < 32; i++)
+			{
+				var line = lines[lineIndex];
+				var areaName = line.Substring(line.LastIndexOf(':') + 1).Trim();
+				if (!string.IsNullOrEmpty(areaName))
+				{
+					names.Add(areaName);
+				}
+				lineIndex += 2;
+			}
+			return names.ToArray();
 		}
 
 		private static int FindIndex<T>(T[] arr, Func<T, bool> fn)
