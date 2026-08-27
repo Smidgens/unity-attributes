@@ -9,10 +9,6 @@
 
 <br/>
 
-> 🧑‍💻💬 *These attributes are an aggregate of helper attributes I've made over the years for various projects. If I find myself wanting an attribute for multiple projects, it eventually ends up in here.*
-
-
-<br/>
 
 # 📦 Install
 
@@ -21,8 +17,19 @@
 ## 📦 Package Manager
 
 1. Open Package Manager
-2. Install package from Git URL:\
+2. Install package from Git:\
 `https://github.com/Smidgens/unity-attributes.git#<tag_or_sha>`
+3. Add `Smidgenomics.Unity.Attributes` as an assembly dependency.
+
+
+<br/>
+
+# 🫶 Support
+
+💬 These attributes are an aggregate of helper attributes I've made over the years for various projects. If I find myself wanting an attribute for multiple projects, it eventually ends up in here. </br> If you find this project useful you can support me by donating, which allows me to allot more of my free time to maintenance (and is very appreciated).
+
+
+* [Buy Me a Coffee](https://buymeacoffee.com/smidgens)
 
 
 <br/>
