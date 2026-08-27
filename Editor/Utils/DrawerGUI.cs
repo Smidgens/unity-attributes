@@ -94,17 +94,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				color *= 0.8f;
 			}
-			
 			PluginAtlas.DrawIcon(icoRect, icon, color);
-		}
-		
-		public static void DrawControlPrefixIcon(ref Rect pos, Texture tex, float pad = 0.1f)
-		{
-			var icoRect = pos
-			.SliceLeft(EditorGUIUtility.singleLineHeight)
-			.Resized(-pos.height * pad);
-			pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
-			DrawTex(icoRect, tex);
 		}
 
 		public static bool PopupButton(in Rect pos, in string label)

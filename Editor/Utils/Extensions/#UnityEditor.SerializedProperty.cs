@@ -9,30 +9,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System.Reflection;
 	using UnityEditor;
 	using UnityEngine;
-	using Object = UnityEngine.Object;
-	using SP = UnityEditor.SerializedProperty;
+	using UObject = UnityEngine.Object;
 
 	/// <summary>
 	/// Extensions for UnityEditor.SerializedProperty
 	/// </summary>
 	internal static class SerializedProperty_
 	{
-		public static bool IsString(this SP p) => p.propertyType == SerializedPropertyType.String;
-		public static bool IsFloat(this SP p) => p.propertyType == SerializedPropertyType.Float;
-		public static bool IsInt(this SP p) => p.propertyType == SerializedPropertyType.Integer;
-		public static bool IsEnum(this SP p) => p.propertyType == SerializedPropertyType.Enum;
-		public static bool IsObjectRef(this SP p) => p.propertyType == SerializedPropertyType.ObjectReference;
+		public static bool IsString(this SerializedProperty p) => p.propertyType == SerializedPropertyType.String;
+		public static bool IsFloat(this SerializedProperty p) => p.propertyType == SerializedPropertyType.Float;
+		public static bool IsInt(this SerializedProperty p) => p.propertyType == SerializedPropertyType.Integer;
+		public static bool IsEnum(this SerializedProperty p) => p.propertyType == SerializedPropertyType.Enum;
+		public static bool IsObjectRef(this SerializedProperty p) => p.propertyType == SerializedPropertyType.ObjectReference;
+		public static bool IsNumeric(this SerializedProperty p) => p.IsInt() || p.IsFloat();
+		public static bool IsBool(this SerializedProperty p) => p.propertyType == SerializedPropertyType.Boolean;
+		public static bool IsColor(this SerializedProperty p) => p.propertyType == SerializedPropertyType.Color;
 
-		public static bool IsNumeric(this SP p)
+		public static HashSet<UObject> GetUniqueReferences(this SerializedProperty p)
 		{
-			return p.IsInt() || p.IsFloat();
-		}
-		public static bool IsBool(this SP p) => p.propertyType == SerializedPropertyType.Boolean;
-		public static bool IsColor(this SP p) => p.propertyType == SerializedPropertyType.Color;
-
-		public static HashSet<Object> GetUniqueReferences(this SP p)
-		{
-			HashSet<Object> hs = new();
+			HashSet<UObject> hs = new();
 			for (int i = 0; i < p.arraySize; i++)
 			{
 				var ob = p.GetArrayElementAtIndex(i).objectReferenceValue;
@@ -45,11 +40,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return hs;
 		}
 
-		// public static bool IsRefType<T>(this SP p)
-		// {
-		// 	return p.IsRefType(typeof(T).Name);
-		// }
-		
 		private static PropertyInfo _refStringProp;
 		
 		public static int CountMissingArrayItemRefs(this SerializedProperty sp)
@@ -71,6 +61,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		public static bool HasMissingReference(this SerializedProperty sp)
 		{
+			if (!sp.IsObjectRef())
+			{
+				return false;
+			}
+
 			if (_refStringProp == null)
 			{
 				_refStringProp = typeof(SerializedProperty)
@@ -123,14 +118,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		}
 
 		// get listener count for UnityEvent property
-		public static int GetEventListenerCount(this SP p)
+		public static int GetEventListenerCount(this SerializedProperty p)
 		{
 			var l = p.FindPropertyRelative("m_PersistentCalls.m_Calls");
 			return l?.arraySize ?? 0;
 		}
 
-		// checks if property is a reference to a given unity object type
-		public static bool IsRefType<T>(this SP p) where T : Object
+		// checks if object ref property is for a particular type
+		public static bool IsRefType<T>(this SerializedProperty p) where T : UObject
 		{
 			if (p is not { propertyType: SerializedPropertyType.ObjectReference })
 			{
@@ -144,7 +139,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return p.propertyPath.EndsWith(']');
 		}
 
-		public static EFieldType GetTypeFlags(this SP prop)
+		public static EFieldType GetTypeFlags(this SerializedProperty prop)
 		{
 			var pt = prop.propertyType;
 			switch (pt)

@@ -16,11 +16,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			c.a = a;
 			return c;
 		}
-		
-		public static string ToPrettyString(this in Color c)
-		{
-			return $"({c.r},{c.g},{c.b},{c.a})";
-		}
 
 		public static string ToHexString(this in Color c)
 		{
