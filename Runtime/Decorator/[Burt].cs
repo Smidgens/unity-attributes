@@ -16,7 +16,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 {
 	using UnityEngine;
 	using UnityEditor;
-	using UnityEngine.Windows;
 
 	[CustomPropertyDrawer(typeof(BurtAttribute))]
 	internal sealed class _BurtAttribute : __DecoratorDrawer<BurtAttribute>
@@ -39,15 +38,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 		private static Texture2D GetBurt()
 		{
-			var pFolderPath = AssetDatabase.GUIDToAssetPath("0159e8201da476b4fa62de80358d5c81");
-			pFolderPath = pFolderPath[..^13];
-			var rootPath = Application.dataPath;
-			if (Application.isEditor)
-			{
-				rootPath = rootPath[..^7];
-			}
+			var path = AssetDatabase.GUIDToAssetPath("d485ff05e343d9e4397508903c34a430");
+			var a = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
 			var tex = new Texture2D(2,2);
-			tex.LoadImage(File.ReadAllBytes($"{rootPath}/{pFolderPath}/.github/misc/burt.jpg"));
+			tex.LoadImage(a.bytes);
 			tex.filterMode = FilterMode.Point;
 			tex.Apply();
 			return tex;
