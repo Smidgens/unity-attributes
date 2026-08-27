@@ -1,19 +1,24 @@
 {
-  "name": "com.smidgenomics.unity-attributes",
-  "version": "0.1.0",
-  "displayName": "Attributes",
-  "description": "Helper attributes for Unity",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Smidgens/unity-attributes.git"
-  },
-  "author": {
-    "name": "Unnar Krist",
-    "url": "https://github.com/Smidgens"
-  },
-  "hideInEditor": false,
-  "type": "tool",
-  "keywords":[
-  ]
+	"name": "com.smidgenomics.unity-attributes",
+	"version": "0.1.0",
+	"displayName": "SM Attributes",
+	"description": "Property drawers",
+	"license": "MIT NON-AI",
+	"unity":"2022.3",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Smidgens/unity-attributes.git"
+	},
+	"author": {
+		"name": "Smidgenomics",
+		"url": "https://github.com/Smidgens"
+	},
+	"hideInEditor": false,
+	"keywords":[
+		"properties",
+		"drawers",
+		"attributes",
+		"smidgenomics",
+		"property-drawers"
+	]
 }
