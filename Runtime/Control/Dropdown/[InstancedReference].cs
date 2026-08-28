@@ -327,7 +327,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(dIcon.iconGUID));
 				}
-				drop.AddItem(_Attribute.labelFn.Invoke(type), type, icon);
+
+				var cat = type.Assembly.GetName().Name;
+				var menuPath = $"{cat}/{_Attribute.labelFn.Invoke(type)}";
+				// drop.AddItem(_Attribute.labelFn.Invoke(type), type, icon);
+				drop.AddItem(menuPath, type, icon);
 			}
 			
 			return drop;

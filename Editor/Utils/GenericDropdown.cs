@@ -11,93 +11,169 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using UnityEditor.IMGUI.Controls;
 
 	/// <summary>
-	/// Basic dropdown
+	/// General-use dropdown window
 	/// </summary>
 	[Serializable]
 	internal sealed class GenericDropdown<T> : AdvancedDropdown
 	{
 		public GenericDropdown(string title, T currentValue = default, AdvancedDropdownState state = null) : base(state ?? new AdvancedDropdownState())
 		{
-			_title = title;
+			_rootNode = new Node
+			{
+				name = title
+			};
+			this.currentValue = currentValue;
 		}
 
 		public T currentValue;
 		public Action<T> onSelected;
 
+		public float MinHeight
+		{
+			get => _minHeight;
+			set => _minHeight = Mathf.Max(value, 100f);
+		}
+
+		private float _minHeight = 200f;
+
 		public void AddItem(string label, T value, Texture2D icon = null, bool enabled = true)
 		{
-			_options.Add(new Option
-			{
-				label = label,
-				icon = icon,
-				value = value,
-				enabled = enabled
-			});
+			var newNode = _rootNode.AddChild(label);
+			newNode.valueIndex = _values.Count;
+			newNode.icon = icon;
+			_values.Add(value);
 		}
 		
 		public void AddSeparator(string path)
 		{
-			_options.Add(new Option
-			{
-				label = null,
-			});
-		}
-
-		public void AddDisabledItem(string label, Texture2D icon = null)
-		{
-			_options.Add(new Option
-			{
-				label = label,
-				icon = icon,
-			});
+			// TODO: use path
+			_rootNode.AddChild(null);
 		}
 
 		public void Show(Rect pos, float maxHeight)
 		{
-			var titleWidth = EditorStyles.boldLabel.CalcSize(new GUIContent(_title)).x;
+			minimumSize = new Vector2(pos.x, MinHeight);
+			var titleWidth = EditorStyles.boldLabel.CalcSize(new GUIContent(_rootNode.name)).x;
 			Show(pos);
 			var maxWidth = Mathf.Max(pos.width * 2f, Mathf.Max(200f, titleWidth));
 			SetLastDropdownHeight(pos, maxHeight, maxWidth);
 		}
+		
+		protected override void ItemSelected(AdvancedDropdownItem item)
+		{
+			if (item is TypedDropdownItem { valueIndex: > -1 } it)
+			{
+				var value = _values[it.valueIndex];
+				if (!AreEqual(value, currentValue))
+				{
+					onSelected?.Invoke(value);
+				}
+			}
+		}
 
 		protected override AdvancedDropdownItem BuildRoot()
 		{
-			var root = new AdvancedDropdownItem(_title);
-			foreach (var opt in _options)
-			{
-				if (string.IsNullOrEmpty(opt.label))
-				{
-					root.AddSeparator();
-					continue;
-				}
-				var item = new TypedDropdownItem(opt.label, opt.value)
-				{
-					enabled = opt.enabled && !AreEqual(currentValue, opt.value),
-					icon = opt.icon,
-				};
-				root.AddChild(item);
-			}
-			return root;
+			var currIndex = _values.FindIndex(v => AreEqual(v, currentValue));
+			return _rootNode.GetDropdownItem(currIndex);
 		}
 
-		private readonly List<Option> _options = new();
-		private readonly string _title;
+		private List<T> _values = new();
+		private Node _rootNode;
 
-		private struct Option
+		private sealed class Node
 		{
-			public string label;
-			public T value;
+			public string name;
 			public Texture2D icon;
-			public bool enabled;
+			public int valueIndex = -1;
+			public Node parent { get; private set; }
+			private readonly List<Node> _children = new();
+
+			public AdvancedDropdownItem GetDropdownItem(int currIndex = -1)
+			{
+				var item = new TypedDropdownItem(name, valueIndex)
+				{
+					enabled = valueIndex != currIndex,
+					icon = icon
+				};
+				foreach (var c in _children)
+				{
+					if (c == null)
+					{
+						item.AddSeparator();
+						continue;
+					}
+					item.AddChild(c.GetDropdownItem(currIndex));
+				}
+				return item;
+			}
+
+			public Node AddChild(string path)
+			{
+				if (path == null)
+				{
+					_children.Add(null);
+					return null;
+				}
+
+				var sIndex = 0;
+				var currentNode = this;
+				while (sIndex < path.Length)
+				{
+					var nextLength = CountSegmentLength(path, sIndex);
+					if (nextLength == 0)
+					{
+						nextLength = path.Length - sIndex;
+					}
+					var currName = path.AsSpan(sIndex, nextLength);
+					currentNode = currentNode.FindOrCreateChild(currName);
+					sIndex += nextLength + 1;
+				}
+				return currentNode;
+			}
+
+			private static int CountSegmentLength(string path, int startIndex, char stopToken = '/')
+			{
+				for (int i = startIndex; i < path.Length; i++)
+				{
+					if (path[i] == stopToken)
+					{
+						return i - startIndex;
+					}
+				}
+				return 0;
+			}
+
+			private Node FindOrCreateChild(in ReadOnlySpan<char> cName)
+			{
+				var inStr = cName.ToString();
+				foreach (var c in _children)
+				{
+					if (c == null)
+					{
+						continue;
+					}
+					if (c.name == inStr)
+					{
+						return c;
+					}
+				}
+				_children.Add(new Node
+				{
+					name = inStr,
+					parent = this,
+				});
+				return _children[^1];
+			}
+			
 		}
 
 		private sealed class TypedDropdownItem : AdvancedDropdownItem
 		{
-			public TypedDropdownItem(string name, T value) : base(name)
+			public TypedDropdownItem(string name, int vIndex) : base(name)
 			{
-				this.value = value;
+				valueIndex = vIndex;
 			}
-			public T value { get; }
+			public int valueIndex { get; }
 		}
 
 		// hardly the most robust comparison, should switch to comparable later
@@ -108,14 +184,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return h1 == h2;
 		}
 
-		protected override void ItemSelected(AdvancedDropdownItem item)
-		{
-			if (item is TypedDropdownItem it)
-			{
-				onSelected?.Invoke(it.value);
-			}
-		}
-
+		
 		// hack to force height
 		private static void SetLastDropdownHeight(Rect rect, float maxHeight, float maxWidth = 0f)
 		{
