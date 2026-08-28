@@ -552,10 +552,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 						newItem.serializedObject.Update();
 					};
 				});
-				
-				
 				m.Show(pos, 300f);
-				// m.ShowAsContext();
 			}
 			else
 			{
@@ -568,9 +565,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var types = TypeCache.GetTypesDerivedFrom(baseType);
 
 			Assembly currentAssembly = null;
+
+			var refAttr = fieldInfo.GetCustomAttribute<InstancedReferenceAttribute>()!;
 			
-			var strict =
-			fieldInfo.GetCustomAttribute<InstancedReferenceAttribute>()!.flags.HasFlag(EInstancedReference.Strict);
+			var strict = refAttr.flags.HasFlag(EInstancedReference.Strict);
 
 			var dropdown = new GenericDropdown<Type>(ObjectNames.NicifyVariableName(baseType.Name));
 
@@ -630,8 +628,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					}
 					currentAssembly = type.Assembly;
 				}
-				var dAttribute = type.GetCustomAttribute<DisplayNameAttribute>();
-				var label = dAttribute != null ? dAttribute.DisplayName : type.Name;
 
 				Texture2D icon = null;
 				var dIcon = type.GetCustomAttribute<DisplayIconAttribute>();
@@ -639,91 +635,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(dIcon.iconGUID));
 				}
-				dropdown.AddItem(label, type, icon);
+				var path = refAttr.flags.HasFlag(EInstancedReference.GroupByAssembly)
+				? $"{type.Assembly.GetName().Name}/{refAttr.labelFn.Invoke(type)}"
+				: refAttr.labelFn.Invoke(type);
+				
+				dropdown.AddItem(path, type, icon);
 			}
 
 			return dropdown;
-		}
-
-		private GenericMenu CreateTypeMenu(SerializedProperty arrProp, Type baseType, GenericMenu.MenuFunction2 fn, bool showNull = false)
-		{
-			var menu = new GenericMenu();
-
-			var types = TypeCache.GetTypesDerivedFrom(baseType);
-
-			Assembly currentAssembly = null;
-
-			if (showNull)
-			{
-				menu.AddItem(new GUIContent(PluginConstants.Label.POPUP_UNSET), false, fn, null);
-				menu.AddSeparator(string.Empty);
-			}
-
-			var strict =
-			fieldInfo.GetCustomAttribute<InstancedReferenceAttribute>()!.flags.HasFlag(EInstancedReference.Strict);
-
-			var unique = _Attribute.flags.HasFlag(EReorderable.InstanceUnique);
-
-			var addedTypes = unique
-			? new HashSet<Type> ()
-			: null;
-
-			if (unique)
-			{
-				for (int i = 0; i < arrProp.arraySize; i++)
-				{
-					var item = arrProp.GetArrayElementAtIndex(i);
-
-					if (item.managedReferenceValue != null)
-					{
-						addedTypes.Add(item.managedReferenceValue.GetType());
-					}
-				}
-			}
-
-			foreach (var type in types)
-			{
-				if (type.GetConstructor(Type.EmptyTypes) == null) // new()
-				{
-					continue;
-				}
-
-				if (!type.IsClass || type.IsAbstract)
-				{
-					continue;
-				}
-				
-				if (addedTypes != null && addedTypes.Contains(type))
-				{
-					continue;
-				}
-
-				if (strict && !type.IsDefined(typeof(SerializableAttribute), false))
-				{
-					continue;
-				}
-				
-				if (currentAssembly != type.Assembly)
-				{
-					if (currentAssembly != null)
-					{
-						menu.AddSeparator(string.Empty);
-					}
-					currentAssembly = type.Assembly;
-					menu.AddDisabledItem(new GUIContent(currentAssembly.GetName().Name));
-				}
-				var dAttribute = type.GetCustomAttribute<DisplayNameAttribute>();
-				var label = dAttribute != null ? dAttribute.DisplayName : type.Name;
-				var dname = new GUIContent(label);
-				menu.AddItem(dname, false, fn,  type);
-			}
-			
-			if (menu.GetItemCount() == 0)
-			{
-				menu.AddDisabledItem(new GUIContent("No Options"));
-			}
-			
-			return menu;
 		}
 
 		private void DrawListHeader(Rect rect)

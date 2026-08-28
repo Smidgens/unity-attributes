@@ -41,6 +41,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var newNode = _rootNode.AddChild(label);
 			newNode.valueIndex = _values.Count;
 			newNode.icon = icon;
+			newNode.enabled = enabled;
 			_values.Add(value);
 		}
 		
@@ -85,6 +86,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			public string name;
 			public Texture2D icon;
 			public int valueIndex = -1;
+			public bool enabled = true;
 			public Node parent { get; private set; }
 			private readonly List<Node> _children = new();
 
@@ -92,7 +94,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				var item = new TypedDropdownItem(name, valueIndex)
 				{
-					enabled = valueIndex != currIndex,
+					enabled = enabled && (valueIndex != currIndex || valueIndex < 0),
 					icon = icon
 				};
 				foreach (var c in _children)

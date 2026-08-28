@@ -20,9 +20,13 @@ namespace Smidgenomics.Unity.Attributes
 		/// </summary>
 		ArrayReplace = 2,
 		/// <summary>
+		/// Should type options be grouped by assembly
+		/// </summary>
+		GroupByAssembly = 4,
+		/// <summary>
 		/// Sensible defaults
 		/// </summary>
-		Default = ArrayReplace|Strict,
+		Default = ArrayReplace|Strict|GroupByAssembly,
 		/// <summary>
 		/// All
 		/// </summary>
@@ -108,7 +112,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var l = ctx.label;
 
 			var isArray = fieldInfo.FieldType.IsArray || prop.propertyPath.EndsWith($"].{prop.name}");
-
+	
 			if (prop.propertyType != SerializedPropertyType.ManagedReference)
 			{
 				if (!isArray)
@@ -313,13 +317,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					continue;
 				}
-				//
-				// if (currentAssembly != type.Assembly)
-				// {
-				// 	currentAssembly = type.Assembly;
-				// 	drop.AddDisabledItem(currentAssembly.GetName().Name);
-				// 	// drop.AddSeparator(string.Empty);
-				// }
 
 				Texture2D icon = null;
 				var dIcon = type.GetCustomAttribute<DisplayIconAttribute>();
@@ -327,11 +324,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(dIcon.iconGUID));
 				}
-
-				var cat = type.Assembly.GetName().Name;
-				var menuPath = $"{cat}/{_Attribute.labelFn.Invoke(type)}";
-				// drop.AddItem(_Attribute.labelFn.Invoke(type), type, icon);
-				drop.AddItem(menuPath, type, icon);
+				var path = _Attribute.flags.HasFlag(EInstancedReference.GroupByAssembly)
+				? $"{type.Assembly.GetName().Name}/{_Attribute.labelFn.Invoke(type)}"
+				: _Attribute.labelFn.Invoke(type);
+				drop.AddItem(path, type, icon);
 			}
 			
 			return drop;
