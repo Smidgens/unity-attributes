@@ -45,7 +45,7 @@ namespace Smidgenomics.Unity.Attributes
 			EInstancedReference flags = EInstancedReference.Default
 		) : base(true)
 		{
-			this.labelFn = GetByDisplayName;
+			this.labelFn = GetDefaultDisplayName;
 			var m = ReflectionUtils.ParseStaticMethodString(labelFn, typeof(string), _labelFnArgs);
 			if (m != null)
 			{
@@ -62,18 +62,21 @@ namespace Smidgenomics.Unity.Attributes
 		
 		internal EInstancedReference flags { get; }
 		
-		private static string GetByDisplayName(Type type)
+		private static string GetDefaultDisplayName(Type type)
 		{
 			if (type == null)
 			{
-				return "";
+				return "(none)";
 			}
-
+			
+			#if UNITY_EDITOR
 			var attr = type.GetCustomAttribute<DisplayNameAttribute>();
-
 			return attr != null
 			? attr.DisplayName
-			: type.Name;
+			: UnityEditor.ObjectNames.NicifyVariableName(type.Name);
+			#else
+			return "";
+			#endif
 		}
 	}
 }
@@ -87,6 +90,8 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System;
 	using System.Reflection;
 	using System.Collections.Generic;
+	using System.ComponentModel;
+	using UnityEditor.IMGUI.Controls;
 
 	[CustomPropertyDrawer(typeof(InstancedReferenceAttribute))]
 	internal sealed class _InstancedReferenceAttribute : __ControlDrawer<InstancedReferenceAttribute>
@@ -206,10 +211,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					var path = AssetDatabase.GUIDToAssetPath(dIcon.iconGUID);
 					var tex = AssetDatabase.LoadAssetAtPath<Texture>(path);
-					var color = dIcon.editorTint
-					? DrawerGUI.ICON_SKIN_TINT
-					: Color.white;
-					_displayIcon = (tex, dIcon.iconCoords, color);
+					_displayIcon = (tex, new Rect(0f,0f,1f,1f), Color.white);
 				}
 			}
 
@@ -223,7 +225,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			return totalHeight;
 		}
 
-		private readonly GUIStyle _iconPopup = new GUIStyle(EditorStyles.popup)
+		private readonly GUIStyle _iconPopup = new (EditorStyles.popup)
 		{
 			padding
 			= new RectOffset(18, EditorStyles.popup.padding.right, EditorStyles.popup.padding.top, EditorStyles.popup.padding.bottom)
@@ -258,59 +260,47 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			{
 				defaultLabel = null;
 			}
-			var m = CreateTypeMenu(GetFieldType(), o =>
+
+			var dd = CreateTypeDropdown(_FieldType, newType =>
 			{
-				var newType = (Type)o;
 				if (newType == currentType)
 				{
 					return;
 				}
-
-				if (o == null)
+				if (newType == null)
 				{
 					prop.managedReferenceValue = null;
 					prop.serializedObject.ApplyModifiedProperties();
 					return;
 				}
-
 				prop.managedReferenceValue = Activator.CreateInstance(newType);
 				prop.serializedObject.ApplyModifiedProperties();
-
-				EditorApplication.delayCall += () =>
-				{
-					// if (prop.serializedObject != null)
-					// {
-					// 	prop.serializedObject.UpdateIfRequiredOrScript();
-					// }
-				};
-
 			}, defaultLabel);
-			m.DropDown(pos);
+			dd.currentValue = currentType;
+			dd.Show(pos, 400f);
 		}
 
-		private Type GetFieldType()
+		private GenericDropdown<Type> CreateTypeDropdown(Type baseType, Action<Type> fn, string defaultLabel = PluginConstants.Label.POPUP_UNSET)
 		{
-			return !fieldInfo.FieldType.IsArray
-			? fieldInfo.FieldType
-			: fieldInfo.FieldType.GetElementType();
-		}
-
-		private GenericMenu CreateTypeMenu(Type baseType, GenericMenu.MenuFunction2 fn, string defaultLabel = PluginConstants.Label.POPUP_UNSET)
-		{
-			var menu = new GenericMenu();
-
 			var types = GetDerivedTypes(baseType);
+			var strict = _Attribute.flags.HasFlag(EInstancedReference.Strict);
 
-			Assembly currentAssembly = null;
-
-			if (defaultLabel != null)
-			{
-				menu.AddItem(new GUIContent(defaultLabel), false, fn, null);
-				menu.AddSeparator("");
-			}
+			var title = ObjectNames.NicifyVariableName(_FieldType.Name);
+			var baseDisplayName = _FieldType.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
+			title = baseDisplayName ?? title;
 			
-			var strict =
-			_Attribute.flags.HasFlag(EInstancedReference.Strict);
+			var drop = new GenericDropdown<Type>(title)
+			{
+				onSelected = fn
+			};
+
+			if (!string.IsNullOrEmpty(defaultLabel))
+			{
+				drop.AddItem(defaultLabel, null);
+				drop.AddSeparator(string.Empty);
+			}
+
+			// Assembly currentAssembly = null;
 
 			foreach (var type in types)
 			{
@@ -323,21 +313,24 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					continue;
 				}
+				//
+				// if (currentAssembly != type.Assembly)
+				// {
+				// 	currentAssembly = type.Assembly;
+				// 	drop.AddDisabledItem(currentAssembly.GetName().Name);
+				// 	// drop.AddSeparator(string.Empty);
+				// }
 
-				if (currentAssembly != type.Assembly)
+				Texture2D icon = null;
+				var dIcon = type.GetCustomAttribute<DisplayIconAttribute>();
+				if (dIcon != null && !string.IsNullOrEmpty(dIcon.iconGUID))
 				{
-					if (currentAssembly != null)
-					{
-						menu.AddSeparator("");
-					}
-					currentAssembly = type.Assembly;
-					menu.AddDisabledItem(new GUIContent(currentAssembly.GetName().Name));
+					icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(dIcon.iconGUID));
 				}
-				// var dname = new GUIContent(GetTypeDisplayName(type));
-				var dname = new GUIContent(_Attribute.labelFn.Invoke(type));
-				menu.AddItem(dname, false, fn,  type);
+				drop.AddItem(_Attribute.labelFn.Invoke(type), type, icon);
 			}
-			return menu;
+			
+			return drop;
 		}
 
 		private static IReadOnlyCollection<Type> GetDerivedTypes(Type baseType)

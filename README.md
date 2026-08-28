@@ -982,7 +982,7 @@ struct InlineType
 ### `[DisplayIcon]`
 
 > Targets: `class`|`struct`\
-> 🎚️ `iconGUID`|`x`|`y`|`w`|`h`
+> 🎚️ `iconGUID`
 
 Declares display icon to be shown for type in drawers. Used for example by [`InstancedReference`](#instancedreference).
 

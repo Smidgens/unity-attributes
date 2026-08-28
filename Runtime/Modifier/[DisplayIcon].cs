@@ -3,7 +3,6 @@
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
-	using UnityEngine;
 
 	/// <summary>
 	/// Display icon for type, similar to System.ComponentModel.DisplayName
@@ -15,21 +14,12 @@ namespace Smidgenomics.Unity.Attributes
 	{
 		public DisplayIconAttribute
 		(
-			string iconGUID,
-			float x = 0,
-			float y = 0,
-			float w = 1f,
-			float h = 1f,
-			bool editorTint = false
+			string iconGUID
 		)
 		{
 			this.iconGUID = iconGUID;
-			this.editorTint = editorTint;
-			iconCoords = new Rect(x, y, w, h);
 		}
 
-		public bool editorTint { get; }
 		public string iconGUID { get; }
-		public Rect iconCoords { get; }
 	}
 }

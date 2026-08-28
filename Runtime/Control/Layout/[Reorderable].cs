@@ -343,15 +343,16 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 		}
 
-		private static bool IconButton(ref Rect pos, GUIContent lb, bool enabled = true)
+		private static bool IconButton(ref Rect pos, GUIContent lb, out Rect btnRect, bool enabled = true)
 		{
+			btnRect = default;
 			if (lb == null)
 			{
 				return false;
 			}
 			var size = EditorStyles.iconButton.CalcSize(lb);
 			var width = size.x;
-			var btnRect = pos.SliceRight(width);
+			btnRect = pos.SliceRight(width);
 			var center = btnRect.center;
 			btnRect.height = size.y;
 			btnRect.center = center;
@@ -380,7 +381,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 			var pad = EditorGUIUtility.standardVerticalSpacing * 1.5f;
 
-			if (IconButton(ref pos, _ICO_MENU.Value, true))
+			if (IconButton(ref pos, _ICO_MENU.Value, out _, true))
 			{
 				var m = new GenericMenu();
 				if (prop.arraySize > 0)
@@ -430,7 +431,6 @@ namespace Smidgenomics.Unity.Attributes.Editor
 
 				if (_IsUnityObjectField)
 				{
-					
 					m.AddItem(PluginConstants.Label.REMOVE_DUPLICATES, false, () =>
 					{
 						EditorApplication.delayCall += () =>
@@ -482,7 +482,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			if (drawCompact && rm && CheckFlag(EReorderable.Remove))
 			{
 				var canRemove = _list.index >= 0 && _list.index < _list.count;
-;				if (IconButton(ref pos, _ICO_REMOVE.Value, canRemove))
+;				if (IconButton(ref pos, _ICO_REMOVE.Value, out _, canRemove))
 				{
 					if (_list.index >= 0 && _list.index < _list.count)
 					{
@@ -495,9 +495,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			if (drawCompact && add && CheckFlag(EReorderable.Add))
 			{
 				var ico = IsInstancedReferenceField() ? _ICO_ADD_DROP.Value : _ICO_ADD.Value;
-				if (IconButton(ref pos, ico))
+				if (IconButton(ref pos, ico, out var addBtnRect))
 				{
-					OnAddButton(prop);
+					OnAddButton(prop, addBtnRect);
 				}
 				pos.SliceRight(pad);
 			}
@@ -531,14 +531,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			&& fieldInfo.IsDefined(typeof(InstancedReferenceAttribute), false);
 		}
 
-		private void OnAddButton(SerializedProperty arrProp)
+		private void OnAddButton(SerializedProperty arrProp, Rect pos)
 		{
 			if (IsInstancedReferenceField())
 			{
-				var m = CreateTypeMenu(arrProp, _itemType, o =>
+				var m = CreateTypeDropdown(arrProp, _itemType, newType =>
 				{
-					var newType = (Type)o;
-
 					EditorApplication.delayCall += () =>
 					{
 						var i = arrProp.arraySize;
@@ -554,12 +552,97 @@ namespace Smidgenomics.Unity.Attributes.Editor
 						newItem.serializedObject.Update();
 					};
 				});
-				m.ShowAsContext();
+				
+				
+				m.Show(pos, 300f);
+				// m.ShowAsContext();
 			}
 			else
 			{
 				arrProp.InsertArrayElementAtIndex(arrProp.arraySize);
 			}
+		}
+		
+		private GenericDropdown<Type> CreateTypeDropdown(SerializedProperty arrProp, Type baseType, Action<Type> fn, bool showNull = false)
+		{
+			var types = TypeCache.GetTypesDerivedFrom(baseType);
+
+			Assembly currentAssembly = null;
+			
+			var strict =
+			fieldInfo.GetCustomAttribute<InstancedReferenceAttribute>()!.flags.HasFlag(EInstancedReference.Strict);
+
+			var dropdown = new GenericDropdown<Type>(ObjectNames.NicifyVariableName(baseType.Name));
+
+			dropdown.onSelected = fn;
+
+			if (showNull)
+			{
+				dropdown.AddItem(PluginConstants.Label.POPUP_UNSET, null);
+			}
+
+			var unique = _Attribute.flags.HasFlag(EReorderable.InstanceUnique);
+
+			var addedTypes = unique
+			? new HashSet<Type> ()
+			: null;
+
+			if (unique)
+			{
+				for (int i = 0; i < arrProp.arraySize; i++)
+				{
+					var item = arrProp.GetArrayElementAtIndex(i);
+
+					if (item.managedReferenceValue != null)
+					{
+						addedTypes.Add(item.managedReferenceValue.GetType());
+					}
+				}
+			}
+
+			foreach (var type in types)
+			{
+				if (type.GetConstructor(Type.EmptyTypes) == null) // new()
+				{
+					continue;
+				}
+
+				if (!type.IsClass || type.IsAbstract)
+				{
+					continue;
+				}
+				
+				if (addedTypes != null && addedTypes.Contains(type))
+				{
+					continue;
+				}
+
+				if (strict && !type.IsDefined(typeof(SerializableAttribute), false))
+				{
+					continue;
+				}
+				
+				if (currentAssembly != type.Assembly)
+				{
+					if (currentAssembly != null)
+					{
+						dropdown.AddSeparator(string.Empty);
+					}
+					currentAssembly = type.Assembly;
+				}
+				var dAttribute = type.GetCustomAttribute<DisplayNameAttribute>();
+				var label = dAttribute != null ? dAttribute.DisplayName : type.Name;
+
+				Texture2D icon = null;
+				var dIcon = type.GetCustomAttribute<DisplayIconAttribute>();
+				if (dIcon != null && !string.IsNullOrEmpty(dIcon.iconGUID))
+				{
+					icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(dIcon.iconGUID));
+				}
+				dropdown.AddItem(label, type, icon);
+			}
+
+			return dropdown;
 		}
 
 		private GenericMenu CreateTypeMenu(SerializedProperty arrProp, Type baseType, GenericMenu.MenuFunction2 fn, bool showNull = false)
@@ -726,7 +809,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				// show dropdown variant if field has [SerializeReference]
 				if (showAdd && IsInstancedReferenceField())
 				{
-					_list.onAddDropdownCallback = (r, l) => OnAddButton(prop);
+					_list.onAddDropdownCallback = (r, l) => OnAddButton(prop, r);
 				}
 
 				// register header drawing if enabled
