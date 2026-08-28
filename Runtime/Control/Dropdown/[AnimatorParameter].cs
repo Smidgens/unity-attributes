@@ -83,17 +83,25 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var animatorRef = animatorProp.objectReferenceValue;
 			
 			bool isInt = prop.propertyType == SerializedPropertyType.Integer;
-			bool isDefault = isInt
-			? prop.intValue < 0
-			: string.IsNullOrEmpty(prop.stringValue);
+
+			var isUnset = true;
+
+			if (isInt && prop.intValue > -1)
+			{
+				isUnset = false;
+			}
+			else if (!isInt && !string.IsNullOrEmpty(prop.stringValue))
+			{
+				isUnset = false;
+			}
 
 			var btnLabel = _POPUP_DEFAULT;
 
-			if (isInt && !isDefault)
+			if (isInt && !isUnset)
 			{
 				btnLabel = new GUIContent(GetAnimatorParameterOption(animatorRef, prop.intValue).name);
 			}
-			else if (!isInt && !isDefault)
+			else if (!isInt && !isUnset)
 			{
 				btnLabel = new GUIContent(prop.stringValue);
 			}
@@ -166,7 +174,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			for(var i = 0; i < pCount; i++)
 			{
 				var opt = GetAnimatorParameterOption(animatorRef, i);
-
+				
 				if (!types.HasFlag(opt.typeFlag))
 				{
 					continue;
@@ -205,10 +213,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			}
 
 			var animator = (animatorRef as Animator)!;
-
+			
 			var par = animator.GetParameter(index);
 			
-
 			if (par == null)
 			{
 				return new AnimOption
@@ -227,9 +234,9 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				_ => EAnimatorParameter.All
 			};
 			
-
 			return new AnimOption
 			{
+				name = par.name,
 				menuLabel = new GUIContent($"{par.type.ToString()}/{par.name}"),
 				nameHash = par.nameHash,
 				index = index,
