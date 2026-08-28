@@ -108,11 +108,19 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				previewRect = pos.SliceLeft(pos.height);
 				pos.SliceLeft(EditorGUIUtility.standardVerticalSpacing);
 			}
-			
+
 			if (DrawerGUI.PopupButton(pos, currentValStr))
 			{
-				GetMenu(ctx.property, attr)
-				.DropDown(ctx.position);
+				if (prop.IsObjectRef() || _options.Count > 10)
+				{
+					var dd = GetDropdown(ctx.property);
+					dd.Show(ctx.position, 400f);
+				}
+				else
+				{
+					GetMenu(ctx.property, attr)
+					.DropDown(ctx.position);
+				}
 			}
 
 			if (hasPreview)
@@ -177,8 +185,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				EditorGUIUtility.PingObject(o);
 			}
 		}
-		
-		
+
 		private const BindingFlags _BF_INSTANCE
 		= BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
@@ -319,6 +326,61 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			var nIndex = path.LastIndexOf('/') + 1;
 			var len = dotIndex - nIndex;
 			return path.Substring(nIndex, len);
+		}
+
+		private GenericDropdown<object> GetDropdown(SerializedProperty p)
+		{
+			var dd = new GenericDropdown<object>(ObjectNames.NicifyVariableName(_FieldType.Name));
+			
+			if (p.propertyType == SerializedPropertyType.ObjectReference)
+			{
+				dd.currentValue = p.objectReferenceValue;
+				
+				var currentAssetPath = p.objectReferenceValue
+				? AssetDatabase.GetAssetPath(p.objectReferenceValue)
+				: null;
+
+				dd.onSelected = o =>
+				{
+					var path = (string)o;
+					if (string.IsNullOrEmpty(path))
+					{
+						p.objectReferenceValue = null;
+					}
+					else
+					{
+						p.objectReferenceValue = AssetDatabase.LoadAssetAtPath(path, _FieldType);
+					}
+					p.serializedObject.ApplyModifiedProperties();
+				};
+
+				var isUnset = !p.objectReferenceValue && !p.HasMissingReference();
+				dd.AddItem(PluginConstants.Label.POPUP_UNSET, null, enabled:isUnset);
+				dd.AddSeparator(string.Empty);
+				foreach (var (label, path) in LoadAssetOptions())
+				{
+					var icon = AssetDatabase.GetCachedIcon(path) as Texture2D;
+					dd.AddItem(label.text, path, icon, enabled: path != currentAssetPath);
+				}
+				return dd;
+			}
+
+			foreach (var (label, val, str) in _options)
+			{
+				var active = val.GetHashCode() == p.boxedValue?.GetHashCode();
+				dd.AddItem(label.text, val, enabled:!active);
+			}
+
+			dd.currentValue = p.boxedValue;
+
+			dd.onSelected = val =>
+			{
+				p.boxedValue = val;
+				p.serializedObject.ApplyModifiedProperties();
+			};
+
+			return dd;
+
 		}
 
 		private GenericMenu GetMenu(SerializedProperty p, DropdownAttribute attr)

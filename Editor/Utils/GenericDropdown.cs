@@ -24,14 +24,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 		public T currentValue;
 		public Action<T> onSelected;
 
-		public void AddItem(string label, T value, Texture2D icon = null)
+		public void AddItem(string label, T value, Texture2D icon = null, bool enabled = true)
 		{
 			_options.Add(new Option
 			{
 				label = label,
 				icon = icon,
 				value = value,
-				enabled = true
+				enabled = enabled
 			});
 		}
 		
