@@ -64,6 +64,7 @@ Attributes break down into four categories: Drawers, Decorators, Modifiers, and 
 * [`NavMeshAreaID`](#navmeshareaid)
 * [`ProjectLayer`](#projectlayer)
 * [`ProjectSortLayer`](#projectsortlayer)
+* [`ProjectRenderLayer`](#projectrenderlayer) (2023.3+)
 * [`ProjectTag`](#projecttag)
 * [`ProjectScene`](#projectscene)
 * [`ProjectPath`](#projectpath)
@@ -567,6 +568,19 @@ Dropdown of project sorting layer indices.
 ```cs
 [ProjectSortLayer]
 public int sortLayer;
+```
+
+<br/>
+
+### `[ProjectRenderLayer]`
+
+> Fields: `int`
+
+Dropdown of project render layers.
+
+```cs
+[ProjectRenderLayer]
+public int renderLayer;
 ```
 
 <br/>
