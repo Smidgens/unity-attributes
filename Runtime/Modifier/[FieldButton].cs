@@ -4,8 +4,11 @@ namespace Smidgenomics.Unity.Attributes
 {
 	using System.Reflection;
 	using System;
-	using Editor;
 	using UnityEngine;
+	
+#if UNITY_EDITOR
+	using Editor;
+#endif
 
 	/// <summary>
 	/// Displays action above specific field
@@ -25,6 +28,7 @@ namespace Smidgenomics.Unity.Attributes
 			float width = 0.5f
 		)
 		{
+#if UNITY_EDITOR
 			this.width = Mathf.Clamp(width, MIN_W, 1f);
 			this.method = method;
 			this.label = label;
@@ -45,6 +49,7 @@ namespace Smidgenomics.Unity.Attributes
 			{
 				staticMethod = ReflectionUtils.ParseStaticMethodString(method, null, argTypes);
 			}
+#endif
 		}
 
 		internal string label { get; }
@@ -57,6 +62,7 @@ namespace Smidgenomics.Unity.Attributes
 
 		internal MethodInfo GetMethod(FieldInfo field)
 		{
+#if UNITY_EDITOR
 			if (staticMethod != null)
 			{
 				return staticMethod;
@@ -73,6 +79,9 @@ namespace Smidgenomics.Unity.Attributes
 				return null;
 			}
 			return m;
+#else
+			return null;
+#endif
 		}
 
 		private string method { get; }

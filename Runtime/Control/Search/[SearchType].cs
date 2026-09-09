@@ -112,8 +112,11 @@ namespace Smidgenomics.Unity.Attributes
 	using System;
 	using System.ComponentModel;
 	using System.Reflection;
-	using Editor;
 	using UnityEngine;
+	
+	#if UNITY_EDITOR
+	using Editor;
+	#endif
 
 	/// <summary>
 	/// System.Type.AssemblyQualifiedName
@@ -130,6 +133,8 @@ namespace Smidgenomics.Unity.Attributes
 			bool hideIcon = false
 		)
 		{
+			
+			#if UNITY_EDITOR
 			this.flags = flags;
 			this.typeFilter = FindFunc<Type,bool>(typeFilter);
 			this.assemblyFilter = FindFunc<Assembly,bool>(assemblyFilter);
@@ -139,6 +144,7 @@ namespace Smidgenomics.Unity.Attributes
 				baseTypes = new []{ baseType };
 			}
 			this.hideIcon = hideIcon;
+			#endif
 		}
 
 		internal bool hideIcon { get; }
@@ -164,6 +170,7 @@ namespace Smidgenomics.Unity.Attributes
 
 		private static Func<T, RT> FindFunc<T, RT>(string path)
 		{
+			#if UNITY_EDITOR
 			if (string.IsNullOrEmpty(path))
 			{
 				return null;
@@ -179,6 +186,10 @@ namespace Smidgenomics.Unity.Attributes
 			var typeName = path.Substring(i + 1);
 			var methodName = path.Substring(0,i);
 			return Type.GetType(typeName)?.GetStaticMethodDelegate<T, RT>(methodName);
+			#else
+			return null;
+			#endif
+			
 		}
 	}
 }

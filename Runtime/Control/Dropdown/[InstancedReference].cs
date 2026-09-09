@@ -5,7 +5,6 @@ namespace Smidgenomics.Unity.Attributes
 	using System;
 	using System.ComponentModel;
 	using System.Reflection;
-	using Editor;
 
 	[Flags]
 	public enum EInstancedReference
@@ -96,6 +95,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System.Collections.Generic;
 	using System.ComponentModel;
 	using UnityEditor.IMGUI.Controls;
+	using UnityEditor.Search;
 
 	[CustomPropertyDrawer(typeof(InstancedReferenceAttribute))]
 	internal sealed class _InstancedReferenceAttribute : __ControlDrawer<InstancedReferenceAttribute>
@@ -132,10 +132,14 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				typeRect = EditorGUI.PrefixLabel(typeRect, l);
 			}
 
+			// var currType = prop.managedReferenceValue?.GetType();
+
 			if (!isUnset && isArray && !_Attribute.flags.HasFlag(EInstancedReference.ArrayReplace))
 			{
 				GUI.Box(typeRect, GUIContent.none, EditorStyles.helpBox);
 				GUI.Box(typeRect, GUIContent.none);
+
+				// var icon = _displayIcon.Item1 ?? SearchUtils.GetTypeIcon(currType);
 				if (_displayIcon.Item1)
 				{
 					var iconRect = typeRect;
@@ -217,6 +221,11 @@ namespace Smidgenomics.Unity.Attributes.Editor
 					var tex = AssetDatabase.LoadAssetAtPath<Texture>(path);
 					_displayIcon = (tex, new Rect(0f,0f,1f,1f), Color.white);
 				}
+
+				if (!_displayIcon.Item1)
+				{
+					_displayIcon = new(SearchUtils.GetTypeIcon(_lastType), new Rect(0f, 0f, 1f, 1f), Color.white);
+				}
 			}
 
 			foreach (var f in _fields)
@@ -245,7 +254,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 			: _typeLabel;
 
 			var st = _displayIcon.Item1 ? _iconPopup : EditorStyles.popup;
-			
+
 			var dropPressed = EditorGUI.DropdownButton(pos, new GUIContent(dLabel), FocusType.Keyboard, st);
 			
 			if (_displayIcon.Item1)
@@ -323,6 +332,10 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				if (dIcon != null && !string.IsNullOrEmpty(dIcon.iconGUID))
 				{
 					icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(dIcon.iconGUID));
+				}
+				if (!icon)
+				{
+					icon = SearchUtils.GetTypeIcon(type);
 				}
 				var path = _Attribute.flags.HasFlag(EInstancedReference.GroupByAssembly)
 				? $"{type.Assembly.GetName().Name}/{_Attribute.labelFn.Invoke(type)}"

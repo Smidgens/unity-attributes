@@ -103,6 +103,7 @@ namespace Smidgenomics.Unity.Attributes.Editor
 	using System.ComponentModel;
 	using System.Reflection;
 	using UnityEditor;
+	using UnityEditor.Search;
 	using UnityEditorInternal;
 	using UnityEngine;
 	using Component = UnityEngine.Component;
@@ -635,6 +636,12 @@ namespace Smidgenomics.Unity.Attributes.Editor
 				{
 					icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssetDatabase.GUIDToAssetPath(dIcon.iconGUID));
 				}
+
+				if (!icon)
+				{
+					icon = SearchUtils.GetTypeIcon(type);
+				}
+				
 				var path = refAttr.flags.HasFlag(EInstancedReference.GroupByAssembly)
 				? $"{type.Assembly.GetName().Name}/{refAttr.labelFn.Invoke(type)}"
 				: refAttr.labelFn.Invoke(type);

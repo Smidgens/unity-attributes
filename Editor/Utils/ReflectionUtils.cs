@@ -1,13 +1,9 @@
 // smidgens @ github
 
-#pragma warning disable 0414
-
 namespace Smidgenomics.Unity.Attributes
 {
 	using System;
-	using System.Collections.Generic;
 	using System.Reflection;
-	using Editor;
 
 	internal static class ReflectionUtils
 	{
@@ -46,43 +42,11 @@ namespace Smidgenomics.Unity.Attributes
 
 		private static (Assembly, Type[])[] _cachedTypes;
 		
-		//
-		private const BindingFlags _BF_INSTANCE
-		= BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-		
 		private const BindingFlags _BF_STATIC =
 		BindingFlags.Public
 		| BindingFlags.NonPublic
 		| BindingFlags.Static;
 		
-		public static (Assembly, Type[])[] GetAllAssemblyTypes()
-		{
-			if(_cachedTypes == null)
-			{
-				List<(Assembly, Type[])> filteredAssemblies = new();
-
-				foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
-				{
-					if (!a.IsUserRelevant())
-					{
-						continue;
-					}
-					var types = a.GetTypes();
-					if (types.Length == 0)
-					{
-						continue;
-					}
-					filteredAssemblies.Add((a, types));
-				}
-				_cachedTypes = new (Assembly, Type[])[filteredAssemblies.Count];
-
-				for (var i = 0; i < filteredAssemblies.Count; i++)
-				{
-					_cachedTypes[i] = (filteredAssemblies[i].Item1, filteredAssemblies[i].Item2);
-				}
-			}
-			return _cachedTypes;
-		}
-		
 	}
 }
+
