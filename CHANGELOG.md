@@ -1,3 +1,20 @@
+# 0.6.0
+
+## Added
+
+* ProjectRenderLayer attribute.
+* Add InstancedReference flag to configure if types should be grouped by assembly.
+
+## Fixed
+
+* Fix bug in AnimatorParameter.
+* Fix build errors caused by editor code in runtime.
+
+## Changed
+
+* Overhauled Dropdown, InstancedReference, and SearchEnum attributes to use advanced dropdown drawer.
+
+
 
 # 0.5.0
 
