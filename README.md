@@ -1,4 +1,10 @@
+# NOTE
+
+Project has been moved here: https://github.com/Smidgenomics/unity-attributes
+
 <img src="https://raw.githubusercontent.com/Smidgenomics/unity.plugins/master/banners/attributes.png" width="100%"/>
+
+
 
 
 # ℹ️ Features
